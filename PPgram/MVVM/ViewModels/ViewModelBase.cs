@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace PPgram.ViewModels;
+namespace PPgram.MVVM.ViewModels;
 
 public abstract class ViewModelBase : ObservableObject
 {

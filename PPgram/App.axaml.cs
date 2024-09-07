@@ -3,8 +3,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using PPgram.ViewModels;
-using PPgram.Views;
+using PPgram.MVVM.ViewModels;
+using PPgram.MVVM.Views;
 
 namespace PPgram;
 
@@ -14,13 +14,10 @@ public partial class App : Application
     {
         AvaloniaXamlLoader.Load(this);
     }
-
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Line below is needed to remove Avalonia data validation.
-            // Without this line you will get duplicate validations from both Avalonia and CT
             BindingPlugins.DataValidators.RemoveAt(0);
             desktop.MainWindow = new MainWindow
             {
@@ -34,7 +31,6 @@ public partial class App : Application
                 DataContext = new MainViewModel()
             };
         }
-
         base.OnFrameworkInitializationCompleted();
     }
 }

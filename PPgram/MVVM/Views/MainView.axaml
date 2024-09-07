@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="PPgram.MVVM.Views.MainView"
+             x:DataType="vm:MainViewModel"
+			 Background="#202020">
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+	<Grid>
+		<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}"/>
+		<Border HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="MainView"/>
+		</Border>
+	</Grid>
+</UserControl>
