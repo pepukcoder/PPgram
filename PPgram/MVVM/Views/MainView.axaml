@@ -13,9 +13,8 @@
     </Design.DataContext>
 
 	<Grid>
-		<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}"/>
-		<Border HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="MainView"/>
-		</Border>
+		<Viewbox Stretch="Uniform" StretchDirection="Both">
+			<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}"/>
+		</Viewbox>
 	</Grid>
 </UserControl>

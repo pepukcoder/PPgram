@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:PPgram.MVVM.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="PPgram.MVVM.Views.MainWindow"
+        x:Class="PPgram.MainWindow"
         Icon="/Assets/icon.ico"
         Title="PPgram">
         <views:MainView/>

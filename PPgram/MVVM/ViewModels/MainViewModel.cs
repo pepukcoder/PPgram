@@ -1,4 +1,6 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PPgram.MVVM.ViewModels;
 

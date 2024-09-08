@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace PPgram.MVVM.Views;
+namespace PPgram;
 
 public partial class MainWindow : Window
 {
