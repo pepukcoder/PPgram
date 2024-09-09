@@ -1,0 +1,85 @@
+use std::net::{TcpListener, TcpStream};
+
+use crate::{api::{self, api::{create_session, send_auth}}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::ThemeToggler};
+use leptos::*;
+use leptos_meta::*;
+use leptos_router::*;
+use leptos_use::on_click_outside;
+use serde_json::json;
+use wasm_bindgen::{prelude::{wasm_bindgen, Closure}, JsCast};
+use super::theme::ThemeProvider;
+
+#[component]
+pub fn App() -> impl IntoView {
+    // Provides context that manages stylesheets, titles, meta tags, etc.
+    provide_meta_context();
+
+    view! {
+        // injects a stylesheet into the document <head>
+        // id=leptos means cargo-leptos will hot-reload this stylesheet
+        <Stylesheet id="leptos" href="/pkg/ppgram-web.css"/>
+
+        // sets the document title
+        <Title text="Welcome to Leptos"/>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+        // content for this welcome page
+        <Router fallback=|| {
+            let mut outside_errors = Errors::default();
+            outside_errors.insert_with_default_key(AppError::NotFound);
+            view! {
+                <ErrorTemplate outside_errors/>
+            }
+            .into_view()
+        }>
+            <main class="scroll-smooth">
+                <ThemeProvider>
+                    <Routes>
+                        <Route path="" view=HomePage/>
+                    </Routes>
+                </ThemeProvider>
+            </main>
+        </Router>
+    }
+}
+
+/// Renders the home page of your application.
+#[component]
+fn HomePage() -> impl IntoView {
+    let session_id = create_local_resource(|| (), |_| async move { create_session().await.unwrap() });
+    provide_context(session_id);
+    
+    // TODO: Remove this shitcode
+    // Closing connection when user leaves(or reloads) website
+    create_effect(move |_| {
+        let callback = Closure::wrap(Box::new(move || {
+            use crate::api::api::drop_session;
+            let uuid = session_id.get().unwrap();
+            spawn_local(async move {
+                drop_session(uuid).await.unwrap();
+            });
+        }) as Box<dyn FnMut()>);
+    
+        // TODO: Remove this shitcode
+
+        // Works only when user leaves website
+        window().add_event_listener_with_callback("beforeunload", callback.as_ref().unchecked_ref()).ok();
+        // Works only when user reloads
+        window().add_event_listener_with_callback("unload", callback.as_ref().unchecked_ref()).ok();
+        // Combining methods to get needed result
+
+        callback.forget();
+    });
+
+    view! {
+        <div class="flex h-screen text-black bg-white dark:text-white dark:bg-slate-900">
+            <div class="flex flex-row w-full">
+                {Bar()}
+                <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
+                {Chat()}
+            </div>
+        </div>
+    }
+}
