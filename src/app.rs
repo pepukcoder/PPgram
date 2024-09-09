@@ -14,18 +14,20 @@ pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
+    {
+        use leptos_use::use_favicon;
+        let (_, set_favicon) = use_favicon();
+        set_favicon.set(Some("favicon.ico".into()));
+    }
+
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/ppgram-web.css"/>
 
-        // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="PPgram Web"/>
 
         <link rel="preconnect" href="https://fonts.googleapis.com"/>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
-        // content for this welcome page
         <Router fallback=|| {
             let mut outside_errors = Errors::default();
             outside_errors.insert_with_default_key(AppError::NotFound);
@@ -74,8 +76,11 @@ fn HomePage() -> impl IntoView {
     });
 
     view! {
-        <div class="flex h-screen text-black bg-white dark:text-white dark:bg-slate-900">
-            <div class="flex flex-row w-full">
+        <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
+            <div class="absolute inset-0 z-0">
+                <div class="blob-gradient"></div>
+            </div>
+            <div class="flex flex-row w-full z-10">
                 {Bar()}
                 <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
                 {Chat()}

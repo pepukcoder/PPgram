@@ -60,14 +60,14 @@ pub fn Chat() -> impl IntoView {
                 <div class="h-full overflow-auto">
                 </div>
 
-                <div class="relative w-full left-300 bottom-0">
+                <div class="relative w-fullleft-300 bottom-0">
                     <hr class="border-gray-600 opacity-25 dark:border-gray-600"/>
-                    <div class="max-h-[50px] flex flex-row items-center px-2 backdrop-blur-lg bg-opacity-50">
-                        <div class="flex flex-col w-full m-2">
-                            <input type="text" placeholder="Write a message..." 
-                                class="w-full px-4 py-2 bg-white/70 dark:bg-gray-700/70 text-black dark:text-white 
-                                    rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 
-                                    focus:ring-opacity-50"/>
+                    <div class="flex flex-row  min-h-[75px] items-center px-2 backdrop-blur-lg bg-opacity-50">
+                        <div class="flex flex-col w-full my-4">
+                            <input 
+                                rows="1" type="text" placeholder="Your message" 
+                                class="w-full transition-theme px-6 py-3 bg-white/70 dark:bg-gray-700/70 text-black dark:text-white 
+                                rounded-xl shadow-2xl focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50"/>
                         </div>
                     </div>
                 </div>
