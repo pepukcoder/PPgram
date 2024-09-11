@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Clone, PartialEq, PartialOrd)]
 pub enum Theme {
     Dark,
@@ -44,4 +46,10 @@ impl leptos::IntoView for Theme {
     fn into_view(self) -> leptos::View {
         self.to_string().into_view()
     }
+}
+
+#[derive(Clone,Serialize, Deserialize)]
+pub struct AuthCredentials {
+    pub user_id: i32,
+    pub session_id: String
 }

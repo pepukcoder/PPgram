@@ -5,6 +5,7 @@ pub mod types;
 pub mod bar;
 pub mod api;
 pub mod chat;
+pub mod auth;
 #[cfg(feature = "ssr")]
 pub mod fileserv;
 

@@ -25,7 +25,8 @@ impl MessageBuilder {
         }
     }
 
-    pub fn build_from_vec(message: &[u8]) -> Self {
+    pub fn build_from_bytes(message: impl Iterator<Item = u8>) -> Self {
+        let message = message.collect::<Vec<u8>>();
         let size = message.len() as u32;
 
         Self {

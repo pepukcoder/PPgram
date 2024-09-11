@@ -1,17 +1,24 @@
-use std::{sync::Arc, time::{Duration, Instant}};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
+use leptos::logging;
 use serde::Serialize;
 #[cfg(feature = "ssr")]
-use tokio::{time, io::{AsyncReadExt, AsyncWriteExt}, net::tcp::{OwnedReadHalf, OwnedWriteHalf}, sync::Mutex};
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::tcp::{OwnedReadHalf, OwnedWriteHalf},
+    sync::{Mutex, mpsc},
+    time,
+};
 
 use super::{builder::MessageBuilder, handler::MessageHandler};
-
-static TIMEOUT_DURATION: Duration = Duration::new(1000, 0);
 
 #[cfg(feature = "ssr")]
 struct ApiConnection {
     reader: Arc<Mutex<OwnedReadHalf>>,
-    writer: Arc<Mutex<OwnedWriteHalf>>
+    writer: Arc<Mutex<OwnedWriteHalf>>,
 }
 
 #[cfg(feature = "ssr")]
@@ -19,19 +26,56 @@ impl ApiConnection {
     pub async fn new() -> Self {
         use tokio::net::TcpStream;
 
-        let stream = TcpStream::connect("0.0.0.0:8080").await.expect("Failed to create connection");
+        let stream = TcpStream::connect("0.0.0.0:8080")
+            .await
+            .expect("Failed to create connection");
         let (reader, writer) = stream.into_split();
 
         Self {
             reader: Arc::new(Mutex::new(reader)),
-            writer: Arc::new(Mutex::new(writer))
+            writer: Arc::new(Mutex::new(writer)),
         }
     }
 
     pub async fn send_message_json<T: Serialize + Send + 'static>(&self, msg: T) {
         let writer = Arc::clone(&self.writer);
         let mut writer_guard = writer.lock().await;
-        writer_guard.write(&MessageBuilder::build_from_str(serde_json::to_string(&msg).unwrap()).packed()).await.unwrap();
+        writer_guard
+            .write(&MessageBuilder::build_from_str(serde_json::to_string(&msg).unwrap()).packed())
+            .await
+            .unwrap();
+    }
+
+    /// Sends a message and waits for the response.
+    /// 
+    /// It's not guaranteed that the response is on the message you sent 
+    pub async fn send_message_with_response<T: Serialize + Send + 'static>(&self, msg: T) -> Option<serde_json::Value> {
+        self.send_message_json(msg).await;
+        
+        let mut handler_once = MessageHandler::new();
+        let mut reader_guard = self.reader.lock().await;
+        let mut result: Option<serde_json::Value> = None;
+    
+        loop {
+            let mut buffer = [0; 1024];
+    
+            match reader_guard.read(&mut buffer).await {
+                Ok(0) => break, // Connection closed, exit the loop
+                Ok(n) => {
+                    handler_once.handle_segmented_frame(&buffer[0..n], |builder| {
+                        let content = builder.content_utf8().unwrap();
+                        
+                        // Store the result in the `result` variable
+                        result = Some(serde_json::to_value(content).unwrap());
+                    });
+
+                    if result.is_some() {break;}
+                }
+                Err(_) => break, // An error occurred, exit the loop
+            }
+        }
+    
+        result // Return the stored result
     }
 
     pub fn launch_receiver_loop(&self) {
@@ -43,11 +87,17 @@ impl ApiConnection {
 
                 loop {
                     let mut buffer = [0; 1024];
-        
+
                     match reader_guard.read(&mut buffer).await {
                         Ok(0) => break,
                         Ok(n) => {
-                            handler.handle_segmented_frame(&buffer[0..n]);
+                            handler.handle_segmented_frame(&buffer[0..n], 
+                    |builder| {
+                                    let content = builder.content_utf8().unwrap();
+
+                                    logging::log!("{}", content);
+                                }
+                            );
                         }
                         Err(_) => break,
                     }
@@ -57,35 +107,31 @@ impl ApiConnection {
     }
 }
 
-
 #[cfg(feature = "ssr")]
 pub struct ApiSession {
-    connections: Vec<ApiConnection>,
+    connection: ApiConnection,
     last_usage: Instant
 }
 #[cfg(feature = "ssr")]
 impl ApiSession {
     pub async fn new() -> Self {
         Self {
-            connections: vec![ApiConnection::new().await],
-            last_usage: Instant::now(),
+            connection: ApiConnection::new().await,
+            last_usage: Instant::now()
         }
     }
 
-    async fn send_from(&mut self, idx: usize, msg: impl Serialize + Clone + Send + 'static) {
+    pub async fn send(&mut self, msg: impl Serialize + Clone + Send + 'static) {
         self.last_usage = Instant::now();
-        self.connections[idx].send_message_json(msg).await;
+        self.connection.send_message_json(msg).await;
     }
 
-    pub async fn send_from_all(&mut self, msg: impl Serialize + Clone + Send + 'static) {
-        for i in 0..self.connections.len() {
-            self.send_from(i, msg.clone()).await;
-        } 
+    pub async fn send_with_response(&mut self, msg: impl Serialize + Clone + Send + 'static) -> Option<serde_json::Value> {
+        self.last_usage = Instant::now();
+        self.connection.send_message_with_response(msg).await
     }
 
     pub fn read_from_all(&self) {
-        for con in self.connections.iter() {
-            con.launch_receiver_loop();
-        } 
+        // self.connection.launch_receiver_loop();
     }
 }

@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::{api::{self, api::{create_session, send_auth}}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::ThemeToggler};
+use crate::{api::{self, api::create_session}, auth::{use_auth_creds, Auth}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::ThemeToggler, types::AuthCredentials};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -36,10 +36,11 @@ pub fn App() -> impl IntoView {
             }
             .into_view()
         }>
-            <main class="scroll-smooth">
+            <main>
                 <ThemeProvider>
                     <Routes>
                         <Route path="" view=HomePage/>
+                        <Route path="/auth" view=Auth/>
                     </Routes>
                 </ThemeProvider>
             </main>
@@ -50,8 +51,17 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
+    // Connect to the server and provide children session_id
     let session_id = create_local_resource(|| (), |_| async move { create_session().await.unwrap() });
     provide_context(session_id);
+
+    // Check if cookies exist and provide the state to the children
+    {
+        use leptos_use::*;
+        use codee::string::JsonSerdeCodec;
+        let auth: (Signal<Option<AuthCredentials>>, WriteSignal<Option<AuthCredentials>>) = use_cookie::<AuthCredentials, JsonSerdeCodec>("auth_credentials");
+        provide_context(auth);
+    }
     
     // TODO: Remove this shitcode
     // Closing connection when user leaves(or reloads) website
@@ -75,16 +85,27 @@ fn HomePage() -> impl IntoView {
         callback.forget();
     });
 
-    view! {
-        <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
-            <div class="absolute inset-0 z-0">
-                <div class="blob-gradient"></div>
+    let (maybe_auth_creds, _) = use_auth_creds();
+
+    if let Some(creds) = maybe_auth_creds.get() {
+        view! {
+            <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
+                <div class="absolute inset-0 z-0">
+                    <div class="blob-gradient"></div>
+                </div>
+                <div class="flex flex-row w-full z-10">
+                    {Bar()}
+                    <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
+                    {Chat()}
+                </div>
             </div>
-            <div class="flex flex-row w-full z-10">
-                {Bar()}
-                <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
-                {Chat()}
+        }
+    }
+    else {
+        view! {
+            <div>
+                {Auth()}
             </div>
-        </div>
+        }
     }
 }

@@ -15,14 +15,7 @@ impl MessageHandler {
         }
     }
 
-    pub fn try_handle_json(&mut self) {
-        let builder = self.builder.as_mut().unwrap();
-        let content = builder.content_utf8().unwrap();
-
-        logging::log!("{}", content);
-    }
-
-    pub fn handle_segmented_frame(&mut self, buffer: &[u8]) {
+    pub fn handle_segmented_frame(&mut self, buffer: &[u8], handle_func: impl FnOnce(&mut MessageBuilder)) {
         if self.is_first {
             self.builder = MessageBuilder::parse(buffer);
             if let Some(builder) = &self.builder {
@@ -49,8 +42,8 @@ impl MessageHandler {
         }
 
         if do_handle {
-            if let Some(_) = &self.builder {
-                self.try_handle_json();
+            if let Some(builder) = self.builder.as_mut() {
+                handle_func(builder);
             }
     
             if let Some(ref mut message) = self.builder {

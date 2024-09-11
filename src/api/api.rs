@@ -1,18 +1,17 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use leptos::*;
-use serde_json::json;
 use once_cell::sync::Lazy;
+use serde::Deserialize;
+use serde_json::{json, Value};
 
-#[cfg(feature = "ssr")]
-use tokio::sync::Mutex;
 #[cfg(feature = "ssr")]
 use super::connect::ApiSession;
+#[cfg(feature = "ssr")]
+use tokio::sync::Mutex;
 
 #[cfg(feature = "ssr")]
-static SESSIONS: Lazy<Mutex<HashMap<u64, ApiSession>>> = Lazy::new(|| {
-    Mutex::new(HashMap::new())
-});
+static SESSIONS: Lazy<Mutex<HashMap<u64, ApiSession>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 #[server(CreateSession, "/api")]
 pub async fn create_session() -> Result<u64, ServerFnError> {
@@ -31,30 +30,32 @@ pub async fn create_session() -> Result<u64, ServerFnError> {
     Ok(id)
 }
 
-#[server(SendAuth, "/api")]
-pub async fn send_auth(session_id: u64) -> Result<Option<()>, ServerFnError> {
-    let mut sessions = SESSIONS.lock().await;
-    
-    if let Some(session) = sessions.get_mut(&session_id) {
-        session.send_from_all(json!({
-            "method": "register",
-            "name": "Pavlo",
-            "username": "@fklsdjfkls",
-            "password_hash": "asd"
-        })).await;
-    } else {
-        return Ok(None)
-    }
-
-    Ok(Some(()))
-}
-
 #[server(DropSession, "/api")]
 pub async fn drop_session(session_id: u64) -> Result<(), ServerFnError> {
     {
         let mut sessions = SESSIONS.lock().await;
         sessions.remove(&session_id);
     }
-    
+
     Ok(())
+}
+
+#[server(SendRegister, "/api")]
+pub async fn send_register(session_id: u64, name: String, username: String, password: String) -> Result<Value, ServerFnError> {
+    let mut sessions = SESSIONS.lock().await;
+
+    if let Some(session) = sessions.get_mut(&session_id) {
+        let res = session
+            .send_with_response(json!({
+                "method": "register",
+                "name": name,
+                "username": username,
+                "password_hash": password
+            }))
+            .await.unwrap();
+
+        return Ok(res);
+    } else {
+        return Err(ServerFnError::ServerError("Failed to get session by the passed session_id!".to_string()));
+    }
 }
