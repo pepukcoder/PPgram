@@ -87,25 +87,29 @@ fn HomePage() -> impl IntoView {
 
     let (maybe_auth_creds, _) = use_auth_creds();
 
-    if let Some(creds) = maybe_auth_creds.get() {
-        view! {
-            <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
-                <div class="absolute inset-0 z-0">
-                    <div class="blob-gradient"></div>
-                </div>
-                <div class="flex flex-row w-full z-10">
-                    {Bar()}
-                    <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
-                    {Chat()}
-                </div>
-            </div>
-        }
-    }
-    else {
-        view! {
-            <div>
-                {Auth()}
-            </div>
-        }
+    view! {
+        {move || {
+            if let Some(creds) = maybe_auth_creds.get() {
+                view! {
+                    <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
+                        <div class="absolute inset-0 z-0">
+                            <div class="blob-gradient"></div>
+                        </div>
+                        <div class="flex flex-row w-full z-10">
+                            {Bar()}
+                            <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
+                            {Chat()}
+                        </div>
+                    </div>
+                }
+            }
+            else {
+                view! {
+                    <div>
+                        {Auth()}
+                    </div>
+                }
+            }
+        }}
     }
 }

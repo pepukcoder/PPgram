@@ -41,7 +41,12 @@ pub async fn drop_session(session_id: u64) -> Result<(), ServerFnError> {
 }
 
 #[server(SendRegister, "/api")]
-pub async fn send_register(session_id: u64, name: String, username: String, password: String) -> Result<Value, ServerFnError> {
+pub async fn send_register(
+    session_id: u64,
+    name: String,
+    username: String,
+    password: String,
+) -> Result<Value, ServerFnError> {
     let mut sessions = SESSIONS.lock().await;
 
     if let Some(session) = sessions.get_mut(&session_id) {
@@ -52,10 +57,13 @@ pub async fn send_register(session_id: u64, name: String, username: String, pass
                 "username": username,
                 "password_hash": password
             }))
-            .await.unwrap();
+            .await
+            .unwrap();
 
         return Ok(res);
     } else {
-        return Err(ServerFnError::ServerError("Failed to get session by the passed session_id!".to_string()));
+        return Err(ServerFnError::ServerError(
+            "Failed to get session by the passed session_id!".to_string(),
+        ));
     }
 }

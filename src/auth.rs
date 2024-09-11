@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use leptos::*;
 
 use crate::{api::api::send_register, theme::ThemeToggler, types::AuthCredentials};
@@ -8,24 +10,49 @@ pub fn use_auth_creds() -> (Signal<Option<AuthCredentials>>, WriteSignal<Option<
 
 #[component]
 pub fn Auth() -> impl IntoView {
+    let (maybe_auth_creds, set_maybe_auth_creds) = use_auth_creds();
+
     let (show_register, set_show_register) = create_signal(false);
 
     let (name, set_name) = create_signal("".to_string());
-    let (username, set_username) = create_signal("@".to_string());
+    let (username, set_username) = create_signal("".to_string());
     let (password, set_password) = create_signal("".to_string());
 
+    let rw_remember_me = create_rw_signal(true);
+
     let session_uuid = use_context::<Resource<(), u64>>().unwrap();
-    
 
     let on_register_submit = move |ev: leptos::ev::SubmitEvent| {
         ev.prevent_default();
 
-        logging::log!("{} {} {}", name.get(), username.get(), password.get());
-
         let session_uuid = session_uuid.get().unwrap();
-        create_resource(|| (), {
-            move |_| async move {
-                send_register(session_uuid, "fdsfs".into(), "fdsfs".into(), "fdsfs".into()).await.unwrap()
+        let name = name.get();
+        let username = username.get();
+        let password = password.get();
+
+        let response = create_local_resource(|| (), {
+            move |_| {
+                let name = name.clone();
+                let username = format!("@{}", username.clone());
+                let password = password.clone();
+                async move {
+                    send_register(session_uuid, name, username, password).await.unwrap()
+                }
+            }
+        });
+
+        create_effect(move |_| {
+            let maybe_response = response.get();
+            if let Some(response) = maybe_response {
+                let remember_me = rw_remember_me.get_untracked();
+                
+                logging::log!("{}", response);
+                let user_id = response.get("user_id").unwrap().as_i64().unwrap();
+                let session_id = response.get("session_id").unwrap().as_str().unwrap();
+
+                if remember_me {
+                    set_maybe_auth_creds(Some(AuthCredentials{user_id: user_id as i32, session_id: session_id.to_string()}))
+                }
             }
         });
     };
@@ -46,12 +73,6 @@ pub fn Auth() -> impl IntoView {
             <div class="absolute z-50 bottom-0 left-0">
                 {ThemeToggler()}
             </div>
-
-            // <Suspense fallback=move || {
-            //     view! {<p>fsdfs</p>}
-            // }>
-            //     {move || {reg_response.unwrap().get().unwrap().to_string()}}
-            // </Suspense>
 
             <div class="transition-theme w-md z-50 p-8 bg-white dark:bg-slate-800 shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 backdrop-blur-lg bg-opacity-75">
                 {
@@ -75,17 +96,20 @@ pub fn Auth() -> impl IntoView {
                                     type="name" id="name" name="name" required
                                         class="transition-theme w-full p-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-sky-500"/>
                                 </div>
-                                <div class="flex items-center mt-1 border border-gray-300 rounded-md dark:bg-slate-700 dark:border-slate-600 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-sky-500">
-                                    <span class="text-xl font-bold pl-2 pb-1 pr-1 pointer-events-none">@</span>
-                                    <input on:input=move |ev| {
-                                            set_username(event_target_value(&ev));
-                                        } 
-                                        type="text" 
-                                        id="username" 
-                                        name="username" 
-                                        required
-                                        class="transition-theme w-full pr-2 pt-2 pb-2 focus:outline-none bg-transparent border-none dark:bg-slate-700 dark:text-white"
-                                    />
+                                <div>
+                                    <label for="name" class="block mt-1 pb-1 text-sm font-medium">Username</label>
+                                    <div class="transition-theme flex items-center border border-gray-300 rounded-md bg-white dark:bg-slate-700 dark:border-slate-600 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-sky-500">
+                                        <span class="text-xl font-bold pl-2 pb-1 pr-1 pointer-events-none">@</span>
+                                        <input on:input=move |ev| {
+                                                set_username(event_target_value(&ev));
+                                            } 
+                                            type="text" 
+                                            id="username" 
+                                            name="username" 
+                                            required
+                                            class="transition-theme w-full pr-2 pt-2 pb-2 rounded-md dark:bg-slate-700 focus:outline-none"
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label for="password" class="block text-sm font-medium">Password</label>
@@ -96,7 +120,7 @@ pub fn Auth() -> impl IntoView {
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <div class="flex items-center mr-3">
-                                        <div class="flex items-center">
+                                        <div on:click=move |_| {rw_remember_me.set(!rw_remember_me.get())}  class="flex items-center">
                                             <input checked id="checked-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
                                             <label for="checked-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Remember me</label>
                                         </div>

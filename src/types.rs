@@ -48,7 +48,7 @@ impl leptos::IntoView for Theme {
     }
 }
 
-#[derive(Clone,Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AuthCredentials {
     pub user_id: i32,
     pub session_id: String
