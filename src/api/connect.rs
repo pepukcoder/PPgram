@@ -64,9 +64,8 @@ impl ApiConnection {
                 Ok(n) => {
                     handler_once.handle_segmented_frame(&buffer[0..n], |builder| {
                         let content = builder.content_utf8().unwrap();
-                        
                         // Store the result in the `result` variable
-                        result = Some(serde_json::to_value(content).unwrap());
+                        result = Some(serde_json::from_str(content).unwrap());
                     });
 
                     if result.is_some() {break;}

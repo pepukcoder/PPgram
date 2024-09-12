@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
+use crate::api::types::auth::RegisterResponse;
+
 #[derive(Clone, PartialEq, PartialOrd)]
 pub enum Theme {
     Dark,
@@ -48,8 +50,14 @@ impl leptos::IntoView for Theme {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthCredentials {
     pub user_id: i32,
     pub session_id: String
+}
+
+impl From<RegisterResponse> for AuthCredentials {
+    fn from(value: RegisterResponse) -> Self {
+        Self {user_id: value.user_id, session_id: value.session_id}
+    }
 }

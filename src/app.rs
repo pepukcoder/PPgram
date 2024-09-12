@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::{api::{self, api::create_session}, auth::{use_auth_creds, Auth}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::ThemeToggler, types::AuthCredentials};
+use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_auth_creds, Auth}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::ThemeToggler, types::AuthCredentials};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -52,14 +52,35 @@ pub fn App() -> impl IntoView {
 #[component]
 fn HomePage() -> impl IntoView {
     // Connect to the server and provide children session_id
-    let session_id = create_local_resource(|| (), |_| async move { create_session().await.unwrap() });
+    let session_id = create_resource(|| (), |_| async move { create_session().await.unwrap() });
     provide_context(session_id);
 
     // Check if cookies exist and provide the state to the children
+    let rw_is_auth = create_rw_signal(false);
     {
         use leptos_use::*;
         use codee::string::JsonSerdeCodec;
         let auth: (Signal<Option<AuthCredentials>>, WriteSignal<Option<AuthCredentials>>) = use_cookie::<AuthCredentials, JsonSerdeCodec>("auth_credentials");
+        
+        create_effect(move |_| {
+            let session_id = session_id.get();
+            let is_auth = rw_is_auth.get();
+            if let Some(creds) = auth.0.get() {
+                if let Some(session_id) = session_id {
+                    if !is_auth {
+                        spawn_local(async move {
+                            let val = send_auth(session_id, creds).await;
+                        
+                            logging::log!("{:?}", val);
+    
+                            rw_is_auth.set(val.unwrap());
+                        });
+                    }
+                }
+            }
+        });
+
+        provide_context(rw_is_auth);
         provide_context(auth);
     }
     
@@ -85,20 +106,21 @@ fn HomePage() -> impl IntoView {
         callback.forget();
     });
 
-    let (maybe_auth_creds, _) = use_auth_creds();
+    let (maybe_auth_creds, set_maybe_auth_creds) = use_auth_creds();
 
     view! {
         {move || {
             if let Some(creds) = maybe_auth_creds.get() {
+                logging::log!("{:?}", creds);
                 view! {
                     <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
                         <div class="absolute inset-0 z-0">
                             <div class="blob-gradient"></div>
                         </div>
                         <div class="flex flex-row w-full z-10">
-                            {Bar()}
+                            <Bar rw_is_auth set_maybe_auth_creds/>
                             <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
-                            {Chat()}
+                            <Chat />
                         </div>
                     </div>
                 }

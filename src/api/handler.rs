@@ -19,7 +19,7 @@ impl MessageHandler {
         if self.is_first {
             self.builder = MessageBuilder::parse(buffer);
             if let Some(builder) = &self.builder {
-                logging::log!("Got the message! \n Message size: {}", builder.size());
+                logging::log!("Got the message! \n Message size: {}, {}", builder.size(), String::from_utf8_lossy(builder.content_bytes()));
             }
             self.is_first = false;
 
