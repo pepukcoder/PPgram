@@ -15,13 +15,13 @@ pub(crate) struct FetchChatsResponse {
     pub data: Option<Vec<FetchChatsDetails>>
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LastMessageData {
     pub name: String,
     pub message: String
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ChatView {
     pub name: String,
     pub chat_id: i32,

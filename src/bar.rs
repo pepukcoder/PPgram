@@ -27,7 +27,7 @@ fn chat_view(title: &String, last_message: &String, last_message_sender: &String
             <button on:click=move |_| {
                 logging::log!("Huy")
             }
-            class="flex items-center p-2 space-x-3 hover:bg-gray-100 dark:hover:bg-slate-800 justify-start">
+            class="fade-in transition-all duration-300 ease-in-out flex items-center p-2 space-x-3 hover:bg-gray-100 dark:hover:bg-slate-800 justify-start">
                 <img class="w-12 h-12" src="default_avatar.png"/>
                 <div>
                     <h1 class="text-xl text-left font-extrabold">{title}</h1>
@@ -125,17 +125,22 @@ pub fn Bar() -> impl IntoView {
                     {
                         move || {
                             match fetched_chats.get() {
-                                Some(fetched) => view! {
-                                    <div>
-                                    // (0..50).map(|i| {
-                                    //     chat_view(&"Pepuk Chmonya".into(), &"Ооо владимир владимирович да... О да В.В.".into(), &"Pepuk:".into())
-                                    // }).collect::<Vec<_>>()
-                                    {
-                                        fetched.iter().map(|chat| {
-                                            chat_view(&chat.name, &chat.last_message.as_ref().unwrap().message, &chat.last_message.as_ref().unwrap().name)
-                                        }).collect::<Vec<_>>()
+                                Some(fetched) => {
+                                    if !fetched.is_empty() {
+                                        view! {
+                                            <div>
+                                                {fetched.iter().map(|chat| {
+                                                    chat_view(&chat.name, &chat.last_message.as_ref().unwrap().message, &chat.last_message.as_ref().unwrap().name)
+                                                }).collect::<Vec<_>>()}
+                                            </div>
+                                        }
+                                    } else {
+                                        view! {
+                                            <div class="flex justify-center iterms-center">
+                                                <h1 class="text-md font-bold">"No chats yet."</h1>
+                                            </div>
+                                        }
                                     }
-                                    </div>
                                 },
                                 None => view! {
                                     <div class="flex flex-col h-screen p-4 space-y-4 overflow-auto">
