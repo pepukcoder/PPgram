@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Design.PreviewWith>
+		<Border Padding="10" Background="#000000">
+			<StackPanel Orientation="Vertical">
+				<StackPanel Orientation="Horizontal" Margin="0,5">
+					<Border Background="{StaticResource BackgroundWindow}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+					<Border Background="{StaticResource Surface}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+					<Border Background="{StaticResource Panel}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="0,5">
+					<Border Background="{StaticResource PPgramAccent}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+					<Border Background="{StaticResource PPgramAccentLight}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="0,5">
+					<Border Background="{StaticResource PrimaryText}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+					<Border Background="{StaticResource SecondaryText}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+	</Design.PreviewWith>
+	
+	
+	<SolidColorBrush x:Key="BackgroundWindow">#121212</SolidColorBrush>
+	<SolidColorBrush x:Key="Surface">#1e2021</SolidColorBrush>
+	<SolidColorBrush x:Key="Panel">#353637</SolidColorBrush>
+	<SolidColorBrush x:Key="PanelAccent">#727273</SolidColorBrush>
+	
+	<SolidColorBrush x:Key="PPgramAccent">#3f86e7</SolidColorBrush>
+	<SolidColorBrush x:Key="PPgramAccentLight">#4B8EE9</SolidColorBrush>
+	
+	<SolidColorBrush x:Key="PrimaryText">#ffffff</SolidColorBrush>
+	<SolidColorBrush x:Key="SecondaryText">#727273</SolidColorBrush>
+	<SolidColorBrush x:Key="Selection">#868687</SolidColorBrush>
+	
+	
+</ResourceDictionary>

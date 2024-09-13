@@ -21,10 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Styles\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <UpToDateCheckInput Remove="MVVM\Views\RegView.axaml" />
   </ItemGroup>
 </Project>

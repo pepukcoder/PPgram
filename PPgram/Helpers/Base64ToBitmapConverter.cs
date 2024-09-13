@@ -12,12 +12,8 @@ internal class Base64ToBitmapConverter
         try
         {
             byte[] imageBytes = Convert.FromBase64String(base64String);
-            Bitmap bitmapImage;
-            using (MemoryStream ms = new(imageBytes))
-            {
-                bitmapImage = new Bitmap(ms);
-            }
-            return bitmapImage;
+            using MemoryStream ms = new(imageBytes);
+            return new Bitmap(ms);
         }
         catch 
         {

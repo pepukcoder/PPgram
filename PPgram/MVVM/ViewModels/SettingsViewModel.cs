@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
 
-internal class SettingsViewModel : ViewModelBase
+class SettingsViewModel : ViewModelBase
 {
 
 }

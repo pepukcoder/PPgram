@@ -2,18 +2,18 @@
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
-using PPgram.MVVM.ViewModels;
+using PPgram.MVVM.Views;
+using System.Diagnostics;
 
 namespace PPgram.MVVM.ViewModels;
 
-public partial class MainViewModel : ViewModelBase
+partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private UserControl _currentPage;
-
+    private ViewModelBase _currentPage;
 
     public MainViewModel() 
     {
-
+        CurrentPage = new RegViewModel();
     }
 }

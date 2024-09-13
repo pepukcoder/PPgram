@@ -2,11 +2,62 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels;assembly=PPgram"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.MVVM.Views.ChatView"
-			 x:DataType="vm:ChatViewModel">
+			 x:DataType="vm:ChatViewModel"
+			 FontFamily="Montserrat Alternates"
+			 Background="{StaticResource BackgroundWindow}">
 	<Design.DataContext>
 		<vm:ChatViewModel/>
 	</Design.DataContext>
+	
+	<Grid ColumnDefinitions="Auto,*,Auto">
+		<Border Grid.Column="0" Background="{StaticResource Surface}" Margin="5,5,0,5" CornerRadius="20">
+			<Grid RowDefinitions="Auto,*">
+				<StackPanel Orientation="Vertical" Margin="5,5,5,0" Width="200">
+					<Border Height="35" Background="#404040" CornerRadius="20">
+						<DockPanel>
+							<icons:MaterialIcon Kind="Search" VerticalAlignment="Center" Height="24" Width="24" Margin="5,0" Foreground="{StaticResource SecondaryText}"/>
+							<TextBox Theme="{StaticResource InputBox}" FontFamily="Cascadia Mono" FontSize="14"/>
+						</DockPanel>
+					</Border>
+				</StackPanel>
+			</Grid>
+		</Border>
+
+
+		
+		<Border Grid.Column="1" Background="{StaticResource Surface}" CornerRadius="20" Margin="5">
+			<Grid RowDefinitions="Auto,*,Auto">
+				<DockPanel Margin="5,5,5,0">
+					<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+						<Ellipse Height="40" Width="40" VerticalAlignment="Center" Margin="0,0,5,0">
+							<Ellipse.Fill>
+								<ImageBrush Source="/Assets/default_avatar.png"/>
+							</Ellipse.Fill>
+						</Ellipse>
+						<StackPanel Orientation="Vertical">
+							<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
+							<TextBlock Text="@pavlogay" FontFamily="Cascadia Mono" Foreground="{StaticResource SecondaryText}" FontSize="14"/>
+						</StackPanel>
+					</StackPanel>
+					<icons:MaterialIcon Kind="DotsVertical" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
+					<icons:MaterialIcon Kind="Search" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
+				</DockPanel>
+			</Grid>
+		</Border>
+
+	
+		
+		<Grid Grid.Column="2" RowDefinitions="Auto,Auto" Margin="0,5,5,0">
+			<Border Background="{StaticResource Surface}" Grid.Row="0" Margin="0,0,0,5" CornerRadius="20" Height="300" Width="200">
+				<StackPanel Orientation="Vertical" Margin="5,15,5,0">
+					<TextBlock Text="Group Info" FontSize="16" FontWeight="Medium"/>
+				</StackPanel>
+			</Border>
+			<Border Background="{StaticResource Surface}" Grid.Row="1" Margin="0,0,0,5" CornerRadius="20" Height="50"/>
+		</Grid>
+	</Grid>
 </UserControl>

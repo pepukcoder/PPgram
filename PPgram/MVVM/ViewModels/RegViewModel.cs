@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PPgram.MVVM.ViewModels;
-
-internal class RegViewModel : ViewModelBase
+namespace PPgram.MVVM.ViewModels
 {
+    internal class RegViewModel : ViewModelBase
+    {
+    }
 }

@@ -6,15 +6,15 @@
              xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.MVVM.Views.MainView"
+			 xmlns:views="clr-namespace:PPgram.MVVM.Views"
              x:DataType="vm:MainViewModel"
-			 Background="#202020">
+			 Background="{StaticResource BackgroundWindow}">
     <Design.DataContext>
         <vm:MainViewModel/>
     </Design.DataContext>
-
-	<Grid>
-		<Viewbox Stretch="Uniform" StretchDirection="Both">
+		<Grid>
 			<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}"/>
-		</Viewbox>
-	</Grid>
+			<!--Border Background="#333333" ZIndex="1" Width="5" Height="5">
+			</Border-->
+		</Grid>
 </UserControl>

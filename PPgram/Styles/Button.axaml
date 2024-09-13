@@ -1,0 +1,63 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+	<Design.PreviewWith>
+		<Border Padding="20" Background="#000000">
+			<StackPanel Orientation="Vertical">
+			<Button Theme="{StaticResource ButtonRegular}">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="Login" FontWeight="SemiBold"/>
+					<icons:MaterialIcon Kind="Login" Width="20" Height="20" Margin="5,0,0,0"/>
+				</StackPanel>
+			</Button>
+			<Button Margin="0,5" Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Center">
+				<icons:MaterialIcon Kind="Cog" Width="20" Height="20"/>
+			</Button>
+		</StackPanel>
+		</Border>
+	</Design.PreviewWith>
+
+	<ControlTheme x:Key="ButtonRegular" TargetType="Button">
+		<Setter Property="Background" Value="{StaticResource PPgramAccent}"/>
+		<Setter Property="Foreground" Value="White"/>
+		<Setter Property="Padding" Value="8"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="FontFamily" Value="Montserrat Alternate}"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border CornerRadius="10" Background="{TemplateBinding Background}" Padding="8">
+					<ContentPresenter Content="{TemplateBinding Content}"/>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^:pointerover">
+			<Setter Property="Background" Value="{StaticResource PPgramAccentLight}"/>
+		</Style>
+	</ControlTheme>
+
+	<ControlTheme x:Key="ButtonIcon" TargetType="Button">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="#606060"/>
+		<Setter Property="Padding" Value="8"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="BorderBrush" Value="{StaticResource PPgramAccent}"/>
+		<Setter Property="FontFamily" Value="Montserrat Alternate}"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border CornerRadius="5" Background="Transparent">
+					<ContentPresenter Content="{TemplateBinding Content}"/>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^:pointerover">
+			<Setter Property="Foreground" Value="#808080"/>
+		</Style>
+		<Style Selector="^:pressed">
+			<Setter Property="Foreground" Value="#a0a0a0"/>
+		</Style>
+	</ControlTheme>
+</ResourceDictionary>

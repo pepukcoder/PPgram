@@ -8,5 +8,5 @@
         x:Class="PPgram.MainWindow"
         Icon="/Assets/icon.ico"
         Title="PPgram">
-        <views:MainView/>
+	<views:MainView/>
 </Window>
