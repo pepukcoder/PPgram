@@ -44,8 +44,8 @@ html {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #35f0be, #d6389c); /* Change gradient colors as desired */
-    opacity: 0.1;
+    background: linear-gradient(135deg, #35f0be, #228bab); /* Change gradient colors as desired */
+    opacity: 0.15;
     pointer-events: none; /* Prevent interaction with the blob */
 }
 

@@ -2,13 +2,58 @@ use std::fmt::format;
 
 use leptos::*;
 
-use crate::{api::api::{send_login, send_register}, theme::ThemeToggler, types::AuthCredentials};
+use crate::{
+    api::api::{send_auth, send_login, send_register},
+    theme::ThemeToggler,
+    types::AuthCredentials,
+};
 
-pub fn use_auth_creds() -> (
+pub fn use_cookies_auth() -> (
     Signal<Option<AuthCredentials>>,
     WriteSignal<Option<AuthCredentials>>,
 ) {
     use_context().expect("credentials to be defined")
+}
+
+pub fn use_is_authenticated() -> RwSignal<bool> {
+    use_context().expect("rw_is_authenticated to be defined")
+}
+
+#[component]
+pub fn AuthComponent(children: Children) -> impl IntoView {
+    // Check if cookies exist and provide the state to the children
+    let rw_is_authenticated = create_rw_signal(false);
+    use codee::string::JsonSerdeCodec;
+    use leptos_use::*;
+    let opts = UseCookieOptions::default().max_age(360_000_000);
+    let authenticated_cookies =
+        use_cookie_with_options::<AuthCredentials, JsonSerdeCodec>("auth_credentials", opts);
+
+    let session_id = use_context::<Resource<(), u64>>().expect("session_id to be defined");
+
+    create_effect(move |_| {
+        let is_auth = rw_is_authenticated.get();
+        let creds = authenticated_cookies.0.get();
+        let session_id = session_id.get();
+
+        if let Some(session_id) = session_id {
+            if let Some(creds) = creds {
+                if !is_auth {
+                    spawn_local(async move {
+                        let res = send_auth(session_id, creds).await;
+                        rw_is_authenticated.set(res.unwrap());
+                    });
+                }
+            }
+        }
+    });
+
+    provide_context(rw_is_authenticated);
+    provide_context(authenticated_cookies);
+
+    view! {
+        {children()}
+    }
 }
 
 #[component]
@@ -20,7 +65,7 @@ pub fn Register(
     set_password: WriteSignal<String>,
     rw_remember_me: RwSignal<bool>,
 ) -> impl IntoView {
-    view!{
+    view! {
         <div>
         <button on:click=move |_| {
             set_show_register.set(false)
@@ -133,7 +178,7 @@ pub fn Login(
 
 #[component]
 pub fn Auth() -> impl IntoView {
-    let (_, set_maybe_auth_creds) = use_auth_creds();
+    let (_, set_maybe_auth_creds) = use_cookies_auth();
 
     let (show_register, set_show_register) = create_signal(false);
 
@@ -181,8 +226,8 @@ pub fn Auth() -> impl IntoView {
                             response.session_id
                         );
                         if remember_me {
-                            set_maybe_auth_creds(Some(response.into()));
                             rw_is_auth.set(true);
+                            set_maybe_auth_creds(Some(response.into()));
                         }
                     }
                     Err(err) => {}
@@ -202,11 +247,7 @@ pub fn Auth() -> impl IntoView {
             move |_| {
                 let username = format!("@{}", username.clone());
                 let password = password.clone();
-                async move {
-                    send_login(session_uuid, username, password)
-                        .await
-                        .unwrap()
-                }
+                async move { send_login(session_uuid, username, password).await.unwrap() }
             }
         });
 
@@ -223,8 +264,8 @@ pub fn Auth() -> impl IntoView {
                             response.session_id
                         );
                         if remember_me {
+                            rw_is_auth.set(true);
                             set_maybe_auth_creds(Some(response.into()));
-                            rw_is_auth.set(true)
                         }
                     }
                     Err(err) => {}

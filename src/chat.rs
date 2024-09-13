@@ -33,14 +33,14 @@ fn message_view(from_me: bool, status: Status, text: String, time: String) -> im
     let alignment_class = if from_me { "ml-auto mr-2" } else { "ml-2 mr-auto" };
 
     let bg_class = if from_me {
-        "bg-gradient-to-r from-sky-500/10 to-sky-700/10 dark:text-white"
+        "bg-gradient-to-r from-sky-500/10 to-sky-700/10 bg-no-repeat bg-[length:200%_200%] dark:text-white"
     } else {
-        "bg-white/50 dark:bg-slate-800/25"
+        "bg-white/50 dark:bg-slate-800/25".into()
     };
 
     view! {
-        <div class=format!("w-max z-10 flex p-4 my-3 transition-theme rounded-2xl {} backdrop-blur-lg shadow-lg {}", bg_class, alignment_class)>
-            <p class="text-black dark:text-gray-300 text-sm mr-5">
+        <div class=format!("bg-clip-content w-max z-10 flex transition-theme rounded-2xl {} backdrop-blur-lg shadow-lg {}", bg_class, alignment_class)>
+            <p class="text-black dark:text-gray-300 text-sm pl-2 py-3 mr-5">
                 {text}
             </p>
             <div class="absolute flex flex-row" style="bottom: 2px; right: 6px;">
@@ -104,8 +104,9 @@ pub fn Chat() -> impl IntoView {
                 </div>
 
                 <div class="h-full overflow-auto flex flex-col-reverse backdrop-blur-lg">
-                    {(0..50).map(|i| {
-                        message_view(i % 2 == 0, Status::Sent, "Пепук Пидарасня.".into(), "21:59".into())
+                    {   
+                        (0..50).map(|i| {
+                            message_view(i % 2 == 0, Status::Sent, "Пепук Пидарасня.".into(), "21:59".into())
                     }).collect::<Vec<_>>()}
                 </div>
 

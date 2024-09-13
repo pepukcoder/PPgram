@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_auth_creds, Auth}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::ThemeToggler, types::AuthCredentials};
+use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, Auth, AuthComponent}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::AuthCredentials};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -28,23 +28,33 @@ pub fn App() -> impl IntoView {
         <link rel="preconnect" href="https://fonts.googleapis.com"/>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
-        <Router fallback=|| {
-            let mut outside_errors = Errors::default();
-            outside_errors.insert_with_default_key(AppError::NotFound);
-            view! {
-                <ErrorTemplate outside_errors/>
-            }
-            .into_view()
-        }>
-            <main>
-                <ThemeProvider>
-                    <Routes>
-                        <Route path="" view=HomePage/>
-                        <Route path="/auth" view=Auth/>
-                    </Routes>
-                </ThemeProvider>
-            </main>
-        </Router>
+        
+        <ThemeProvider>
+            <Html lang="en" class=move || {
+                let theme = use_theme();
+                match theme.get() {
+                    Some(theme) => match theme {
+                        crate::types::Theme::Dark => "dark",
+                        crate::types::Theme::Light => "",
+                    },
+                    None => "",
+                }
+            }/>
+
+            <Router fallback=|| {
+                let mut outside_errors = Errors::default();
+                outside_errors.insert_with_default_key(AppError::NotFound);
+                view! {
+                    <ErrorTemplate outside_errors/>
+                }
+                .into_view()
+            }>
+                <Routes>
+                    <Route path="" view=HomePage/>
+                    <Route path="/auth" view=Auth/>
+                </Routes>
+            </Router>
+        </ThemeProvider>
     }
 }
 
@@ -54,35 +64,6 @@ fn HomePage() -> impl IntoView {
     // Connect to the server and provide children session_id
     let session_id = create_resource(|| (), |_| async move { create_session().await.unwrap() });
     provide_context(session_id);
-
-    // Check if cookies exist and provide the state to the children
-    let rw_is_auth = create_rw_signal(false);
-    {
-        use leptos_use::*;
-        use codee::string::JsonSerdeCodec;
-        let auth: (Signal<Option<AuthCredentials>>, WriteSignal<Option<AuthCredentials>>) = use_cookie::<AuthCredentials, JsonSerdeCodec>("auth_credentials");
-        
-        create_effect(move |_| {
-            let session_id = session_id.get();
-            let is_auth = rw_is_auth.get();
-            if let Some(creds) = auth.0.get() {
-                if let Some(session_id) = session_id {
-                    if !is_auth {
-                        spawn_local(async move {
-                            let val = send_auth(session_id, creds).await;
-                        
-                            logging::log!("{:?}", val);
-    
-                            rw_is_auth.set(val.unwrap());
-                        });
-                    }
-                }
-            }
-        });
-
-        provide_context(rw_is_auth);
-        provide_context(auth);
-    }
     
     // TODO: Remove this shitcode
     // Closing connection when user leaves(or reloads) website
@@ -106,32 +87,33 @@ fn HomePage() -> impl IntoView {
         callback.forget();
     });
 
-    let (maybe_auth_creds, set_maybe_auth_creds) = use_auth_creds();
-
     view! {
-        {move || {
-            if let Some(creds) = maybe_auth_creds.get() {
-                logging::log!("{:?}", creds);
-                view! {
-                    <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
-                        <div class="absolute inset-0 z-0">
-                            <div class="blob-gradient"></div>
+        <AuthComponent>
+            {move || {
+                let (maybe_auth_creds, _) = use_cookies_auth();
+                if let Some(creds) = maybe_auth_creds.get() {
+                    logging::log!("{:?}", creds);
+                    view! {
+                        <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
+                            <div class="absolute inset-0 z-0">
+                                <div class="blob-gradient"></div>
+                            </div>
+                            <div class="flex flex-row w-full z-10">
+                                <Bar/>
+                                <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
+                                <Chat />
+                            </div>
                         </div>
-                        <div class="flex flex-row w-full z-10">
-                            <Bar rw_is_auth set_maybe_auth_creds/>
-                            <div style="width: 0.75px;" class="bg-gray-600 dark:bg-gray-600 opacity-25"></div>
-                            <Chat />
+                    }
+                }
+                else {
+                    view! {
+                        <div>
+                            {Auth()}
                         </div>
-                    </div>
+                    }
                 }
-            }
-            else {
-                view! {
-                    <div>
-                        {Auth()}
-                    </div>
-                }
-            }
-        }}
+            }}
+        </AuthComponent>
     }
 }

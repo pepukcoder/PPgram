@@ -1,5 +1,5 @@
-use leptos::*;
 use codee::string::FromToStringCodec;
+use leptos::*;
 
 use crate::types::Theme;
 
@@ -10,15 +10,19 @@ fn update_css_theme(theme: &Theme) {
     match theme {
         Theme::Dark => {
             html_element.class_list().add_1("dark").unwrap();
-        },
+        }
         Theme::Light => {
             html_element.class_list().remove_1("dark").unwrap();
-        },
+        }
     }
 }
 
 pub fn use_theme_setter() -> WriteSignal<Option<Theme>> {
     use_context::<WriteSignal<Option<Theme>>>().expect("there should be a global theme state")
+}
+
+pub fn use_theme() -> Signal<Option<Theme>> {
+    use_context::<Signal<Option<Theme>>>().expect("there should be a global theme state")
 }
 
 #[component]
@@ -56,8 +60,11 @@ pub fn ThemeToggler() -> impl IntoView {
 pub fn ThemeProvider(children: Children) -> impl IntoView {
     use leptos_use::*;
 
-    let (maybe_theme, set_maybe_theme) = use_cookie::<Theme, FromToStringCodec>("theme");
+    let opts = UseCookieOptions::default().max_age(360_000_000);
+    let (maybe_theme, set_maybe_theme) =
+        use_cookie_with_options::<Theme, FromToStringCodec>("theme", opts);
     provide_context(set_maybe_theme);
+    provide_context(maybe_theme);
 
     create_effect(move |_| {
         let maybe_got = maybe_theme.get();
@@ -66,7 +73,7 @@ pub fn ThemeProvider(children: Children) -> impl IntoView {
         }
     });
 
-    view!{
+    view! {
         {children()}
     }
 }
