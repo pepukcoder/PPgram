@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, Auth, AuthComponent}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::AuthCredentials};
+use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, use_is_authenticated, Auth, AuthComponent}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::AuthCredentials};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -90,9 +90,8 @@ fn HomePage() -> impl IntoView {
     view! {
         <AuthComponent>
             {move || {
-                let (maybe_auth_creds, _) = use_cookies_auth();
-                if let Some(creds) = maybe_auth_creds.get() {
-                    logging::log!("{:?}", creds);
+                let is_authenticated = use_is_authenticated().get();
+                if is_authenticated {
                     view! {
                         <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
                             <div class="absolute inset-0 z-0">

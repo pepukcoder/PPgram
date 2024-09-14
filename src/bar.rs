@@ -57,20 +57,22 @@ pub fn Bar() -> impl IntoView {
         let is_auth = rw_is_authenticated.get();
         let fetched_user = fetched_user.get();
         
-        if is_auth && fetched_user.is_none() {
-            let uuid = session_uuid.get();
-            if let Some(uuid) = uuid {
-                spawn_local(async move {
-                    let fetched = fetch_self(uuid).await.unwrap();
-                    match fetched {
-                        Ok(info) => {
-                            set_fetched_user.set(Some(info));
+        if fetched_user.is_none() {
+            if is_auth {
+                let uuid = session_uuid.get();
+                if let Some(uuid) = uuid {
+                    spawn_local(async move {
+                        let fetched = fetch_self(uuid).await.unwrap();
+                        match fetched {
+                            Ok(info) => {
+                                set_fetched_user.set(Some(info));
+                            }
+                            Err(err) => {
+                                logging::log!("{}", err);
+                            }
                         }
-                        Err(err) => {
-                            logging::log!("{}", err);
-                        }
-                    }
-                })
+                    })
+                }
             }
         }
     });

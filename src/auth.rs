@@ -4,8 +4,8 @@ use leptos::*;
 
 use crate::{
     api::api::{send_auth, send_login, send_register},
-    theme::ThemeToggler,
-    types::AuthCredentials,
+    theme::{use_theme, ThemeToggler},
+    types::{AuthCredentials, Theme},
 };
 
 pub fn use_cookies_auth() -> (
@@ -190,7 +190,7 @@ pub fn Auth() -> impl IntoView {
 
     let session_uuid = use_context::<Resource<(), u64>>().unwrap();
 
-    let rw_is_auth = use_context::<RwSignal<bool>>().expect("rw_is_auth to be defined");
+    let rw_is_auth = use_is_authenticated();
 
     let on_register_submit = move |ev: leptos::ev::SubmitEvent| {
         ev.prevent_default();
@@ -225,8 +225,8 @@ pub fn Auth() -> impl IntoView {
                             response.user_id,
                             response.session_id
                         );
+                        rw_is_auth.set(true);
                         if remember_me {
-                            rw_is_auth.set(true);
                             set_maybe_auth_creds(Some(response.into()));
                         }
                     }
@@ -263,8 +263,8 @@ pub fn Auth() -> impl IntoView {
                             response.user_id,
                             response.session_id
                         );
+                        rw_is_auth.set(true);
                         if remember_me {
-                            rw_is_auth.set(true);
                             set_maybe_auth_creds(Some(response.into()));
                         }
                     }
@@ -284,24 +284,39 @@ pub fn Auth() -> impl IntoView {
                     <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-900 dark:border-white"></div>
                 </div>
             }>
-                <div class="fixed inset-0 z-20 backdrop-blur-xl bg-gray-400/50 dark:bg-slate-900/50">
+                <div class="fixed inset-0 z-20 backdrop-blur-xl dark:bg-slate-900/50">
                 </div>
                 <div class="absolute z-50 bottom-0 left-0">
                     {ThemeToggler()}
                 </div>
-                <div class="transition-theme w-md z-50 p-8 bg-white dark:bg-slate-800 shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 backdrop-blur-lg bg-opacity-75">
-                    {
-                        {session_uuid.get();}
-                        move || {if show_register.get() {
-                            view! {
-                                <Register on_register_submit set_show_register set_name set_username set_password rw_remember_me/>
+                <div class="z-50 flex-col justify-center items-center">
+                    <img class="w-24 h-24 mb-5 ml-auto mr-auto" src=move || {
+                        let theme = use_theme().get();
+
+                        match theme {
+                            Some(theme) => {
+                                match theme {
+                                    Theme::Light => {"logo_black.png"},
+                                    Theme::Dark => {"logo.png"}
+                                }
                             }
-                        } else {
-                            view! {
-                                <Login on_login_submit set_show_register set_username set_password rw_remember_me/>
-                            }
-                        }}
-                    }
+                            None => {""}
+                        }
+                    }/>
+                    <div class="transition-theme w-md p-8 bg-white dark:bg-slate-800 shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 backdrop-blur-lg bg-opacity-75">
+                        {
+                            {session_uuid.get();}
+                            move || {if show_register.get() {
+                                view! {
+                                    <Register on_register_submit set_show_register set_name set_username set_password rw_remember_me/>
+                                }
+                            } else {
+                                view! {
+                                    <Login on_login_submit set_show_register set_username set_password rw_remember_me/>
+                                }
+                            }}
+                        }
+                    </div>
                 </div>
             </Suspense>
         </div>
