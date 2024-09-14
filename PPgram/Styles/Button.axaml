@@ -22,7 +22,7 @@
 		<Setter Property="Foreground" Value="White"/>
 		<Setter Property="Padding" Value="8"/>
 		<Setter Property="BorderThickness" Value="0"/>
-		<Setter Property="FontFamily" Value="Montserrat Alternate}"/>
+		<Setter Property="FontFamily" Value="Montserrat"/>
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -35,6 +35,9 @@
 		<Style Selector="^:pointerover">
 			<Setter Property="Background" Value="{StaticResource PPgramAccentLight}"/>
 		</Style>
+		<Style Selector="^:pressed">
+			<Setter Property="Background" Value="{StaticResource PPgramAccentLight}"/>
+		</Style>
 	</ControlTheme>
 
 	<ControlTheme x:Key="ButtonIcon" TargetType="Button">
@@ -43,7 +46,7 @@
 		<Setter Property="Padding" Value="8"/>
 		<Setter Property="BorderThickness" Value="0"/>
 		<Setter Property="BorderBrush" Value="{StaticResource PPgramAccent}"/>
-		<Setter Property="FontFamily" Value="Montserrat Alternate}"/>
+		<Setter Property="FontFamily" Value="Montserrat"/>
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -57,7 +60,7 @@
 			<Setter Property="Foreground" Value="#808080"/>
 		</Style>
 		<Style Selector="^:pressed">
-			<Setter Property="Foreground" Value="#a0a0a0"/>
+			<Setter Property="Foreground" Value="#808080"/>
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>

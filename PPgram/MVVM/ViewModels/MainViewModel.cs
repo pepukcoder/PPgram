@@ -14,6 +14,6 @@ partial class MainViewModel : ViewModelBase
 
     public MainViewModel() 
     {
-        CurrentPage = new RegViewModel();
+        CurrentPage = new LoginViewModel();
     }
 }

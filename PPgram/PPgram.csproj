@@ -9,9 +9,49 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="Fonts\CascadiaMono-Bold.ttf" />
+    <None Remove="Fonts\CascadiaMono-BoldItalic.ttf" />
+    <None Remove="Fonts\CascadiaMono-ExtraLight.ttf" />
+    <None Remove="Fonts\CascadiaMono-ExtraLightItalic.ttf" />
+    <None Remove="Fonts\CascadiaMono-Italic.ttf" />
+    <None Remove="Fonts\CascadiaMono-Light.ttf" />
+    <None Remove="Fonts\CascadiaMono-LightItalic.ttf" />
+    <None Remove="Fonts\CascadiaMono-Regular.ttf" />
+    <None Remove="Fonts\CascadiaMono-SemiBold.ttf" />
+    <None Remove="Fonts\CascadiaMono-SemiBoldItalic.ttf" />
+    <None Remove="Fonts\CascadiaMono-SemiLight.ttf" />
+    <None Remove="Fonts\CascadiaMono-SemiLightItalic.ttf" />
+    <None Remove="Fonts\Montserrat-Black.ttf" />
+    <None Remove="Fonts\Montserrat-BlackItalic.ttf" />
+    <None Remove="Fonts\Montserrat-Bold.ttf" />
+    <None Remove="Fonts\Montserrat-BoldItalic.ttf" />
+    <None Remove="Fonts\Montserrat-ExtraBold.ttf" />
+    <None Remove="Fonts\Montserrat-ExtraBoldItalic.ttf" />
+    <None Remove="Fonts\Montserrat-ExtraLight.ttf" />
+    <None Remove="Fonts\Montserrat-ExtraLightItalic.ttf" />
+    <None Remove="Fonts\Montserrat-Italic.ttf" />
+    <None Remove="Fonts\Montserrat-Light.ttf" />
+    <None Remove="Fonts\Montserrat-LightItalic.ttf" />
+    <None Remove="Fonts\Montserrat-Medium.ttf" />
+    <None Remove="Fonts\Montserrat-MediumItalic.ttf" />
+    <None Remove="Fonts\Montserrat-Regular.ttf" />
+    <None Remove="Fonts\Montserrat-SemiBold.ttf" />
+    <None Remove="Fonts\Montserrat-SemiBoldItalic.ttf" />
+    <None Remove="Fonts\Montserrat-Thin.ttf" />
+    <None Remove="Fonts\Montserrat-ThinItalic.ttf" />
+    <None Remove="Fonts\Montserrat.ttf" />
+    <None Remove="Fonts\MontserratAlternatesBold.ttf" />
+    <None Remove="Fonts\MontserratAlternatesItalic.ttf" />
+    <None Remove="Fonts\MontserratAlternatesLight.ttf" />
+    <None Remove="Fonts\MontserratAlternatesRegular.ttf" />
+    <None Remove="Fonts\MontserratAlternatesSemiBold.ttf" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Svg.Skia" Version="11.1.0.1" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />    
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
@@ -22,5 +62,38 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="MVVM\Views\RegView.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Fonts\CascadiaMono-Bold.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-BoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-ExtraLight.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-ExtraLightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-Italic.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-Light.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-LightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-Regular.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-SemiBold.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-SemiBoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-SemiLight.ttf" />
+    <AvaloniaResource Include="Fonts\CascadiaMono-SemiLightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Black.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-BlackItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Bold.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-BoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-ExtraBold.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-ExtraBoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-ExtraLight.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-ExtraLightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Italic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Light.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-LightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Medium.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-MediumItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Regular.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-SemiBold.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-SemiBoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-Thin.ttf" />
+    <AvaloniaResource Include="Fonts\Montserrat-ThinItalic.ttf" />
   </ItemGroup>
 </Project>
