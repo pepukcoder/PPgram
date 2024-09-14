@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, use_is_authenticated, Auth, AuthComponent}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::AuthCredentials};
+use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, use_is_authenticated, Auth, AuthComponent}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::{AuthCredentials, Theme}};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -91,7 +91,7 @@ fn HomePage() -> impl IntoView {
         <AuthComponent>
             {move || {
                 let is_authenticated = use_is_authenticated().get();
-                if is_authenticated {
+                if let Some(true) = is_authenticated {
                     view! {
                         <div class="flex transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
                             <div class="absolute inset-0 z-0">
@@ -105,10 +105,33 @@ fn HomePage() -> impl IntoView {
                         </div>
                     }
                 }
-                else {
+                else if let Some(false) = is_authenticated {
                     view! {
                         <div>
                             {Auth()}
+                        </div>
+                    }
+                } else {
+                    view! {
+                        <div class="flex justify-center items-center transition-theme h-screen text-black bg-white dark:text-white dark:bg-slate-900">
+                        <div class="absolute inset-0 z-0">
+                            <div class="blob-gradient"></div>
+                        </div>
+                        <div class="flex justify-center items-center w-full h-full">
+                            <img class="animate-pulse w-24 h-24 mb-5 ml-auto mr-auto" src=move || {
+                                let theme = use_theme().get();
+        
+                                match theme {
+                                    Some(theme) => {
+                                        match theme {
+                                            Theme::Light => {"logo_black.png"},
+                                            Theme::Dark => {"logo.png"}
+                                        }
+                                    }
+                                    None => {""}
+                                }
+                            }/>
+                        </div>
                         </div>
                     }
                 }

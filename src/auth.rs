@@ -15,14 +15,14 @@ pub fn use_cookies_auth() -> (
     use_context().expect("credentials to be defined")
 }
 
-pub fn use_is_authenticated() -> RwSignal<bool> {
+pub fn use_is_authenticated() -> RwSignal<Option<bool>> {
     use_context().expect("rw_is_authenticated to be defined")
 }
 
 #[component]
 pub fn AuthComponent(children: Children) -> impl IntoView {
     // Check if cookies exist and provide the state to the children
-    let rw_is_authenticated = create_rw_signal(false);
+    let rw_is_authenticated = create_rw_signal(Option::<bool>::None);
     use codee::string::JsonSerdeCodec;
     use leptos_use::*;
     let opts = UseCookieOptions::default().max_age(360_000_000);
@@ -37,12 +37,14 @@ pub fn AuthComponent(children: Children) -> impl IntoView {
         let session_id = session_id.get();
 
         if let Some(session_id) = session_id {
-            if let Some(creds) = creds {
-                if !is_auth {
+            if is_auth.is_none() {
+                if let Some(creds) = creds {
                     spawn_local(async move {
                         let res = send_auth(session_id, creds).await;
-                        rw_is_authenticated.set(res.unwrap());
+                        rw_is_authenticated.set(Some(res.unwrap()));
                     });
+                } else {
+                    rw_is_authenticated.set(Some(false));
                 }
             }
         }
@@ -225,7 +227,7 @@ pub fn Auth() -> impl IntoView {
                             response.user_id,
                             response.session_id
                         );
-                        rw_is_auth.set(true);
+                        rw_is_auth.set(Some(true));
                         if remember_me {
                             set_maybe_auth_creds(Some(response.into()));
                         }
@@ -263,7 +265,7 @@ pub fn Auth() -> impl IntoView {
                             response.user_id,
                             response.session_id
                         );
-                        rw_is_auth.set(true);
+                        rw_is_auth.set(Some(true));
                         if remember_me {
                             set_maybe_auth_creds(Some(response.into()));
                         }
@@ -284,7 +286,7 @@ pub fn Auth() -> impl IntoView {
                     <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-900 dark:border-white"></div>
                 </div>
             }>
-                <div class="fixed inset-0 z-20 backdrop-blur-xl dark:bg-slate-900/50">
+                <div class="fixed inset-0 z-20 backdrop-blur-xl">
                 </div>
                 <div class="absolute z-50 bottom-0 left-0">
                     {ThemeToggler()}
@@ -303,9 +305,9 @@ pub fn Auth() -> impl IntoView {
                             None => {""}
                         }
                     }/>
-                    <div class="transition-theme w-md p-8 bg-white dark:bg-slate-800 shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 backdrop-blur-lg bg-opacity-75">
+                    <div class="transition-theme w-md p-8 bg-white dark:bg-slate-800/50 shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 backdrop-blur-lg bg-opacity-75">
                         {
-                            {session_uuid.get();}
+                            {session_uuid.get();rw_is_auth.get();}
                             move || {if show_register.get() {
                                 view! {
                                     <Register on_register_submit set_show_register set_name set_username set_password rw_remember_me/>

@@ -58,7 +58,7 @@ pub fn Bar() -> impl IntoView {
         let fetched_user = fetched_user.get();
         
         if fetched_user.is_none() {
-            if is_auth {
+            if let Some(true) = is_auth {
                 let uuid = session_uuid.get();
                 if let Some(uuid) = uuid {
                     spawn_local(async move {
@@ -82,7 +82,7 @@ pub fn Bar() -> impl IntoView {
         let session_id = session_uuid.get();
 
         if let Some(session_id) = session_id {
-            if is_auth {
+            if let Some(true) = is_auth {
                 let chats = create_resource(|| (), move |_| async move {
                     fetch_chats(session_id).await.unwrap()
                 });
@@ -208,7 +208,7 @@ pub fn Bar() -> impl IntoView {
                                     <button on:click=move |_| {
                                         set_cookies_auth(None);
                                         let id = session_uuid.get().unwrap();
-                                        rw_is_authenticated.set(false);
+                                        rw_is_authenticated.set(Some(false));
                                         spawn_local(async move {
                                             reopen_session(id).await.unwrap();
                                         })

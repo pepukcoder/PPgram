@@ -20,7 +20,6 @@ static SESSIONS: Lazy<Mutex<HashMap<u64, ApiSession>>> = Lazy::new(|| Mutex::new
 
 #[server(CreateSession, "/api")]
 pub async fn create_session() -> Result<u64, ServerFnError> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     let session = ApiSession::new().await;
 
     {
@@ -233,6 +232,7 @@ pub async fn fetch_chats(
                                     .unwrap();
                                 let user_info: UserInfo = serde_json::from_value(res).unwrap();
                                 
+                                // Handle media messages by leaving empty
                                 Some(LastMessageData {name: user_info.data.name, message: content.content.clone().unwrap_or("".to_string())})
                             } else {
                                 None
