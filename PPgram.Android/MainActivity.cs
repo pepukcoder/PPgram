@@ -6,10 +6,11 @@ using Avalonia.Android;
 namespace PPgram.Android;
 
 [Activity(
-    Label = "PPgram.Android",
+    Label = "PPgram",
     Theme = "@style/MyTheme.NoActionBar",
-    Icon = "@drawable/icon",
+    Icon = "@drawable/andrlogo",
     MainLauncher = true,
+    ScreenOrientation = ScreenOrientation.Portrait,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {

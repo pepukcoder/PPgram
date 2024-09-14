@@ -22,7 +22,7 @@
 		<Setter Property="Foreground" Value="White"/>
 		<Setter Property="Padding" Value="8"/>
 		<Setter Property="BorderThickness" Value="0"/>
-		<Setter Property="FontFamily" Value="Montserrat"/>
+		<Setter Property="FontFamily" Value="{StaticResource Montserrat}"/>
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -46,7 +46,7 @@
 		<Setter Property="Padding" Value="8"/>
 		<Setter Property="BorderThickness" Value="0"/>
 		<Setter Property="BorderBrush" Value="{StaticResource PPgramAccent}"/>
-		<Setter Property="FontFamily" Value="Montserrat"/>
+		<Setter Property="FontFamily" Value="{StaticResource Montserrat}"/>
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>

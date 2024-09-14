@@ -5,9 +5,9 @@
     <color android:color="@color/splash_background"/>
   </item>
 
-  <item android:drawable="@drawable/icon"
-        android:width="120dp"
-        android:height="120dp"
+  <item android:drawable="@drawable/andrlogo"
+        android:width="150dp"
+        android:height="150dp"
         android:gravity="center" />
 
 </layer-list>
