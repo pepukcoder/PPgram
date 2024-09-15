@@ -32,7 +32,8 @@
 						<TextBox Background="Transparent" BorderThickness="0"
 								 CaretBrush="White" SelectionBrush="{StaticResource Selection}"
 								 FontFamily="{StaticResource Cascadia}" FontWeight="Light"
-								 MaxLength="30" MinWidth="255"/>
+								 MaxLength="30" MinWidth="255"
+								 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
 					</DockPanel>
 				</Border>
 				<TextBlock Text="Password" FontWeight="SemiBold" Margin="0,0,0,5"/>
@@ -43,14 +44,15 @@
 						<TextBox Background="Transparent" BorderThickness="0"
 								 CaretBrush="White" SelectionBrush="{StaticResource Selection}"
 								 FontWeight="Light" MinWidth="255"
-								 PasswordChar="●" MaxLength="28"/>
+								 PasswordChar="●" MaxLength="28"
+								 Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
 					</DockPanel>
 				</Border>
-				<Button Theme="{StaticResource ButtonRegular}" Margin="0,20,0,10">
+				<Button Theme="{StaticResource ButtonRegular}" Command="{Binding TryLoginCommand}" Margin="0,20,0,10">
 					<TextBlock Text="Login" FontWeight="SemiBold"
 							   HorizontalAlignment="Center"/>
 				</Button>
-				<Button Theme="{StaticResource ButtonIcon}">
+				<Button Theme="{StaticResource ButtonIcon}" Command="{Binding ToRegPageCommand}" HorizontalAlignment="Center" >
 					<TextBlock Text="Create a new account" FontWeight="SemiBold"
 							   HorizontalAlignment="Center"/>
 				</Button>

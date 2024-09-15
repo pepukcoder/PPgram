@@ -10,4 +10,14 @@ public partial class RegView : UserControl
     {
         InitializeComponent();
     }
+
+    private void TextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (sender != null)
+        {
+            TextBox tb = (TextBox)sender;
+            tb.Text = tb.Text?.ToLower();
+            tb.SelectionStart = tb.Text?.Length ?? 0;
+        }
+    }
 }
