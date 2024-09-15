@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
-	<uses-permission android:name="android.permission.INTERNET" />
-	<application android:label="PPgram" android:icon="@drawable/Icon" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="com.pepukcoder.ppgram">
+	<application android:label="PPgram" />
 </manifest>
