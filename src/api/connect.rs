@@ -4,7 +4,7 @@ use std::{
 };
 
 use leptos::logging;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "ssr")]
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -13,7 +13,7 @@ use tokio::{
     time,
 };
 
-use super::{builder::MessageBuilder, handler::MessageHandler};
+use super::{builder::MessageBuilder, handler::MessageHandler, types::auth::ErrorResponse};
 
 #[cfg(feature = "ssr")]
 struct ApiConnection {
@@ -125,9 +125,17 @@ impl ApiSession {
         self.connection.send_message_json(msg).await;
     }
 
-    pub async fn send_with_response(&mut self, msg: impl Serialize + Clone + Send + 'static) -> Option<serde_json::Value> {
+    pub async fn send_with_response<T: for<'a> Deserialize<'a>>(&mut self, msg: impl Serialize + Clone + Send + 'static) -> Result<T, ErrorResponse> {
         self.last_usage = Instant::now();
-        self.connection.send_message_with_response(msg).await
+        let value = self.connection.send_message_with_response(msg).await.unwrap();
+
+        match serde_json::from_value::<T>(value.clone()) {
+            Ok(res) => return Ok(res),
+            Err(_) => match serde_json::from_value::<ErrorResponse>(value) {
+                Ok(res) => {return Err(res)},
+                Err(_) => {unimplemented!()}
+            }
+        }
     }
 
     pub fn read_from_all(&self) {

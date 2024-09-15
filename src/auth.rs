@@ -62,10 +62,11 @@ pub fn AuthComponent(children: Children) -> impl IntoView {
 pub fn Register(
     on_register_submit: impl FnMut(leptos::ev::SubmitEvent) + 'static,
     set_show_register: WriteSignal<bool>,
-    set_name: WriteSignal<String>,
-    set_username: WriteSignal<String>,
-    set_password: WriteSignal<String>,
+    rw_name: RwSignal<String>,
+    rw_username: RwSignal<String>,
+    rw_password: RwSignal<String>,
     rw_remember_me: RwSignal<bool>,
+    rw_error: RwSignal<Option<String>>
 ) -> impl IntoView {
     view! {
         <div>
@@ -81,7 +82,7 @@ pub fn Register(
             <div>
                 <label for="name" class="block text-sm font-medium">Name</label>
                 <input on:input=move |ev| {
-                    set_name(event_target_value(&ev));
+                    rw_name.set(event_target_value(&ev));
                 }
                 type="name" id="name" name="name" required
                     class="transition-theme w-full p-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-sky-500"/>
@@ -91,7 +92,7 @@ pub fn Register(
                 <div class="transition-theme flex items-center border border-gray-300 rounded-md bg-white dark:bg-slate-700 dark:border-slate-600 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-sky-500">
                     <span class="text-xl font-bold pl-2 pb-1 pr-1 pointer-events-none">@</span>
                     <input on:input=move |ev| {
-                            set_username(event_target_value(&ev));
+                            rw_username.set(event_target_value(&ev));
                         }
                         type="text"
                         id="username"
@@ -104,7 +105,7 @@ pub fn Register(
             <div>
                 <label for="password" class="block text-sm font-medium">Password</label>
                 <input on:input=move |ev| {
-                    set_password(event_target_value(&ev));
+                    rw_password.set(event_target_value(&ev));
                 } type="password" id="password" name="password" required
                     class="transition-theme w-full p-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-sky-500"/>
             </div>
@@ -116,8 +117,24 @@ pub fn Register(
                     </div>
                 </div>
             </div>
-
+            <p class="text-red-500 truncate">{move || {
+                match rw_error.get() {
+                    Some(error) => error,
+                    None => "".into()
+                }
+            }}</p>
             <button value="Submit" type="submit"
+                disabled={move || {
+                    let name = rw_name.get();
+                    let username = rw_username.get();
+                    let password = rw_password.get();
+
+                    if !username.is_empty() && !password.is_empty() && !name.is_empty() {
+                        false
+                    } else {
+                        true
+                    }
+                }}
                 class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-500">Sign Up</button>
         </form>
         </div>
@@ -128,9 +145,10 @@ pub fn Register(
 pub fn Login(
     on_login_submit: impl FnMut(leptos::ev::SubmitEvent) + 'static,
     set_show_register: WriteSignal<bool>,
-    set_username: WriteSignal<String>,
-    set_password: WriteSignal<String>,
+    rw_username: RwSignal<String>,
+    rw_password: RwSignal<String>,
     rw_remember_me: RwSignal<bool>,
+    rw_error: RwSignal<Option<String>>
 ) -> impl IntoView {
     view! {
         <div>
@@ -140,21 +158,26 @@ pub fn Login(
                 <label for="username" class="block text-sm font-medium pb-1">Username</label>
                 <div class="transition-theme flex items-center border border-gray-300 rounded-md bg-white dark:bg-slate-700 dark:border-slate-600 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-sky-500">
                     <span class="text-xl font-bold pl-2 pb-1 pr-1 pointer-events-none">@</span>
-                    <input on:input=move |ev| {
-                            set_username(event_target_value(&ev));
+                    <input prop:value=rw_username on:input=move |ev| {
+                            rw_username.set(event_target_value(&ev));
                         }
                         type="text"
                         id="username"
                         name="username"
                         required
-                        class="transition-theme w-full pr-2 pt-2 pb-2 rounded-md dark:bg-slate-700 focus:outline-none"
+                        class={move || {
+                            match rw_error.get() {
+                                Some(_) => "transition-theme w-full pr-2 pt-2 pb-2 border-red-500 rounded-md dark:bg-slate-700 focus:outline-none",
+                                None => "transition-theme w-full pr-2 pt-2 pb-2 rounded-md dark:bg-slate-700 focus:outline-none"
+                            }
+                        }}
                     />
                 </div>
             </div>
             <div>
                 <label for="password" class="block text-sm font-medium">Password</label>
-                <input on:input=move |ev| {
-                    set_password(event_target_value(&ev));
+                <input prop:value=rw_password on:input=move |ev| {
+                    rw_password.set(event_target_value(&ev));
                 } type="password" id="password" name="password" required
                     class="transition-theme w-full p-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-sky-500"/>
             </div>
@@ -170,9 +193,24 @@ pub fn Login(
                 }
                 class="text-sm text-blue-500 hover:underline dark:text-sky-400">{"Don't have an account?"}</button>
             </div>
-
+            <p class="text-red-500 truncate">{move || {
+                match rw_error.get() {
+                    Some(error) => error,
+                    None => "".into()
+                }
+            }}</p>
             <button type="submit"
-                class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-500">Sign In</button>
+                class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-500" 
+                disabled={move || {
+                    let username = rw_username.get();
+                    let password = rw_password.get();
+
+                    if !username.is_empty() && !password.is_empty() {
+                        false
+                    } else {
+                        true
+                    }
+                }}>Sign In</button>
         </form>
         </div>
     }
@@ -184,9 +222,9 @@ pub fn Auth() -> impl IntoView {
 
     let (show_register, set_show_register) = create_signal(false);
 
-    let (name, set_name) = create_signal("".to_string());
-    let (username, set_username) = create_signal("".to_string());
-    let (password, set_password) = create_signal("".to_string());
+    let rw_name = create_rw_signal("".to_string());
+    let rw_username = create_rw_signal("".to_string());
+    let rw_password = create_rw_signal("".to_string());
 
     let rw_remember_me = create_rw_signal(true);
 
@@ -194,13 +232,15 @@ pub fn Auth() -> impl IntoView {
 
     let rw_is_auth = use_is_authenticated();
 
+    let rw_error = create_rw_signal(Option::<String>::None);
+
     let on_register_submit = move |ev: leptos::ev::SubmitEvent| {
         ev.prevent_default();
 
         let session_uuid = session_uuid.get().unwrap();
-        let name = name.get();
-        let username = username.get();
-        let password = password.get();
+        let name = rw_name.get();
+        let username = rw_username.get();
+        let password = rw_password.get();
 
         let response = create_local_resource(|| (), {
             move |_| {
@@ -232,7 +272,9 @@ pub fn Auth() -> impl IntoView {
                             set_maybe_auth_creds(Some(response.into()));
                         }
                     }
-                    Err(err) => {}
+                    Err(err) => {
+                        rw_error.set(Some(err.error));
+                    }
                 };
             }
         });
@@ -242,8 +284,8 @@ pub fn Auth() -> impl IntoView {
         ev.prevent_default();
 
         let session_uuid = session_uuid.get().unwrap();
-        let username = username.get();
-        let password = password.get();
+        let username = rw_username.get();
+        let password = rw_password.get();
 
         let response = create_local_resource(|| (), {
             move |_| {
@@ -270,7 +312,9 @@ pub fn Auth() -> impl IntoView {
                             set_maybe_auth_creds(Some(response.into()));
                         }
                     }
-                    Err(err) => {}
+                    Err(err) => {
+                        rw_error.set(Some(err.error));
+                    }
                 };
             }
         });
@@ -286,7 +330,7 @@ pub fn Auth() -> impl IntoView {
                     <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-900 dark:border-white"></div>
                 </div>
             }>
-                <div class="fixed inset-0 z-20 backdrop-blur-xl">
+                <div class="fixed inset-0 z-20">
                 </div>
                 <div class="absolute z-50 bottom-0 left-0">
                     {ThemeToggler()}
@@ -302,7 +346,7 @@ pub fn Auth() -> impl IntoView {
                                     Theme::Dark => {"logo.png"}
                                 }
                             }
-                            None => {""}
+                            None => {"logo_black.png"}
                         }
                     }/>
                     <div class="transition-theme w-md p-8 bg-white dark:bg-slate-800/50 shadow-2xl rounded-lg border border-gray-200 dark:border-slate-700 backdrop-blur-lg bg-opacity-75">
@@ -310,11 +354,11 @@ pub fn Auth() -> impl IntoView {
                             {session_uuid.get();rw_is_auth.get();}
                             move || {if show_register.get() {
                                 view! {
-                                    <Register on_register_submit set_show_register set_name set_username set_password rw_remember_me/>
+                                    <Register on_register_submit set_show_register rw_name rw_username rw_password rw_remember_me rw_error/>
                                 }
                             } else {
                                 view! {
-                                    <Login on_login_submit set_show_register set_username set_password rw_remember_me/>
+                                    <Login on_login_submit set_show_register rw_username rw_password rw_remember_me rw_error/>
                                 }
                             }}
                         }

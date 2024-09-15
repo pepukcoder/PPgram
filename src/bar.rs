@@ -3,7 +3,7 @@ use std::{borrow::Cow, default};
 use leptos::*;
 use rand::Rng;
 
-use crate::{api::{api::{drop_session, fetch_chats, fetch_self, reopen_session}, types::{auth::UserInfo, chat::ChatView}}, auth::{use_cookies_auth, use_is_authenticated}, theme::ThemeToggler, types::AuthCredentials};
+use crate::{api::{api::{drop_session, fetch_chats, fetch_messages, fetch_self, reopen_session}, types::{auth::UserInfo, chat::{ChatInfo, ChatView, LastMessageInfo}, messages::MessageResponse}}, auth::{use_cookies_auth, use_is_authenticated}, chat::use_current_chat, theme::ThemeToggler, types::AuthCredentials};
 
 fn chat_placeholder() -> impl IntoView {
     let mut rng = rand::thread_rng();
@@ -21,17 +21,63 @@ fn chat_placeholder() -> impl IntoView {
     }
 }
 
-fn chat_view(title: &String, last_message: &String, last_message_sender: &String) -> impl IntoView {
+fn chat_view(session_id: &u64, me: &UserInfo, chat_view: ChatView, is_selected: bool) -> impl IntoView {
+    let rw_current_chat = use_current_chat();
+    let last_message = chat_view.last_message.as_ref();
+    let text = last_message.map(|v| {
+        v.message.content.clone().unwrap_or("".into())
+    }).unwrap_or("".into());
+
+    let sender = last_message.map(|v| {
+        v.sender.data.name.clone()
+    }).unwrap_or("".into());
+
+    let sender_user_id = last_message.map(|v| {
+        v.sender.data.user_id.clone()
+    }).unwrap_or(0);
+
+    let session_id = session_id.clone();
+
+    let is_selected_class = if is_selected {"bg-gray-100/75 dark:bg-slate-800/75"} else {""};
+
     view! {
         <div class="flex flex-col rounded-lg">
-            <button on:click=move |_| {
-                logging::log!("Huy")
-            }
-            class="fade-in transition-all duration-300 ease-in-out flex items-center p-2 space-x-3 hover:bg-gray-100 dark:hover:bg-slate-800 justify-start">
+            <button on:click={
+                let chat_view = chat_view.clone();
+                move |_| {
+                spawn_local({
+                    let chat_view = chat_view.clone();
+                    async move {
+                        let messages = fetch_messages(
+                            session_id, chat_view.chat_id, -1, -100).await;
+        
+                        if let Ok(Some(messages)) = messages {
+                            let chat_info = ChatInfo {
+                                name: chat_view.name,
+                                chat_id: chat_view.chat_id,
+                                photo: chat_view.photo,
+                                username: chat_view.username,
+                                messages: Box::new(messages),
+                            };
+                            
+                            rw_current_chat.set(Some(chat_info));
+                        } else {
+                            logging::log!("{:?}", messages);
+                        }
+                    }
+                });
+            }}
+            class=format!("transition-theme flex items-center p-2 space-x-3 hover:bg-gray-100/50 dark:hover:bg-slate-800/50 justify-start {}", is_selected_class)>
                 <img class="w-12 h-12" src="default_avatar.png"/>
                 <div>
-                    <h1 class="text-xl text-left font-extrabold">{title}</h1>
-                    <p class="text-sm flex justify-start text-gray-600 dark:text-gray-400 truncate w-56"><span class="text-sm font-bold text-gray-500 dark:text-gray-200 mr-1">{last_message_sender}</span> {last_message}</p>
+                    <h1 class="text-xl text-left font-extrabold">{chat_view.clone().name}</h1>
+                    <p class="text-sm flex justify-start text-gray-600 dark:text-gray-400 truncate w-56"><span class="text-sm font-bold text-gray-500 dark:text-gray-200 mr-1">{
+                        if me.data.user_id == sender_user_id {
+                            "Me:".to_string()
+                        } else {
+                            format!("{}:", sender)
+                        }
+                    }</span> {text}</p>
                 </div>
             </button>
         </div>
@@ -39,14 +85,24 @@ fn chat_view(title: &String, last_message: &String, last_message_sender: &String
     }
 }
 
+pub fn use_self_context() -> RwSignal<Option<UserInfo>> {
+    use_context().expect("self context to be defined")
+}
+
+pub fn provide_self_context() {
+    let rw_self_user = create_rw_signal(Option::<UserInfo>::None);
+    provide_context(rw_self_user);
+}
+
 #[component]
 #[allow(unused_braces)]
 pub fn Bar() -> impl IntoView {
+    let rw_current_chat = use_current_chat();
     let session_uuid = use_context::<Resource<(), u64>>().unwrap();
 
     let (show_menu, set_show_menu) = create_signal(false);
 
-    let (fetched_user, set_fetched_user) = create_signal(Option::<UserInfo>::None);
+    let rw_self_user = use_self_context();
 
     let (fetched_chats, set_fetched_chats) = create_signal(Option::<Vec<ChatView>>::None);
 
@@ -55,7 +111,7 @@ pub fn Bar() -> impl IntoView {
     
     create_effect(move |_| {
         let is_auth = rw_is_authenticated.get();
-        let fetched_user = fetched_user.get();
+        let fetched_user = rw_self_user.get();
         
         if fetched_user.is_none() {
             if let Some(true) = is_auth {
@@ -65,10 +121,10 @@ pub fn Bar() -> impl IntoView {
                         let fetched = fetch_self(uuid).await.unwrap();
                         match fetched {
                             Ok(info) => {
-                                set_fetched_user.set(Some(info));
+                                rw_self_user.set(Some(info));
                             }
                             Err(err) => {
-                                logging::log!("{}", err);
+                                logging::error!("{}", err);
                             }
                         }
                     })
@@ -111,12 +167,12 @@ pub fn Bar() -> impl IntoView {
                 </div>
             }>
                 // TODO: remove this fcking placeholder
-                {session_uuid.get();}
+                {session_uuid.get(); rw_self_user.get();}
 
                 <div class="absolute z-10 w-[300px] left-0 top-0">
-                    <div class="w-full min-h-[50px] flex flex-row items-center px-2 backdrop-blur-lg bg-opacity-50">
+                    <div class="w-full min-h-[50px] flex flex-row items-center px-2 backdrop-blur-sm bg-opacity-50">
                         <input type="text" placeholder="Search"
-                        class="w-full transition-theme px-4 py-2 bg-white/70 dark:bg-gray-700/70 text-black dark:text-white
+                        class="w-full transition-theme px-4 py-2 bg-gray-100/70 dark:bg-slate-700/30 text-black dark:text-white
                             rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-sky-500 
                             focus:ring-opacity-50"/>
                     </div>
@@ -129,17 +185,34 @@ pub fn Bar() -> impl IntoView {
                             match fetched_chats.get() {
                                 Some(fetched) => {
                                     if !fetched.is_empty() {
-                                        view! {
-                                            <div>
-                                                {fetched.iter().map(|chat| {
-                                                    chat_view(&chat.name, &chat.last_message.as_ref().unwrap().message, &chat.last_message.as_ref().unwrap().name)
-                                                }).collect::<Vec<_>>()}
-                                            </div>
+                                        let maybe_me = rw_self_user.get();
+                                        let selected_chat = rw_current_chat.get();
+
+                                        if let Some(me) = maybe_me {
+                                            view! {
+                                                <div>
+                                                {
+                                                    let session_id = session_uuid.get().unwrap();
+                                                    let maybe_selected_chat_id = selected_chat.map(|v| v.chat_id);
+
+                                                    fetched.iter().map(|chat| {
+                                                        let is_selected = if let Some(selected_chat_id) = maybe_selected_chat_id {
+                                                            selected_chat_id == chat.chat_id
+                                                        } else {false};
+                                                        chat_view(&session_id, &me, chat.clone(), is_selected)
+                                                    }).collect::<Vec<_>>()
+                                                }
+                                                </div>
+                                            }
+                                        } else {
+                                            view! {
+                                                <div></div>
+                                            }
                                         }
                                     } else {
                                         view! {
-                                            <div class="flex justify-center iterms-center">
-                                                <h1 class="text-md font-bold">"No chats yet."</h1>
+                                            <div class="flex justify-center">
+                                                <h1 class="text-md mt-auto mb-auto">"No chats yet."</h1>
                                             </div>
                                         }
                                     }
@@ -163,13 +236,13 @@ pub fn Bar() -> impl IntoView {
 
                 <div class="absolute w-[300px] bottom-0 left-0">
                     <hr class="border-gray-600 opacity-25 dark:border-gray-600"/>
-                    <div class="w-full flex flex-row items-center px-2 h-[80px] backdrop-blur-lg bg-opacity-50">
+                    <div class="w-full flex flex-row items-center px-2 h-[80px] backdrop-blur-sm bg-opacity-50">
                         <button on:click=move |_| {
                             set_show_menu(!show_menu.get())
                         } class="flex p-2 items-center hover:outline hover:outline-1 rounded-lg hover:outline-sky-500">
                             <div class="flex flex-row items-center">
                                 <img class="w-10 h-10" src="default_avatar.png"/>
-                                {move || match fetched_user.get() {
+                                {move || match rw_self_user.get() {
                                     Some(usr) => view!{<h1 class="text-xl ml-3 font-extrabold">{usr.data.name}</h1>},
                                     None => view!{<h1 class="text-xl ml-3 font-extrabold">
                                         <div class="text-center">

@@ -11,41 +11,12 @@ html {
     overflow-y: scroll;
 }
 
-::-webkit-scrollbar {
-    position: relative;
-    z-index: 50px;
-    width: 2px;
-}
-
-::-webkit-scrollbar-track {
-    position: relative;
-    z-index: 50px;
-    background-color: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    position: relative;
-    z-index: 50px;
-    background-color: #d6dee1;
-    border-radius: 1px;
-    border: 1px solid transparent;
-    background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    position: relative;
-    z-index: 50px;
-    background-color: #a8bbbf;
-}
-
 .blob-gradient {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #35f0be, #228bab); /* Change gradient colors as desired */
-    opacity: 0.15;
     pointer-events: none; /* Prevent interaction with the blob */
 }
 

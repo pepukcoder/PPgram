@@ -28,6 +28,7 @@ lazy_static = "1.5.0"
 once_cell = "1.19.0"
 rand = "0.8.5"
 web-sys = "0.3.70"
+chrono = "0.4.38"
 
 [features]
 hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]

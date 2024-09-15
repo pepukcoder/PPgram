@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Default, Debug)]
 pub struct ErrorResponse {
     ok: bool,
     method: String,
-    error: String
+    pub error: String
 }
 
 impl std::fmt::Display for ErrorResponse {
@@ -22,7 +22,7 @@ pub struct RegisterResponse {
 
 pub type LoginResponse = RegisterResponse;
 
-#[derive(Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct FetchDataResponse {
     pub name: String,
     pub user_id: i32,
@@ -30,7 +30,7 @@ pub struct FetchDataResponse {
     pub photo: Option<String>
 }
 
-#[derive(Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct UserInfo {
     ok: bool,
     method: String,

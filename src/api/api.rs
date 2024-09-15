@@ -7,11 +7,9 @@ use serde_json::{from_value, json, Value};
 use tracing::info;
 
 
-use crate::api::types::chat::LastMessageData;
-
 #[cfg(feature = "ssr")]
 use super::connect::ApiSession;
-use super::types::{auth::{ErrorResponse, LoginResponse, RegisterResponse, UserInfo}, chat::{ChatView, FetchChatsResponse}};
+use super::types::{auth::{ErrorResponse, LoginResponse, RegisterResponse, UserInfo}, chat::{ChatView, FetchChatsResponse, LastMessageInfo}, messages::MessageResponse};
 #[cfg(feature = "ssr")]
 use tokio::sync::Mutex;
 
@@ -67,23 +65,14 @@ pub async fn send_register(
     let mut sessions = SESSIONS.lock().await;
 
     if let Some(session) = sessions.get_mut(&session_id) {
-        let res = session
+        return Ok(session
             .send_with_response(json!({
                 "method": "register",
                 "name": name,
                 "username": username,
                 "password_hash": password
             }))
-            .await
-            .unwrap();
-
-        if let Ok(val) = serde_json::from_value::<RegisterResponse>(res.clone()) {
-            return Ok(Ok(val));
-        } else if let Some(err) = serde_json::from_value(res).unwrap() {
-            return Ok(Err(err));
-        } else {
-            return Err(ServerFnError::ServerError("Failed to parse response!".into()))
-        }
+            .await)
     } else {
         return Err(ServerFnError::ServerError(
             "Failed to get session by the passed session_id!".to_string(),
@@ -100,22 +89,15 @@ pub async fn send_login(
     let mut sessions = SESSIONS.lock().await;
 
     if let Some(session) = sessions.get_mut(&session_id) {
-        let res = session
+        return Ok(
+            session
             .send_with_response(json!({
                 "method": "login",
                 "username": username,
                 "password_hash": password
             }))
             .await
-            .unwrap();
-
-        if let Ok(val) = serde_json::from_value::<LoginResponse>(res.clone()) {
-            return Ok(Ok(val));
-        } else if let Some(err) = serde_json::from_value(res).unwrap() {
-            return Ok(Err(err));
-        } else {
-            return Err(ServerFnError::ServerError("Failed to parse response!".into()))
-        }
+        )
     } else {
         return Err(ServerFnError::ServerError(
             "Failed to get session by the passed session_id!".to_string(),
@@ -130,21 +112,12 @@ pub async fn fetch_self(
     let mut sessions = SESSIONS.lock().await;
 
     if let Some(session) = sessions.get_mut(&session_id) {
-        let res = session
+        return Ok(session
             .send_with_response(json!({
                 "method": "fetch",
                 "what": "self",
             }))
-            .await
-            .unwrap();
-
-        if let Ok(val) = serde_json::from_value(res.clone()) {
-            return Ok(Ok(val));
-        } else if let Some(err) = serde_json::from_value(res).unwrap() {
-            return Ok(Err(err));
-        } else {
-            return Err(ServerFnError::ServerError("Failed to parse response!".into()))
-        }
+            .await)
     } else {
         return Err(ServerFnError::ServerError(
             "Failed to get session by the passed session_id!".to_string(),
@@ -161,7 +134,7 @@ pub async fn send_auth(
     let mut sessions = SESSIONS.lock().await;
 
     if let Some(session) = sessions.get_mut(&session_id) {
-        let res = session
+        let res: Value = session
             .send_with_response(json!({
                 "method": "auth",
                 "session_id": creds.session_id,
@@ -190,7 +163,7 @@ pub async fn fetch_chats(
     let mut sessions = SESSIONS.lock().await;
 
     if let Some(session) = sessions.get_mut(&session_id) {
-        let res = session
+        let response: FetchChatsResponse = session
             .send_with_response(json!({
                 "method": "fetch",
                 "what": "chats"
@@ -198,13 +171,11 @@ pub async fn fetch_chats(
             .await
             .unwrap();
 
-        let response: FetchChatsResponse = serde_json::from_value(res).unwrap();
-
         let mut out: Vec<ChatView> = vec![];
         match response.data {
             Some(chats) => {
                 for chat in chats {
-                    let res = session
+                    let response: crate::api::types::messages::FetchMessagesResponse = session
                         .send_with_response(json!({
                             "method": "fetch",
                             "what": "messages",
@@ -213,7 +184,6 @@ pub async fn fetch_chats(
                         }))
                         .await
                         .unwrap();
-                    let response: crate::api::types::messages::FetchMessagesResponse = serde_json::from_value(res).unwrap();
 
                     let view = ChatView {
                         name: chat.name,
@@ -221,19 +191,17 @@ pub async fn fetch_chats(
                         username: chat.username,
                         photo: chat.photo,
                         last_message: if let Some(messages) = response.data {
-                            if let Some(content) = messages.get(0) {
-                                let res = session
+                            if let Some(message) = messages.get(0) {
+                                let user_info: UserInfo = session
                                     .send_with_response(json!({
                                         "method": "fetch",
                                         "what": "user",
-                                        "user_id": content.from_id
+                                        "user_id": message.from_id
                                     }))
                                     .await
                                     .unwrap();
-                                let user_info: UserInfo = serde_json::from_value(res).unwrap();
                                 
-                                // Handle media messages by leaving empty
-                                Some(LastMessageData {name: user_info.data.name, message: content.content.clone().unwrap_or("".to_string())})
+                                Some(LastMessageInfo {sender: user_info, message: message.clone()})
                             } else {
                                 None
                             }
@@ -246,6 +214,31 @@ pub async fn fetch_chats(
         }
 
         return Ok(out);
+    } else {
+        return Err(ServerFnError::ServerError(
+            "Failed to get session by the passed session_id!".to_string(),
+        ));
+    }
+}
+
+#[server(FetchMessages, "/api")]
+pub async fn fetch_messages(
+    session_id: u64,
+    chat_id: i32,
+    from: i32,
+    to: i32
+) -> Result<Option<Vec<MessageResponse>>, ServerFnError> {
+    let mut sessions = SESSIONS.lock().await;
+    
+    if let Some(session) = sessions.get_mut(&session_id) {
+        let res: crate::api::types::messages::FetchMessagesResponse = session.send_with_response(json!({
+            "method": "fetch",
+            "what": "messages",
+            "chat_id": chat_id,
+            "range": [from, to]
+        })).await.unwrap();
+
+        return Ok(res.data);
     } else {
         return Err(ServerFnError::ServerError(
             "Failed to get session by the passed session_id!".to_string(),

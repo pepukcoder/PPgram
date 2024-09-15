@@ -1,4 +1,7 @@
+use chrono::DateTime;
 use leptos::*;
+
+use crate::{api::types::chat::ChatInfo, bar::use_self_context, theme::use_theme, types::Theme};
 
 fn messages_placeholder(right_corner: bool) -> impl IntoView {
     let mut base = "flex items-start space-x-4 w-full".to_string();
@@ -29,7 +32,9 @@ enum Status {
     Read
 }
 
-fn message_view(from_me: bool, status: Status, text: String, time: String) -> impl IntoView {
+fn message_view(from_me: bool, status: Status, text: &String, date: i64) -> impl IntoView {
+    let date = DateTime::from_timestamp(date, 0).unwrap();
+    let time = date.format("%H:%M").to_string();
     let alignment_class = if from_me { "ml-auto mr-2" } else { "ml-2 mr-auto" };
 
     let bg_class = if from_me {
@@ -39,11 +44,13 @@ fn message_view(from_me: bool, status: Status, text: String, time: String) -> im
     };
 
     view! {
-        <div class=format!("bg-clip-content w-max z-10 flex transition-theme rounded-2xl {} backdrop-blur-lg shadow-lg {}", bg_class, alignment_class)>
-            <p class="text-black dark:text-gray-300 text-sm pl-2 py-3 mr-5">
+        <div 
+            style="margin-top: 5px; margin-bottom: 5px; min-width: 75px; max-width: 700px; min-height: 3rem; max-height: 100em;"
+            class=format!("z-10 flex transition-theme rounded-2xl shadow-lg {} {}", bg_class, alignment_class)>
+            <p class="text-black truncate dark:text-gray-300 text-sm pl-2 my-3">
                 {text}
             </p>
-            <div class="absolute flex flex-row" style="bottom: 2px; right: 6px;">
+            <div class="relative flex flex-row mb-0 mt-auto" style="bottom: 2px; right: 6px;">
                 <p class="text-xs text-gray-800 dark:text-gray-400">{time}</p>
                 {if from_me {view!{
                     <div class="ml-1">
@@ -72,9 +79,21 @@ fn message_view(from_me: bool, status: Status, text: String, time: String) -> im
     }
 }
 
+pub fn use_current_chat() -> RwSignal<Option<ChatInfo>> {
+    use_context().expect("current chat context to be defined")
+}
+
+pub fn provide_current_chat() {
+    let rw_current_chat: RwSignal<Option<ChatInfo>> = create_rw_signal(None);
+    provide_context(rw_current_chat);
+}
+
 #[component]
 pub fn Chat() -> impl IntoView {
     let session_uuid = use_context::<Resource<(), u64>>().unwrap();
+
+    let rw_current_chat = use_current_chat();
+    let rw_self_user = use_self_context();
 
     view! {
         <Suspense fallback=move || view! { 
@@ -94,30 +113,130 @@ pub fn Chat() -> impl IntoView {
             {session_uuid.get();}
             <div class="flex w-full flex-col h-full">
                 <div class="relative z-10 w-full left-300 top-0">
-                    <div class="w-full max-h-[50px] flex flex-row items-center px-2 backdrop-blur-lg bg-opacity-50">
+                    <div class="w-full max-h-[50px] flex flex-row items-center px-2">
                         <div class="flex flex-col p-1">
-                            <h1 class="font-extrabold text-md">Pepuk</h1>
-                            <h1 class="text-sm text-gray-400 dark:text-gray-500">Last seen online at 12:59</h1>
+                            {
+                                move || {
+                                    let current_chat = rw_current_chat.get();
+
+                                    match current_chat {
+                                        Some(chat) => view! {
+                                            <div>
+                                                <h1 class="font-extrabold text-md">{chat.name}</h1>
+                                                <h1 class="text-sm text-gray-400 dark:text-gray-500">Last seen recently</h1>
+                                            </div>
+                                        },
+                                        None => view! {
+                                            <div></div>
+                                        }
+                                    }
+                                }
+                            }
                         </div>
                     </div>
-                    <hr class="border-gray-600 opacity-25 dark:border-gray-600"/>
+                    {move || {
+                        let current_chat = rw_current_chat.get();
+
+                        match current_chat {
+                            Some(_) => view!{<div><hr class="border-gray-600 opacity-25 dark:border-gray-600"/></div>},
+                            None => view!{<div></div>}
+                        }
+                    }}
                 </div>
 
-                <div class="h-full overflow-auto flex flex-col-reverse backdrop-blur-lg">
+                <div class="h-full overflow-auto flex flex-col-reverse">
                     {   
-                        (0..50).map(|i| {
-                            message_view(i % 2 == 0, Status::Sent, "Пепук Пидарасня.".into(), "21:59".into())
-                    }).collect::<Vec<_>>()}
+                        move || {
+                            let current_chat = rw_current_chat.get();
+                            match current_chat {
+                                Some(chat) => view! {
+                                    <div class="h-full overflow-auto flex flex-col-reverse">
+                                        {
+                                            let self_info = rw_self_user.get();
+
+                                            if let Some(self_info) = self_info {
+                                                chat.messages.iter().map(|message| {
+                                                    let from_me = if message.from_id == self_info.data.user_id {true} else {false};
+                                                    message_view(from_me, if message.is_unread {Status::Sent} else {Status::Read}, message.content.as_ref().unwrap(), message.date)
+                                                }).rev().collect::<Vec<_>>()
+                                            } else {
+                                                todo!()
+                                            }
+                                        }
+                                    </div>
+                                },
+                                None => view! {
+                                    <div class="flex flex-col justify-center items-center mt-auto mb-auto">
+                                        <img class="w-24 h-24 mb-5 ml-auto mr-auto" src=move || {
+                                            let theme = use_theme().get();
+                    
+                                            match theme {
+                                                Some(theme) => {
+                                                    match theme {
+                                                        Theme::Light => {"logo_black.png"},
+                                                        Theme::Dark => {"logo.png"}
+                                                    }
+                                                }
+                                                None => {"logo_black.png"}
+                                            }
+                                        }/>
+                                        <h1 class="font-extrabold text-2xl">Welcome to PPgram!</h1>
+                                        <p>Start by selecting or creating a chat</p>
+                                    </div>
+                                }
+                            }
+                        }
+                    }
                 </div>
 
                 <div class="relative w-fullleft-300 bottom-0">
-                    <hr class="border-gray-600 opacity-25 dark:border-gray-600"/>
-                    <div class="flex flex-row  min-h-[75px] items-center px-2 backdrop-blur-lg bg-opacity-50">
+                    {move || {
+                        let current_chat = rw_current_chat.get();
+
+                        match current_chat {
+                            Some(_) => view!{
+                                <div>
+                                <hr class="border-gray-600 opacity-25 dark:border-gray-600"/>
+                                </div>
+                            },
+                            None => view!{<div></div>}
+                        }
+                    }}
+                    <div class="flex flex-row  min-h-[75px] items-center px-2">
                         <div class="flex flex-col w-full my-4">
-                            <input 
-                                rows="1" type="text" placeholder="Your message" 
-                                class="w-full transition-theme px-6 py-3 bg-white/70 dark:bg-gray-700/70 text-black dark:text-white 
-                                rounded-xl shadow-2xl focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50"/>
+                            {move || {
+                                let current_chat = rw_current_chat.get();
+
+                                match current_chat {
+                                    Some(_) => view!{
+                                        <div class="transition-theme flex items-center 
+                                            rounded-xl 
+                                            bg-gray-100/70 dark:bg-slate-700/50 dark:border-slate-600 
+                                            focus-within:ring-2 focus-within:ring-sky-500 dark:focus-within:ring-sky-500">
+                                        <div class="ml-3 mr-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                                        </svg>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            id="message"
+                                            name="message"
+                                            required
+                                            class="transition-theme py-3 w-full bg-gray-100/0 dark:bg-slate-700/0 bg-opacity-100 text-black dark:text-white 
+                                            rounded-xl shadow-2xl focus:outline-none"
+                                            placeholder="Your Message"
+                                            />
+                                        <div class="ml-2 mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                                        </svg>
+                                        </div>
+                                        </div>
+                                    },
+                                    None => view!{<div></div>}
+                                }
+                            }}
                         </div>
                     </div>
                 </div>

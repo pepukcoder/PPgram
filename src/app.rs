@@ -1,6 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 
-use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, use_is_authenticated, Auth, AuthComponent}, bar::Bar, chat::Chat, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::{AuthCredentials, Theme}};
+use crate::{api::{self, api::{create_session, drop_session, send_auth}}, auth::{use_cookies_auth, use_is_authenticated, Auth, AuthComponent}, bar::{provide_self_context, Bar}, chat::{provide_current_chat, Chat}, error_template::{AppError, ErrorTemplate}, theme::{use_theme, ThemeToggler}, types::{AuthCredentials, Theme}};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
@@ -87,6 +87,9 @@ fn HomePage() -> impl IntoView {
         callback.forget();
     });
 
+    provide_current_chat();
+    provide_self_context();
+
     view! {
         <AuthComponent>
             {move || {
@@ -128,7 +131,7 @@ fn HomePage() -> impl IntoView {
                                             Theme::Dark => {"logo.png"}
                                         }
                                     }
-                                    None => {""}
+                                    None => {"logo_black.png"}
                                 }
                             }/>
                         </div>
