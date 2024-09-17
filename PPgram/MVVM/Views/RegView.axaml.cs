@@ -17,7 +17,6 @@ public partial class RegView : UserControl
         {
             TextBox tb = (TextBox)sender;
             tb.Text = tb.Text?.ToLower();
-            tb.SelectionStart = tb.Text?.Length ?? 0;
         }
     }
 }

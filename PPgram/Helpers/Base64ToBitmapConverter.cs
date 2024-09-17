@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 
 namespace PPgram_desktop.Core;
 
-internal class Base64ToBitmapConverter
+public class Base64ToBitmapConverter
 {
     public static Bitmap ConvertBase64(string base64String)
     {

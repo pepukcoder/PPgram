@@ -25,5 +25,30 @@ partial class MainViewModel : ViewModelBase
 
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
+        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
+        TestPavlo();
+    }
+    private void TestPavlo()
+    {
+        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+        {
+            text = "you pavlo?",
+            header = "PAVLO ALERT",
+            icon = DialogIcons.Info,
+            accept = "Yeah",
+            decline = "Hell nah"
+        });
+        WeakReferenceMessenger.Default.Register<Msg_DialogResult>(this, (r, result) =>
+        {
+            WeakReferenceMessenger.Default.Unregister<Msg_DialogResult>(this);
+            if (result.action == DialogAction.Accepted)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+                {
+                    text = "pavlo confirmed :)",
+                    decline = ""
+                });
+            }
+        });
     }
 }

@@ -30,7 +30,7 @@ partial class LoginViewModel : ViewModelBase
     }
 }
 class Msg_ToReg;
-class Msg_Login()
+class Msg_Login
 {
     public string username;
     public string password;
