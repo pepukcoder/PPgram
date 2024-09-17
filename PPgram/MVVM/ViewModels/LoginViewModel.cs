@@ -15,6 +15,7 @@ partial class LoginViewModel : ViewModelBase
     [RelayCommand]
     private void TryLogin()
     {
+        // check if all fields are filled
         if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password)) return;
         WeakReferenceMessenger.Default.Send(new Msg_Login
         {
@@ -25,6 +26,7 @@ partial class LoginViewModel : ViewModelBase
     [RelayCommand]
     private void ToRegPage()
     {
+        // reset password field
         Password = "";
         WeakReferenceMessenger.Default.Send<Msg_ToReg>();
     }

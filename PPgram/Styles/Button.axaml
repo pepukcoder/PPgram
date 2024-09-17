@@ -32,7 +32,7 @@
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Border CornerRadius="10" Background="{TemplateBinding Background}" Padding="8">
+				<Border CornerRadius="10" Background="{TemplateBinding Background}" Padding="8" Cursor="Hand">
 					<ContentPresenter Content="{TemplateBinding Content}"/>
 				</Border>
 			</ControlTemplate>
@@ -65,7 +65,7 @@
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Border CornerRadius="5" Background="Transparent">
+				<Border CornerRadius="5" Background="Transparent" Cursor="Hand">
 					<ContentPresenter Content="{TemplateBinding Content}"/>
 				</Border>
 			</ControlTemplate>
