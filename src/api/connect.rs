@@ -26,7 +26,7 @@ impl ApiConnection {
     pub async fn new() -> Self {
         use tokio::net::TcpStream;
 
-        let stream = TcpStream::connect("0.0.0.0:8080")
+        let stream = TcpStream::connect("127.0.0.1:8080")
             .await
             .expect("Failed to create connection");
         let (reader, writer) = stream.into_split();
@@ -77,32 +77,10 @@ impl ApiConnection {
         result // Return the stored result
     }
 
-    pub fn launch_receiver_loop(&self) {
-        tokio::spawn({
-            let reader = Arc::clone(&self.reader);
-            async move {
-                let mut reader_guard = reader.lock().await;
-                let mut handler = MessageHandler::new();
-
-                loop {
-                    let mut buffer = [0; 1024];
-
-                    match reader_guard.read(&mut buffer).await {
-                        Ok(0) => break,
-                        Ok(n) => {
-                            handler.handle_segmented_frame(&buffer[0..n], 
-                    |builder| {
-                                    let content = builder.content_utf8().unwrap();
-
-                                    logging::log!("{}", content);
-                                }
-                            );
-                        }
-                        Err(_) => break,
-                    }
-                }
-            }
-        });
+    pub async fn reconnect(&mut self) {
+        let new_self = Self::new().await;
+        self.reader = new_self.reader;
+        self.writer = new_self.writer;
     }
 }
 
@@ -133,7 +111,15 @@ impl ApiSession {
             Ok(res) => return Ok(res),
             Err(_) => match serde_json::from_value::<ErrorResponse>(value) {
                 Ok(res) => {return Err(res)},
-                Err(_) => {unimplemented!()}
+                Err(err) => {
+                    logging::error!("Error caught: {}! Reconnecting...", err);
+                    self.connection.reconnect().await;
+                    return Err(ErrorResponse{
+                        ok: false,
+                        method: "unknown".into(),
+                        error: err.to_string()
+                    })
+                }
             }
         }
     }

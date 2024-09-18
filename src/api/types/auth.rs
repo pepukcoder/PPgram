@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Default, Debug)]
 pub struct ErrorResponse {
-    ok: bool,
-    method: String,
+    pub(crate) ok: bool,
+    pub(crate) method: String,
     pub error: String
 }
 
@@ -22,17 +22,12 @@ pub struct RegisterResponse {
 
 pub type LoginResponse = RegisterResponse;
 
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
-pub struct FetchDataResponse {
-    pub name: String,
-    pub user_id: i32,
-    pub username: String,
-    pub photo: Option<String>
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserInfo {
     ok: bool,
     method: String,
-    pub data: FetchDataResponse
+    pub name: String,
+    pub user_id: i32,
+    pub username: String,
+    pub photo: Option<String>,
 }

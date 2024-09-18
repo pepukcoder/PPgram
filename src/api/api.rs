@@ -9,7 +9,7 @@ use tracing::info;
 
 #[cfg(feature = "ssr")]
 use super::connect::ApiSession;
-use super::types::{auth::{ErrorResponse, LoginResponse, RegisterResponse, UserInfo}, chat::{ChatView, FetchChatsResponse, LastMessageInfo}, messages::MessageResponse};
+use super::types::{auth::{ErrorResponse, LoginResponse, RegisterResponse, UserInfo}, chat::{ChatView, FetchChatsResponse, LastMessageInfo}, messages::{FetchMessagesResponse, MessageResponse}};
 #[cfg(feature = "ssr")]
 use tokio::sync::Mutex;
 
@@ -70,7 +70,7 @@ pub async fn send_register(
                 "method": "register",
                 "name": name,
                 "username": username,
-                "password_hash": password
+                "password": password
             }))
             .await)
     } else {
@@ -94,7 +94,7 @@ pub async fn send_login(
             .send_with_response(json!({
                 "method": "login",
                 "username": username,
-                "password_hash": password
+                "password": password
             }))
             .await
         )
@@ -172,45 +172,39 @@ pub async fn fetch_chats(
             .unwrap();
 
         let mut out: Vec<ChatView> = vec![];
-        match response.data {
-            Some(chats) => {
-                for chat in chats {
-                    let response: crate::api::types::messages::FetchMessagesResponse = session
-                        .send_with_response(json!({
-                            "method": "fetch",
-                            "what": "messages",
-                            "chat_id": chat.chat_id,
-                            "range": [-1, 0]
-                        }))
-                        .await
-                        .unwrap();
+        for chat in response.chats {
+            let response: FetchMessagesResponse = session
+                .send_with_response(json!({
+                    "method": "fetch",
+                    "what": "messages",
+                    "chat_id": chat.chat_id,
+                    "range": [-1, 0]
+                }))
+                .await
+                .unwrap();
 
-                    let view = ChatView {
-                        name: chat.name,
-                        chat_id: chat.chat_id,
-                        username: chat.username,
-                        photo: chat.photo,
-                        last_message: if let Some(messages) = response.data {
-                            if let Some(message) = messages.get(0) {
-                                let user_info: UserInfo = session
-                                    .send_with_response(json!({
-                                        "method": "fetch",
-                                        "what": "user",
-                                        "user_id": message.from_id
-                                    }))
-                                    .await
-                                    .unwrap();
-                                
-                                Some(LastMessageInfo {sender: user_info, message: message.clone()})
-                            } else {
-                                None
-                            }
-                        } else {None}
-                    };
-                    out.push(view);
-                }
-            }
-            None => {}
+            let view = ChatView {
+                name: chat.name,
+                chat_id: chat.chat_id,
+                username: chat.username,
+                photo: chat.photo,
+                last_message: 
+                    if let Some(message) = response.messages.get(0) {
+                        let user_info: UserInfo = session
+                            .send_with_response(json!({
+                                "method": "fetch",
+                                "what": "user",
+                                "user_id": message.from_id
+                            }))
+                            .await
+                            .unwrap();
+                        
+                        Some(LastMessageInfo {sender: user_info, message: message.clone()})
+                    } else {
+                        None
+                    }
+            };
+            out.push(view);
         }
 
         return Ok(out);
@@ -227,18 +221,50 @@ pub async fn fetch_messages(
     chat_id: i32,
     from: i32,
     to: i32
-) -> Result<Option<Vec<MessageResponse>>, ServerFnError> {
+) -> Result<Vec<MessageResponse>, ServerFnError> {
     let mut sessions = SESSIONS.lock().await;
     
     if let Some(session) = sessions.get_mut(&session_id) {
-        let res: crate::api::types::messages::FetchMessagesResponse = session.send_with_response(json!({
+        let res: FetchMessagesResponse = session.send_with_response(json!({
             "method": "fetch",
             "what": "messages",
             "chat_id": chat_id,
             "range": [from, to]
         })).await.unwrap();
 
-        return Ok(res.data);
+        return Ok(res.messages);
+    } else {
+        return Err(ServerFnError::ServerError(
+            "Failed to get session by the passed session_id!".to_string(),
+        ));
+    }
+}
+
+#[server(SendMessage, "/api")]
+pub async fn send_message(
+    session_id: u64,
+    chat_id: i32,
+    message: String
+) -> Result<bool, ServerFnError> {
+    let mut sessions = SESSIONS.lock().await;
+    
+    if let Some(session) = sessions.get_mut(&session_id) {
+        let res: Value = session.send_with_response(json!({
+            "method": "send_message",
+            "to": chat_id,
+            "has_reply": false,
+            "reply_to": 0,
+            "content": {
+                "text": message
+            }
+        })).await.unwrap();
+
+        if let Some(val) = res.get("ok").map(|v| v.as_bool()) {
+            return Ok(val.unwrap() == true);
+        }
+        else {
+            return Err(ServerFnError::ServerError("Failed to parse response!".into()))
+        }
     } else {
         return Err(ServerFnError::ServerError(
             "Failed to get session by the passed session_id!".to_string(),

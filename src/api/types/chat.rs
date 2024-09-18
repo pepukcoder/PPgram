@@ -14,7 +14,7 @@ pub(crate) struct FetchChatsDetails {
 pub(crate) struct FetchChatsResponse {
     ok: bool,
     method: String,
-    pub data: Option<Vec<FetchChatsDetails>>
+    pub chats: Vec<FetchChatsDetails>
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

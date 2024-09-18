@@ -1,7 +1,11 @@
-use chrono::DateTime;
-use leptos::*;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{api::types::chat::ChatInfo, bar::use_self_context, theme::use_theme, types::Theme};
+use chrono::{DateTime, Local, TimeZone, Timelike};
+use leptos::*;
+use wasm_bindgen::JsCast;
+use web_sys::HtmlInputElement;
+
+use crate::{api::{api::send_message, types::{chat::ChatInfo, messages::MessageResponse}}, bar::use_self_context, theme::use_theme, types::Theme};
 
 fn messages_placeholder(right_corner: bool) -> impl IntoView {
     let mut base = "flex items-start space-x-4 w-full".to_string();
@@ -33,14 +37,14 @@ enum Status {
 }
 
 fn message_view(from_me: bool, status: Status, text: &String, date: i64) -> impl IntoView {
-    let date = DateTime::from_timestamp(date, 0).unwrap();
-    let time = date.format("%H:%M").to_string();
+    let local = Local.timestamp_opt(date, 0).unwrap();
+    let time = local.format("%H:%M").to_string();
     let alignment_class = if from_me { "ml-auto mr-2" } else { "ml-2 mr-auto" };
 
     let bg_class = if from_me {
         "bg-gradient-to-r from-sky-500/10 to-sky-700/10 bg-no-repeat bg-[length:200%_200%] dark:text-white"
     } else {
-        "bg-white/50 dark:bg-slate-800/25".into()
+        "bg-gray-100/50 dark:bg-slate-800/25".into()
     };
 
     view! {
@@ -67,7 +71,7 @@ fn message_view(from_me: bool, status: Status, text: &String, date: i64) -> impl
                             </svg>
                         },
                         Status::Pending => view! {
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 animate-pulse">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
                         }
@@ -94,6 +98,50 @@ pub fn Chat() -> impl IntoView {
 
     let rw_current_chat = use_current_chat();
     let rw_self_user = use_self_context();
+    let (message, set_message) = create_signal("".to_string());
+
+    let on_send = move |e: leptos::ev::SubmitEvent| {
+        e.prevent_default();
+        let message = message.get();
+        let session_id = session_uuid.get();
+        let chat = rw_current_chat.get();
+
+        if !message.is_empty() {
+            if let Some(session_id) = session_id {
+                if let Some(mut chat) = chat {
+                    spawn_local(async move {
+                        let now = chrono::Utc::now().timestamp() as i64;
+
+                        chat.messages.push(MessageResponse {
+                            message_id: chat.messages.last().unwrap().message_id + 1,
+                            is_unread: None,
+                            from_id: rw_self_user.get_untracked().unwrap().user_id,
+                            chat_id: 0,
+                            date: now,
+                            reply_to: None,
+                            content: Some(message.clone()),
+                            media_hashes: vec![],
+                            media_names: vec![]
+                        });
+                        rw_current_chat.set(Some(chat.clone()));
+                        set_message.set("".into());
+                        let sent_res = send_message(session_id, chat.chat_id, message).await.unwrap();
+
+                        if sent_res {
+                            chat.messages.iter_mut().last().unwrap().is_unread = Some(true);
+                            rw_current_chat.set(Some(chat));
+                        }
+
+                        let document = window().document().unwrap();
+                        if let Some(input) = document.get_element_by_id("message") {
+                            let input: HtmlInputElement = input.dyn_into().unwrap();
+                            input.focus().unwrap();
+                        }
+                    });
+                }
+            }
+        }
+    };
 
     view! {
         <Suspense fallback=move || view! { 
@@ -156,8 +204,11 @@ pub fn Chat() -> impl IntoView {
 
                                             if let Some(self_info) = self_info {
                                                 chat.messages.iter().map(|message| {
-                                                    let from_me = if message.from_id == self_info.data.user_id {true} else {false};
-                                                    message_view(from_me, if message.is_unread {Status::Sent} else {Status::Read}, message.content.as_ref().unwrap(), message.date)
+                                                    let from_me = if message.from_id == self_info.user_id {true} else {false};
+                                                    message_view(from_me, match message.is_unread {
+                                                        Some(message) => if !message {Status::Read} else {Status::Sent},
+                                                        None => Status::Pending
+                                                    }, message.content.as_ref().unwrap(), message.date)
                                                 }).rev().collect::<Vec<_>>()
                                             } else {
                                                 todo!()
@@ -218,20 +269,26 @@ pub fn Chat() -> impl IntoView {
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
                                         </svg>
                                         </div>
-                                        <input
-                                            type="text"
-                                            id="message"
-                                            name="message"
-                                            required
-                                            class="transition-theme py-3 w-full bg-gray-100/0 dark:bg-slate-700/0 bg-opacity-100 text-black dark:text-white 
-                                            rounded-xl shadow-2xl focus:outline-none"
-                                            placeholder="Your Message"
-                                            />
-                                        <div class="ml-2 mr-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                                        </svg>
-                                        </div>
+                                        <form class="flex flex-row w-full" on:submit=on_send autocomplete="off">
+                                            <input
+                                                on:input=move |ev| {
+                                                    set_message.set(event_target_value(&ev));
+                                                }
+                                                prop:value=message
+                                                type="text"
+                                                id="message"
+                                                name="message"
+                                                required
+                                                class="transition-theme py-3 w-full bg-gray-100/0 dark:bg-slate-700/0 bg-opacity-100 text-black dark:text-white focus:outline-none"
+                                                placeholder="Your Message"
+                                                />
+                                            <button 
+                                            class="ml-2 mr-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                                            </svg>
+                                            </button>
+                                        </form>
                                         </div>
                                     },
                                     None => view!{<div></div>}

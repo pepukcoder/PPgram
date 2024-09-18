@@ -29,11 +29,11 @@ fn chat_view(session_id: &u64, me: &UserInfo, chat_view: ChatView, is_selected: 
     }).unwrap_or("".into());
 
     let sender = last_message.map(|v| {
-        v.sender.data.name.clone()
+        v.sender.name.clone()
     }).unwrap_or("".into());
 
     let sender_user_id = last_message.map(|v| {
-        v.sender.data.user_id.clone()
+        v.sender.user_id.clone()
     }).unwrap_or(0);
 
     let session_id = session_id.clone();
@@ -51,7 +51,7 @@ fn chat_view(session_id: &u64, me: &UserInfo, chat_view: ChatView, is_selected: 
                         let messages = fetch_messages(
                             session_id, chat_view.chat_id, -1, -100).await;
         
-                        if let Ok(Some(messages)) = messages {
+                        if let Ok(messages) = messages {
                             let chat_info = ChatInfo {
                                 name: chat_view.name,
                                 chat_id: chat_view.chat_id,
@@ -72,7 +72,7 @@ fn chat_view(session_id: &u64, me: &UserInfo, chat_view: ChatView, is_selected: 
                 <div>
                     <h1 class="text-xl text-left font-extrabold">{chat_view.clone().name}</h1>
                     <p class="text-sm flex justify-start text-gray-600 dark:text-gray-400 truncate w-56"><span class="text-sm font-bold text-gray-500 dark:text-gray-200 mr-1">{
-                        if me.data.user_id == sender_user_id {
+                        if me.user_id == sender_user_id {
                             "Me:".to_string()
                         } else {
                             format!("{}:", sender)
@@ -243,7 +243,7 @@ pub fn Bar() -> impl IntoView {
                             <div class="flex flex-row items-center">
                                 <img class="w-10 h-10" src="default_avatar.png"/>
                                 {move || match rw_self_user.get() {
-                                    Some(usr) => view!{<h1 class="text-xl ml-3 font-extrabold">{usr.data.name}</h1>},
+                                    Some(usr) => view!{<h1 class="text-xl ml-3 font-extrabold">{usr.name}</h1>},
                                     None => view!{<h1 class="text-xl ml-3 font-extrabold">
                                         <div class="text-center">
                                             <div role="status">
