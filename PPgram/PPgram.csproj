@@ -97,4 +97,8 @@
     <AvaloniaResource Include="Fonts\Montserrat-Thin.ttf" />
     <AvaloniaResource Include="Fonts\Montserrat-ThinItalic.ttf" />
   </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="MVVM\Views\Mobile_ChatView.axaml" />
+  </ItemGroup>
 </Project>

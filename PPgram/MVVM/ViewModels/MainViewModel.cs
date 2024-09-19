@@ -17,6 +17,7 @@ partial class MainViewModel : ViewModelBase
     #region pages
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
+    private readonly ChatViewModel chat_vm = new();
     #endregion
 
     public MainViewModel() 
@@ -26,6 +27,7 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
 
-        CurrentPage = login_vm;
+        CurrentPage = chat_vm;
+        
     }
 }

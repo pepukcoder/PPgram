@@ -13,8 +13,16 @@ public class ViewLocator : IDataTemplate
             return null;
 
         var name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-        var type = Type.GetType(name);
+        
+        if(OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
+        {
+            if (name.EndsWith("ChatView", StringComparison.Ordinal))
+            {
+                name = name.Replace("ChatView", "Mobile_ChatView", StringComparison.Ordinal);
+            }
+        }
 
+        var type = Type.GetType(name);
         if (type != null)
         {
             return (Control)Activator.CreateInstance(type)!;

@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.MVVM.Views.ChatView"
 			 x:DataType="vm:ChatViewModel"
-			 FontFamily="Montserrat Alternates"
+			 FontFamily="{StaticResource Montserrat}"
 			 Background="{StaticResource BackgroundWindow}">
 	<Design.DataContext>
 		<vm:ChatViewModel/>
@@ -20,14 +20,12 @@
 					<Border Height="35" Background="#404040" CornerRadius="20">
 						<DockPanel>
 							<icons:MaterialIcon Kind="Search" VerticalAlignment="Center" Height="24" Width="24" Margin="5,0" Foreground="{StaticResource SecondaryText}"/>
-							<TextBox Theme="{StaticResource InputBox}" FontFamily="Cascadia Mono" FontSize="14"/>
+							<TextBox Theme="{StaticResource InputBox}" FontFamily="{StaticResource Cascadia}" FontSize="14"/>
 						</DockPanel>
 					</Border>
 				</StackPanel>
 			</Grid>
 		</Border>
-
-
 		
 		<Border Grid.Column="1" Background="{StaticResource Surface}" CornerRadius="20" Margin="5">
 			<Grid RowDefinitions="Auto,*,Auto">
@@ -40,7 +38,7 @@
 						</Ellipse>
 						<StackPanel Orientation="Vertical">
 							<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
-							<TextBlock Text="@pavlogay" FontFamily="Cascadia Mono" Foreground="{StaticResource SecondaryText}" FontSize="14"/>
+							<TextBlock Text="@pavlogay" FontFamily="{StaticResource Cascadia}" Foreground="{StaticResource SecondaryText}" FontSize="14"/>
 						</StackPanel>
 					</StackPanel>
 					<icons:MaterialIcon Kind="DotsVertical" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
@@ -48,8 +46,6 @@
 				</DockPanel>
 			</Grid>
 		</Border>
-
-	
 		
 		<Grid Grid.Column="2" RowDefinitions="Auto,Auto" Margin="0,5,5,0">
 			<Border Background="{StaticResource Surface}" Grid.Row="0" Margin="0,0,0,5" CornerRadius="20" Height="300" Width="200">
