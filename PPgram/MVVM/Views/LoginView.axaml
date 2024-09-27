@@ -14,48 +14,53 @@
 	<Design.DataContext>
 		<vm:LoginViewModel/>
 	</Design.DataContext>
-	<StackPanel Orientation="Vertical" Margin="20">
-		<Svg Path="/Assets/logo_round.svg" Height="120" Width="120"/>
-		<TextBlock Text="Welcome to PPgram!" 
+	<Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+		<StackPanel Orientation="Vertical" Margin="20">
+			<Svg Path="/Assets/logo_round.svg" Height="120" Width="120"/>
+			<TextBlock Text="Welcome to PPgram!" 
 					FontSize="24" FontWeight="Bold" 
 					HorizontalAlignment="Center" Margin="0,10,0,20"/>
-		<Border Background="{StaticResource Surface}"  CornerRadius="20"
+			<Border Background="{StaticResource Surface}"  CornerRadius="20"
 				BoxShadow="0 8 10 0 #0c0c0c" Padding="20" 
 				BorderThickness="1" BorderBrush="{StaticResource Panel}">
-			<StackPanel Orientation="Vertical">
-			<TextBlock Text="Username" FontWeight="SemiBold" Margin="0,0,0,5"/>
-			<Border Padding="8" Background="{StaticResource Panel}"
+				<StackPanel Orientation="Vertical">
+					<TextBlock Text="Username" FontWeight="SemiBold" Margin="0,0,0,5"/>
+					<Border Padding="8" Background="{StaticResource Panel}"
 					CornerRadius="10" Margin="0,0,0,10">
-				<DockPanel>
-					<icons:MaterialIcon Kind="At" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
-					<TextBox Background="Transparent" BorderThickness="0"
-								CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-								FontFamily="{StaticResource Cascadia}" FontWeight="Light"
-								MaxLength="30" MinWidth="255"
-								Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
-				</DockPanel>
-			</Border>
-			<TextBlock Text="Password" FontWeight="SemiBold" Margin="0,0,0,5"/>
-			<Border Padding="8" Background="{StaticResource Panel}"
+						<DockPanel>
+							<icons:MaterialIcon Kind="At" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
+							<TextBox Background="Transparent" BorderThickness="0"
+									CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+									FontFamily="{StaticResource Cascadia}" FontWeight="Light"
+									MaxLength="30" MinWidth="255"
+									Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+									ContextFlyout="{StaticResource RegularFlyout}"/>
+						</DockPanel>
+					</Border>
+					<TextBlock Text="Password" FontWeight="SemiBold" Margin="0,0,0,5"/>
+					<Border Padding="8" Background="{StaticResource Panel}"
 					CornerRadius="10">
-				<DockPanel>
-					<icons:MaterialIcon Kind="Key" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
-					<TextBox Background="Transparent" BorderThickness="0"
-								CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-								FontWeight="Light" MinWidth="255"
-								PasswordChar="●" MaxLength="28"
-								Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"/>
-				</DockPanel>
+						<DockPanel>
+							<icons:MaterialIcon Kind="Key" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
+							<TextBox Background="Transparent" BorderThickness="0"
+										CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+										FontWeight="Light" MinWidth="255"
+										PasswordChar="●" MaxLength="28"
+										Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+										ContextFlyout="{StaticResource RegularFlyout}">
+							</TextBox>
+						</DockPanel>
 			</Border>
-			<Button Theme="{StaticResource ButtonRegular}" Command="{Binding TryLoginCommand}" Margin="0,20,0,10">
-				<TextBlock Text="Login" FontWeight="SemiBold"
-							HorizontalAlignment="Center"/>
-			</Button>
-			<Button Theme="{StaticResource ButtonIcon}" Command="{Binding ToRegPageCommand}" HorizontalAlignment="Center" >
-				<TextBlock Text="Create a new account" FontWeight="SemiBold"
-							HorizontalAlignment="Center"/>
-			</Button>
-			</StackPanel>
-		</Border>
-	</StackPanel>
+					<Button Theme="{StaticResource ButtonRegular}" Command="{Binding TryLoginCommand}" Margin="0,20,0,10">
+						<TextBlock Text="Login" FontWeight="SemiBold"
+									HorizontalAlignment="Center"/>
+					</Button>
+					<Button Theme="{StaticResource ButtonIcon}" Command="{Binding ToRegPageCommand}" HorizontalAlignment="Center" >
+						<TextBlock Text="Create a new account" FontWeight="SemiBold"
+									HorizontalAlignment="Center"/>
+					</Button>
+				</StackPanel>
+			</Border>
+		</StackPanel>
+	</Viewbox>
 </UserControl>

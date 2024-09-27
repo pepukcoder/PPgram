@@ -9,69 +9,63 @@
              x:Class="PPgram.MVVM.Views.MainView"
 			 xmlns:views="clr-namespace:PPgram.MVVM.Views"
              x:DataType="vm:MainViewModel"
-			 Background="{StaticResource BackgroundWindow}">
+			 Background="{StaticResource BackgroundWindow}"
+			 Loaded="UserControl_Loaded">
     <Design.DataContext>
         <vm:MainViewModel/>
     </Design.DataContext>
 	<UserControl.Resources>
 		<helpers:DialogIconsConverter x:Key="DialogIconsConverter"/>
 	</UserControl.Resources>
-	<Grid>
-		<Border Background="#000000" Opacity="0.4" ZIndex="0" IsVisible="{Binding DialogText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+	<Grid x:Name="ContentGrid" Margin="0,0,0,0">
+		<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}" ZIndex="0"/>
+		<Border Background="#000000" Opacity="0.4" ZIndex="1" IsVisible="{Binding DialogText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="PointerReleased">
 					<InvokeCommandAction Command="{Binding CloseDialogCommand}" CommandParameter="TapClosed"/>
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Border>
-		<Viewbox Stretch="Uniform" StretchDirection="DownOnly" ZIndex="1">
-			<Grid>
-				<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}" ZIndex="0"/>
-				<!--DIALOG WINDOW-->
-				<Grid ZIndex="1" IsVisible="{Binding DialogText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-					<Border Background="#000000" Opacity="0.4" ZIndex="0">
-						<Interaction.Behaviors>
-							<EventTriggerBehavior EventName="PointerReleased">
-								<InvokeCommandAction Command="{Binding CloseDialogCommand}" CommandParameter="TapClosed"/>
-							</EventTriggerBehavior>
-						</Interaction.Behaviors>
-					</Border>
-					<Border Background="{StaticResource Surface}" VerticalAlignment="Center" ZIndex="1"
-							BoxShadow="0 0 10 0 #0c0c0c" Padding="10" CornerRadius="10"
-							BorderThickness="1" BorderBrush="{StaticResource Panel}" Margin="30">
-						
-						<StackPanel Orientation="Vertical">
-							<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,20"
-										IsVisible="{Binding DialogHeader, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-								<icons:MaterialIcon Kind="AlertCircle" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-													IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Error}"/>
-								<icons:MaterialIcon Kind="CheckCircle" Foreground="LightGreen"	  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-													IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Check}"/>
-								<icons:MaterialIcon Kind="InfoCircle"  Foreground="SkyBlue"		  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-													IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Info}"/>
-								
-								<TextBlock Text="{Binding DialogHeader}" MaxWidth="270" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
-										   FontWeight="Bold" FontSize="16"/>
-							</StackPanel>
-							<TextBlock FontSize="14" Text="{Binding DialogText}" HorizontalAlignment="Left"
-									   TextWrapping="Wrap" MaxWidth="300"/>
-							<StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Right">
-								<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Right"
-										IsVisible="{Binding DialogDecline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-										Command="{Binding CloseDialogCommand}" CommandParameter="Declined">
-									<TextBlock Text="{Binding DialogDecline}" FontWeight="Medium" HorizontalAlignment="Center"/>
-								</Button>
-								<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Left" Margin="10,0,0,0"
-										IsVisible="{Binding DialogAccept, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-										Command="{Binding CloseDialogCommand}" CommandParameter="Accepted">
-									<TextBlock Text="{Binding DialogAccept}" FontWeight="Medium" HorizontalAlignment="Center"/>
-								</Button>
-							</StackPanel>
-						</StackPanel>
-					</Border>	
-				</Grid>
-				<!--=============-->
-			</Grid>
+		<Viewbox Stretch="Uniform" StretchDirection="DownOnly" ZIndex="2"
+				 IsVisible="{Binding DialogText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+			<Border Background="{StaticResource Surface}" VerticalAlignment="Center" ZIndex="1"
+					BoxShadow="0 0 10 0 #0c0c0c" Padding="10" CornerRadius="10" HorizontalAlignment="Stretch"
+					BorderThickness="1" BorderBrush="{StaticResource Panel}" Margin="30">
+
+				<StackPanel Orientation="Vertical">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,20"
+								IsVisible="{Binding DialogHeader, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+						<icons:MaterialIcon Kind="AlertCircle" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+											IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Error}"/>
+						<icons:MaterialIcon Kind="CheckCircle" Foreground="LightGreen"	  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+											IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Check}"/>
+						<icons:MaterialIcon Kind="InfoCircle"  Foreground="SkyBlue"		  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+											IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Info}"/>
+
+						<TextBlock Text="{Binding DialogHeader}" MaxWidth="270" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+								   FontWeight="Bold" FontSize="16"/>
+					</StackPanel>
+					<TextBlock FontSize="14" Text="{Binding DialogText}" HorizontalAlignment="Left"
+							   TextWrapping="Wrap" Width="300"/>
+					<StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Right">
+						<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Right"
+								IsVisible="{Binding DialogDecline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+								Command="{Binding CloseDialogCommand}" CommandParameter="Declined">
+							<TextBlock Text="{Binding DialogDecline}" FontWeight="Medium" HorizontalAlignment="Center"/>
+						</Button>
+						<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Left" Margin="10,0,0,0"
+								IsVisible="{Binding DialogAccept, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+								Command="{Binding CloseDialogCommand}" CommandParameter="Accepted">
+							<TextBlock Text="{Binding DialogAccept}" FontWeight="Medium" HorizontalAlignment="Center"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+			</Border>
 		</Viewbox>
+		<Grid.Transitions>
+			<Transitions>
+
+			</Transitions>
+		</Grid.Transitions>
 	</Grid>
 </UserControl>

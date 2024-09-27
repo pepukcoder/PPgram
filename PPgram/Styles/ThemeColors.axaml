@@ -17,6 +17,7 @@
 				<StackPanel Orientation="Horizontal" Margin="0,5">
 					<Border Background="{StaticResource PrimaryText}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
 					<Border Background="{StaticResource SecondaryText}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+					<Border Background="{StaticResource Selection}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
 				</StackPanel>
 			</StackPanel>
 		</Border>
@@ -33,7 +34,7 @@
 	<SolidColorBrush x:Key="PPgramAccentLight">#5292e9</SolidColorBrush>
 	
 	<SolidColorBrush x:Key="PrimaryText">#ffffff</SolidColorBrush>
-	<SolidColorBrush x:Key="SecondaryText">#727273</SolidColorBrush>
+	<SolidColorBrush x:Key="SecondaryText">#808081</SolidColorBrush>
 	<SolidColorBrush x:Key="Selection">#868687</SolidColorBrush>
 	
 	

@@ -8,46 +8,77 @@
              x:Class="PPgram.MVVM.Views.ChatView"
 			 x:DataType="vm:ChatViewModel"
 			 FontFamily="{StaticResource Montserrat}"
-			 Background="{StaticResource BackgroundWindow}">
+			 Background="{StaticResource BackgroundWindow}"
+			 FontSize="14">
 	<Design.DataContext>
 		<vm:ChatViewModel/>
 	</Design.DataContext>
 	
 	<Grid ColumnDefinitions="Auto,*,Auto">
-		<Border Grid.Column="0" Background="{StaticResource Surface}" Margin="5,5,0,5" CornerRadius="20">
+		<Border Grid.Column="0" Background="{StaticResource Surface}" Margin="10" CornerRadius="20" Width="200">
 			<Grid RowDefinitions="Auto,*">
-				<StackPanel Orientation="Vertical" Margin="5,5,5,0" Width="200">
+				<StackPanel Orientation="Vertical" Margin="5,5,5,0">
 					<Border Height="35" Background="#404040" CornerRadius="20">
 						<DockPanel>
 							<icons:MaterialIcon Kind="Search" VerticalAlignment="Center" Height="24" Width="24" Margin="5,0" Foreground="{StaticResource SecondaryText}"/>
-							<TextBox Theme="{StaticResource InputBox}" FontFamily="{StaticResource Cascadia}" FontSize="14"/>
+							<TextBox FontFamily="{StaticResource Cascadia}" FontSize="14"/>
 						</DockPanel>
 					</Border>
 				</StackPanel>
 			</Grid>
 		</Border>
 		
-		<Border Grid.Column="1" Background="{StaticResource Surface}" CornerRadius="20" Margin="5">
+		<Border Grid.Column="1" Background="{StaticResource BackgroundWindow}" CornerRadius="20" Margin="0,10" Padding="0">
 			<Grid RowDefinitions="Auto,*,Auto">
-				<DockPanel Margin="5,5,5,0">
-					<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-						<Ellipse Height="40" Width="40" VerticalAlignment="Center" Margin="0,0,5,0">
-							<Ellipse.Fill>
-								<ImageBrush Source="/Assets/default_avatar.png"/>
-							</Ellipse.Fill>
-						</Ellipse>
-						<StackPanel Orientation="Vertical">
-							<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
-							<TextBlock Text="@pavlogay" FontFamily="{StaticResource Cascadia}" Foreground="{StaticResource SecondaryText}" FontSize="14"/>
+				<Border Background="{StaticResource Surface}"  CornerRadius="20"
+						BoxShadow="0 8 10 0 #0f0f0f" Padding="0" Grid.Row="0" Margin="0,0,0,5"
+						BorderThickness="1" BorderBrush="{StaticResource Panel}">
+					<DockPanel >
+						<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+							<Ellipse Height="35" Width="35" VerticalAlignment="Center" Margin="0,0,5,0">
+								<Ellipse.Fill>
+									<ImageBrush Source="/Assets/default_avatar.png"/>
+								</Ellipse.Fill>
+							</Ellipse>
+							<StackPanel Orientation="Vertical">
+								<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
+								<TextBlock Text="@pavlogay" FontFamily="{StaticResource Cascadia}" Foreground="{StaticResource SecondaryText}" FontSize="14"/>
+							</StackPanel>
 						</StackPanel>
-					</StackPanel>
-					<icons:MaterialIcon Kind="DotsVertical" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
-					<icons:MaterialIcon Kind="Search" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
-				</DockPanel>
+						<icons:MaterialIcon Kind="DotsVertical" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
+						<icons:MaterialIcon Kind="Search" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
+					</DockPanel>
+				</Border>
+				<ListBox x:Name="MessageHistory" Grid.Row="1" ItemContainerTheme="{StaticResource Message}"
+						 Background="Transparent" Padding="0" BorderThickness="0"
+						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+						 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+						 ItemsSource="{Binding Messages}"/>
+				<Border Background="{StaticResource Surface}"  CornerRadius="20"
+						BoxShadow="0 8 10 0 #0f0f0f" Padding="5" Grid.Row="2"
+						BorderThickness="1" BorderBrush="{StaticResource Panel}">			
+						<DockPanel>	
+							<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,0,0,0"
+									Command="{Binding SendMessageCommand}">
+								<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24"/>
+							</Button>
+							<Border Padding="0" Background="{StaticResource Panel}"
+									CornerRadius="15">
+								<TextBox Background="Transparent" BorderThickness="0" AcceptsReturn="True"
+										CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+										FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
+										TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+									<TextBox.KeyBindings>
+										<KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
+									</TextBox.KeyBindings>
+								</TextBox>
+							</Border>
+						</DockPanel>
+				</Border>
 			</Grid>
 		</Border>
 		
-		<Grid Grid.Column="2" RowDefinitions="Auto,Auto" Margin="0,5,5,0">
+		<Grid Grid.Column="2" RowDefinitions="Auto,Auto" Margin="10">
 			<Border Background="{StaticResource Surface}" Grid.Row="0" Margin="0,0,0,5" CornerRadius="20" Height="300" Width="200">
 				<StackPanel Orientation="Vertical" Margin="5,15,5,0">
 					<TextBlock Text="Group Info" FontSize="16" FontWeight="Medium"/>

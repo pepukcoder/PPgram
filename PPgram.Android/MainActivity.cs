@@ -9,9 +9,8 @@ namespace PPgram.Android;
     Label = "PPgram",
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/andrlogo",
-    MainLauncher = true,
     ResizeableActivity = false,
-    ScreenOrientation = ScreenOrientation.Portrait,
+    MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {

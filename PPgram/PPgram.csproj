@@ -101,4 +101,8 @@
   <ItemGroup>
     <UpToDateCheckInput Remove="MVVM\Views\Mobile_ChatView.axaml" />
   </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Styles\UserColors.axaml" />
+  </ItemGroup>
 </Project>

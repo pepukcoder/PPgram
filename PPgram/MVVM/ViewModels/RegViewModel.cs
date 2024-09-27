@@ -42,7 +42,7 @@ partial class RegViewModel : ViewModelBase
     partial void OnPasswordConfChanged(string value)
     {
         // check if password confirmation matches password
-        if (value == Password) PassConfOk = true;
+        if (!String.IsNullOrEmpty(value) && value == Password) PassConfOk = true;
         else PassConfOk = false;
     }
     partial void OnUsernameChanged(string value)

@@ -16,12 +16,13 @@
 
 	<Application.Resources>
 		<ResourceDictionary>
-			<!--Fonts go here-->
 			<FontFamily x:Key="Montserrat">/Fonts#Montserrat</FontFamily>
 			<FontFamily x:Key="Cascadia">/Fonts#Cascadia Mono</FontFamily>
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceInclude Source="/Styles/ThemeColors.axaml"/>
 				<ResourceInclude Source="/Styles/Button.axaml"/>
+				<ResourceInclude Source="/Styles/Message.axaml"/>
+				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>
