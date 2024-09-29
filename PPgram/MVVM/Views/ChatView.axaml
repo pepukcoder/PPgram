@@ -14,77 +14,107 @@
 		<vm:ChatViewModel/>
 	</Design.DataContext>
 	
-	<Grid ColumnDefinitions="Auto,*,Auto">
-		<Border Grid.Column="0" Background="{StaticResource Surface}" Margin="10" CornerRadius="20" Width="200">
+	<Grid ColumnDefinitions="Auto,3,*,Auto">
+		<Border Grid.Column="0" Background="{StaticResource Surface}" Margin="10,10,0,10" CornerRadius="20" 
+				BoxShadow="0 8 10 0 #0f0f0f" Padding="0" Grid.Row="0"
+				BorderThickness="1" BorderBrush="{StaticResource Panel}">
 			<Grid RowDefinitions="Auto,*">
-				<StackPanel Orientation="Vertical" Margin="5,5,5,0">
-					<Border Height="35" Background="#404040" CornerRadius="20">
-						<DockPanel>
-							<icons:MaterialIcon Kind="Search" VerticalAlignment="Center" Height="24" Width="24" Margin="5,0" Foreground="{StaticResource SecondaryText}"/>
-							<TextBox FontFamily="{StaticResource Cascadia}" FontSize="14"/>
-						</DockPanel>
+				<StackPanel Orientation="Vertical" Margin="10">
+					<Border Background="{StaticResource Panel}" CornerRadius="15" Padding="5,0">
+						<TextBox Background="Transparent" BorderThickness="0" FontFamily="{StaticResource Cascadia}"
+								CaretBrush="White" SelectionBrush="{StaticResource Selection}" Foreground="{StaticResource SecondaryText}"
+								ContextFlyout="{StaticResource RegularFlyout}" Watermark="Search"
+								MaxLength="30" Text="{Binding SearchInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 					</Border>
 				</StackPanel>
+				<ListBox Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
+						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+						 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+						 ItemContainerTheme="{StaticResource Chat}"
+						 ItemsSource="{Binding ChatList}"/>
 			</Grid>
 		</Border>
 		
-		<Border Grid.Column="1" Background="{StaticResource BackgroundWindow}" CornerRadius="20" Margin="0,10" Padding="0">
+		<GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="Transparent"/>
+		
+		<Border Grid.Column="2" Background="{StaticResource BackgroundWindow}" CornerRadius="20" Margin="7,10,10,10" Padding="0">
 			<Grid RowDefinitions="Auto,*,Auto">
 				<Border Background="{StaticResource Surface}"  CornerRadius="20"
-						BoxShadow="0 8 10 0 #0f0f0f" Padding="0" Grid.Row="0" Margin="0,0,0,5"
+						BoxShadow="0 8 10 0 #0f0f0f" Padding="5" Grid.Row="0" Margin="0,0,0,5"
 						BorderThickness="1" BorderBrush="{StaticResource Panel}">
-					<DockPanel >
+					<DockPanel>
 						<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-							<Ellipse Height="35" Width="35" VerticalAlignment="Center" Margin="0,0,5,0">
+							<Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
 								<Ellipse.Fill>
 									<ImageBrush Source="/Assets/default_avatar.png"/>
 								</Ellipse.Fill>
 							</Ellipse>
-							<StackPanel Orientation="Vertical">
+							<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 								<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
-								<TextBlock Text="@pavlogay" FontFamily="{StaticResource Cascadia}" Foreground="{StaticResource SecondaryText}" FontSize="14"/>
+								<TextBlock Text="last seen 12:34" Foreground="{StaticResource SecondaryText}"/>
 							</StackPanel>
 						</StackPanel>
-						<icons:MaterialIcon Kind="DotsVertical" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
-						<icons:MaterialIcon Kind="Search" DockPanel.Dock="Right" HorizontalAlignment="Right" Height="24" Width="24"/>
+						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">
+							<icons:MaterialIcon Kind="DotsVertical" Height="24" Width="24" />
+						</Button>
+						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">
+							<icons:MaterialIcon Kind="Search" Height="24" Width="24" />
+						</Button>
 					</DockPanel>
 				</Border>
 				<ListBox x:Name="MessageHistory" Grid.Row="1" ItemContainerTheme="{StaticResource Message}"
 						 Background="Transparent" Padding="0" BorderThickness="0"
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						 ScrollViewer.VerticalScrollBarVisibility="Hidden"
-						 ItemsSource="{Binding Messages}"/>
+						 ItemsSource="{Binding MessageList}"/>
 				<Border Background="{StaticResource Surface}"  CornerRadius="20"
 						BoxShadow="0 8 10 0 #0f0f0f" Padding="5" Grid.Row="2"
 						BorderThickness="1" BorderBrush="{StaticResource Panel}">			
-						<DockPanel>	
-							<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,0,0,0"
-									Command="{Binding SendMessageCommand}">
-								<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24"/>
-							</Button>
-							<Border Padding="0" Background="{StaticResource Panel}"
-									CornerRadius="15">
-								<TextBox Background="Transparent" BorderThickness="0" AcceptsReturn="True"
-										CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-										FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
-										TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-									<TextBox.KeyBindings>
-										<KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
-									</TextBox.KeyBindings>
-								</TextBox>
-							</Border>
-						</DockPanel>
+					<DockPanel>	
+						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,0,0,0"
+								Command="{Binding SendMessageCommand}">
+							<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24"/>
+						</Button>
+						<Border Padding="0" Background="{StaticResource Panel}"
+								CornerRadius="15">
+							<TextBox Background="Transparent" BorderThickness="0" AcceptsReturn="True"
+									CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+									FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
+									TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+								<TextBox.KeyBindings>
+									<KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
+								</TextBox.KeyBindings>
+							</TextBox>
+						</Border>
+					</DockPanel>
 				</Border>
 			</Grid>
 		</Border>
 		
-		<Grid Grid.Column="2" RowDefinitions="Auto,Auto" Margin="10">
-			<Border Background="{StaticResource Surface}" Grid.Row="0" Margin="0,0,0,5" CornerRadius="20" Height="300" Width="200">
-				<StackPanel Orientation="Vertical" Margin="5,15,5,0">
+		<Grid Grid.Column="3" RowDefinitions="Auto,Auto" Margin="0,10,10,10">
+			<Border Grid.Row="0" CornerRadius="20" BoxShadow="0 8 10 0 #0f0f0f" 
+				Background="{StaticResource Surface}" Padding="5" Margin="0,0,0,5"
+				BorderThickness="1" BorderBrush="{StaticResource Panel}">
+				<StackPanel Orientation="Vertical">
 					<TextBlock Text="Group Info" FontSize="16" FontWeight="Medium"/>
 				</StackPanel>
 			</Border>
-			<Border Background="{StaticResource Surface}" Grid.Row="1" Margin="0,0,0,5" CornerRadius="20" Height="50"/>
+			<Border Background="{StaticResource Surface}" Grid.Row="1" Margin="0,0,0,5" CornerRadius="20"
+					Padding="5" BoxShadow="0 8 10 0 #0f0f0f" BorderThickness="1" BorderBrush="{StaticResource Panel}">
+				<StackPanel Orientation="Vertical">
+					<TextBlock Text="Members" FontSize="16" FontWeight="Medium"/>
+					<ListBox Background="Transparent" Padding="0" BorderThickness="0"
+							ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+							ScrollViewer.VerticalScrollBarVisibility="Hidden">
+						<ListBoxItem>Pavlo</ListBoxItem>
+						<ListBoxItem>Pavlo</ListBoxItem>
+						<ListBoxItem>Pavlo</ListBoxItem>
+						<ListBoxItem>Pavlo</ListBoxItem>
+						<ListBoxItem>Pavlo</ListBoxItem>
+						<ListBoxItem>Pavlo</ListBoxItem>
+					</ListBox>
+				</StackPanel>
+			</Border>
 		</Grid>
 	</Grid>
 </UserControl>

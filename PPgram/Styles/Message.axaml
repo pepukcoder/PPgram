@@ -19,13 +19,13 @@
 			<ControlTemplate>
 				<Grid ColumnDefinitions="Auto,Auto">
 					<Border x:Name="ProfilePic" Grid.Column="0" VerticalAlignment="Bottom" IsVisible="False">
-						<Ellipse  Width="35" Height="35" Margin="0,0,10,0"  >
+						<Ellipse Width="35" Height="35" Margin="0,0,10,0">
 							<Ellipse.Fill>
 								<ImageBrush Source="{Binding Avatar}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 					</Border>
-					<Border Grid.Column="1" x:Name="Back" CornerRadius="5 15 15 5" Background="{TemplateBinding Background}" Padding="10,10,0,0">
+					<Border Grid.Column="1" x:Name="Back" CornerRadius="5 15 15 5" Background="{StaticResource Surface}" Padding="10,10,0,0">
 						<Grid>
 							<Grid.RowDefinitions>
 								<!--Name-->
@@ -40,9 +40,6 @@
 								<RowDefinition Height="Auto"/>
 							</Grid.RowDefinitions>				
 							<TextBlock x:Name="Sender" Text="{Binding Name}" Foreground="Pink" Grid.Row="0" FontWeight="Medium" IsVisible="False" Margin="0,0,10,0"/>
-							<TextBox Text="{Binding Text}" MaxWidth="400" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True"
-									 Grid.Row="3" Padding="0" Background="Transparent" BorderThickness="0"
-									 CaretBrush="Transparent" SelectionBrush="{StaticResource Selection}" Margin="0,0,10,0"/>
 							<Border x:Name="Reply" Grid.Row="1" CornerRadius="10" Padding="5,3" Margin="0,0,10,3" Background="{StaticResource Panel}"
 									IsVisible="{Binding ReplyText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 								<StackPanel>
@@ -50,7 +47,19 @@
 									<TextBlock Text="{Binding ReplyText}" FontSize="13"/>
 								</StackPanel>
 							</Border>
-							<StackPanel Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,3">
+							<StackPanel x:Name="Attachment" Orientation="Horizontal" Grid.Row="2" Margin="0,0,10,0"
+										IsVisible="{Binding AttachmentHash,Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+								<icons:MaterialIcon Kind="File" Margin="0,0,3,0" Width="30" Height="30" VerticalAlignment="Center"/>
+								<StackPanel Orientation="Vertical">
+									<TextBlock Text="{Binding AttachmentName}"/>
+									<TextBlock Text="{Binding AttachmentSize}" Foreground="{StaticResource SecondaryText}" FontFamily="{StaticResource Cascadia}" FontSize="13"/>
+								</StackPanel>
+							</StackPanel>
+							<TextBox x:Name="Text" Text="{Binding Text}" MaxWidth="400" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True"
+									 Grid.Row="3" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,10,0"
+									 CaretBrush="Transparent" SelectionBrush="{StaticResource Selection}"
+									 IsVisible="{Binding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+							<StackPanel x:Name="Status" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,3">
 								<TextBlock Text="edited" FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" IsVisible="{Binding Edited}" VerticalAlignment="Bottom"/>
 								<TextBlock Text="{Binding Date}"  FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
 								<StackPanel x:Name="StatusIcons" Orientation="Horizontal" VerticalAlignment="Bottom" IsVisible="False">
@@ -76,14 +85,13 @@
 			</Style>
 		</Style>
 		<Style Selector="^[Tag=Own]">
-			<Setter Property="Background" Value="{StaticResource Panel}"/>
 			<Setter Property="HorizontalAlignment" Value="Right"/>
-			
 			<Style Selector="^ /template/ StackPanel#StatusIcons">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>
 			<Style Selector="^ /template/ Border#Back">
 				<Setter Property="CornerRadius" Value="15 5 5 15"/>
+				<Setter Property="Background" Value="{StaticResource Panel}"/>
 			</Style>
 			<Style Selector="^ /template/ Border#Reply">
 				<Setter Property="Background" Value="{StaticResource PanelLight}"/>
@@ -93,11 +101,11 @@
 			</Style>
 		</Style>
 		<Style Selector="^[Tag=OwnFirst]">
-			<Setter Property="Background" Value="{StaticResource Panel}"/>
 			<Setter Property="Margin" Value="0,5,0,2"/>
 			<Setter Property="HorizontalAlignment" Value="Right"/>
-			
+
 			<Style Selector="^ /template/ Border#Back">
+				<Setter Property="Background" Value="{StaticResource Panel}"/>
 				<Setter Property="CornerRadius" Value="15 15 5 15"/>
 			</Style>
 			<Style Selector="^ /template/ StackPanel#StatusIcons">
@@ -118,11 +126,9 @@
 		<Style Selector="^[Tag=GroupFirst]">
 			<Style Selector="^ /template/ Border#Back">
 				<Setter Property="Margin" Value="45,0,0,0"/>
-			</Style>
-			<Setter Property="Margin" Value="0,5,0,2"/>
-			<Style Selector="^ /template/ Border#Back">
 				<Setter Property="CornerRadius" Value="15 15 15 5"/>
 			</Style>
+			<Setter Property="Margin" Value="0,5,0,2"/>
 			<Style Selector="^ /template/ TextBlock#Sender">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>
@@ -131,6 +137,9 @@
 			<Style Selector="^ /template/ Border#ProfilePic">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>
+		</Style>
+		<Style Selector="^:selected">
+			<Setter Property="Background" Value="{StaticResource Surface}"/>
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>

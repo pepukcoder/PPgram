@@ -6,6 +6,7 @@
 				<StackPanel Orientation="Horizontal" Margin="0,5">
 					<Border Background="{StaticResource BackgroundWindow}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
 					<Border Background="{StaticResource Surface}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
+					<Border Background="{StaticResource SurfaceLight}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
 					<Border Background="{StaticResource Panel}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
 					<Border Background="{StaticResource PanelLight}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
 					<Border Background="{StaticResource PanelAccent}" Width="50" Height="50" CornerRadius="10" Margin="5,0"/>
@@ -26,6 +27,7 @@
 	
 	<SolidColorBrush x:Key="BackgroundWindow">#121212</SolidColorBrush>
 	<SolidColorBrush x:Key="Surface">#1e2021</SolidColorBrush>
+	<SolidColorBrush x:Key="SurfaceLight">#242627</SolidColorBrush>
 	<SolidColorBrush x:Key="Panel">#353637</SolidColorBrush>
 	<SolidColorBrush x:Key="PanelLight">#494a4b</SolidColorBrush>
 	<SolidColorBrush x:Key="PanelAccent">#727273</SolidColorBrush>

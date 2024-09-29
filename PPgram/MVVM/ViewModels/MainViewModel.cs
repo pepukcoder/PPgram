@@ -1,13 +1,5 @@
-﻿using Avalonia.Controls;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using PPgram.MVVM.Models;
-using PPgram.MVVM.Views;
-using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -29,6 +21,6 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
 
-        CurrentPage = login_vm;
+        CurrentPage = chat_vm;
     }
 }

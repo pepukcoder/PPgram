@@ -1,4 +1,5 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System;
 
@@ -12,14 +13,14 @@ internal class MessageModel
     public string Name { get; set; } = "UserName";
     // public SolidColorBrush NameColor { get; set; }
     public Bitmap Avatar { get; set; } = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
-    public string Text { get; set; } = "";
+    public string Text { get; set; }
     public string Date { get; set; } = "00:00";
     public string ReplyName { get; set; }
     // public SolidColorBrush ReplyNameColor { get; set; }
     public string ReplyText { get; set; }
     public string AttachmentHash { get; set; }
     public string AttachmentName { get; set; }
-    public string AttachmentSize { get; set; }
+    public string AttachmentSize { get; set; } = "0 MB";
     public bool Edited { get; set; }
     public MessageType Type { get; set; }
     public MessageStatus Status { get; set; }

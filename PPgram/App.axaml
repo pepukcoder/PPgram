@@ -22,6 +22,7 @@
 				<ResourceInclude Source="/Styles/ThemeColors.axaml"/>
 				<ResourceInclude Source="/Styles/Button.axaml"/>
 				<ResourceInclude Source="/Styles/Message.axaml"/>
+				<ResourceInclude Source="/Styles/Chat.axaml"/>
 				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
