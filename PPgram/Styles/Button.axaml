@@ -57,10 +57,9 @@
 
 	<ControlTheme x:Key="ButtonIcon" TargetType="Button">
 		<Setter Property="Background" Value="Transparent"/>
-		<Setter Property="Foreground" Value="#606060"/>
+		<Setter Property="Foreground" Value="{StaticResource ButtonIdle}"/>
 		<Setter Property="Padding" Value="8"/>
 		<Setter Property="BorderThickness" Value="0"/>
-		<Setter Property="BorderBrush" Value="{StaticResource PPgramAccent}"/>
 		<Setter Property="FontFamily" Value="{StaticResource Montserrat}"/>
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
@@ -72,10 +71,10 @@
 		</Setter>
 
 		<Style Selector="^:pointerover">
-			<Setter Property="Foreground" Value="#808080"/>
+			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
 		</Style>
 		<Style Selector="^:pressed">
-			<Setter Property="Foreground" Value="#808080"/>
+			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>

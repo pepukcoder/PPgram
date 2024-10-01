@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PPgram.MVVM.Models;
 using System.Collections.ObjectModel;
+
 namespace PPgram.MVVM.ViewModels;
 
 partial class ChatViewModel : ViewModelBase
@@ -14,9 +15,11 @@ partial class ChatViewModel : ViewModelBase
     private string _messageInput;
     [ObservableProperty]
     private string _searchInput;
-    
+    [ObservableProperty]
+    private bool _rightGridVisible;
     public ChatViewModel()
     {
+        RightGridVisible = false;
         ChatList.Add(new ChatModel
         {
             Name = "Pepuk",
@@ -35,7 +38,7 @@ partial class ChatViewModel : ViewModelBase
         {
             Name = "Pavlo",
             Username = "@pavloalpha",
-            LastMessage = "פûגפûגפûגפûגפûג",
+            LastMessage = "asdasdasd",
             Status = MessageStatus.Delivered
         });
         ChatList.Add(new ChatModel
@@ -113,5 +116,15 @@ partial class ChatViewModel : ViewModelBase
     private void SendMessage()
     {
         MessageInput = "";
+    }
+    [RelayCommand]
+    private void SearchChat()
+    {
+        ClearSearch();
+    }
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchInput = "";
     }
 }

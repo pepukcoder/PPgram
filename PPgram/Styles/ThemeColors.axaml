@@ -30,8 +30,10 @@
 	<SolidColorBrush x:Key="SurfaceLight">#242627</SolidColorBrush>
 	<SolidColorBrush x:Key="Panel">#353637</SolidColorBrush>
 	<SolidColorBrush x:Key="PanelLight">#494a4b</SolidColorBrush>
-	<SolidColorBrush x:Key="PanelAccent">#727273</SolidColorBrush>
+	<SolidColorBrush x:Key="PanelAccent">#808080</SolidColorBrush>
 	
+	<SolidColorBrush x:Key="ReplyDefault">#272829</SolidColorBrush>
+
 	<SolidColorBrush x:Key="PPgramAccent">#3f86e7</SolidColorBrush>
 	<SolidColorBrush x:Key="PPgramAccentLight">#5292e9</SolidColorBrush>
 	
@@ -39,5 +41,6 @@
 	<SolidColorBrush x:Key="SecondaryText">#808081</SolidColorBrush>
 	<SolidColorBrush x:Key="Selection">#868687</SolidColorBrush>
 	
-	
+	<SolidColorBrush x:Key="ButtonIdle">#606060</SolidColorBrush>
+	<SolidColorBrush x:Key="ButtonHover">#808080</SolidColorBrush>
 </ResourceDictionary>

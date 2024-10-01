@@ -40,7 +40,7 @@
 								<RowDefinition Height="Auto"/>
 							</Grid.RowDefinitions>				
 							<TextBlock x:Name="Sender" Text="{Binding Name}" Foreground="Pink" Grid.Row="0" FontWeight="Medium" IsVisible="False" Margin="0,0,10,0"/>
-							<Border x:Name="Reply" Grid.Row="1" CornerRadius="10" Padding="5,3" Margin="0,0,10,3" Background="{StaticResource Panel}"
+							<Border x:Name="Reply" Grid.Row="1" CornerRadius="10" Padding="5,3" Margin="0,0,10,3" Background="{StaticResource ReplyDefault}"
 									IsVisible="{Binding ReplyText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 								<StackPanel>
 									<TextBlock Text="{Binding ReplyName}" Foreground="#ffffff" FontWeight="Medium"/>

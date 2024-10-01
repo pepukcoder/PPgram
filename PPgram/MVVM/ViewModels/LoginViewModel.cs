@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
-using System.Net.Http.Headers;
 
 namespace PPgram.MVVM.ViewModels;
 
