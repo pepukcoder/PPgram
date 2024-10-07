@@ -17,7 +17,7 @@
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="Auto" MinWidth="120"/>
 			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="*" MinWidth="314"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
@@ -148,5 +148,6 @@
 				</StackPanel>
 			</Border>
 		</Grid>
+		<!--Panel Grid.ColumnSpan="5" Background="Gray" Opacity="0.5" ZIndex="2"></Panel-->
 	</Grid>
 </UserControl>

@@ -1,22 +1,33 @@
 ﻿using System;
+using System.Globalization;
+using Avalonia.Data.Converters;
 
 namespace PPgram.Helpers;
 
-internal class SizeConverter
+internal class SizeConverter : IValueConverter
 {
     static readonly string[] SizeSuffixes = ["bytes", "KB", "MB", "GB"];
 
-    public static string ConvertBytes(long value)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value == 0) return "0 bytes";
-        if (value < 0) return "-" + ConvertBytes(-value);
-        int i = 0;
-        decimal dValue = (decimal)value;
-        while (Math.Round(dValue, 1) >= 1000)
+        if (value is int size)
         {
-            dValue /= 1000;
-            i++;
+            if (size == 0) return "0 bytes";
+            if (size < 0)
+                return "???";
+            int i = 0;
+            decimal dValue = (decimal)size;
+            while (Math.Round(dValue, 1) >= 1000)
+            {
+                dValue /= 1000;
+                i++;
+            }
+            return string.Format("{0:n1} {1}", dValue, SizeSuffixes[i]);
         }
-        return string.Format("{0:n1} {1}", dValue, SizeSuffixes[i]);
+        return "???";
+    }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return new NotImplementedException();
     }
 }

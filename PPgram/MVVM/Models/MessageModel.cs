@@ -1,7 +1,7 @@
-﻿using Avalonia.Media;
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System;
+using System.Collections.ObjectModel;
 
 namespace PPgram.MVVM.Models;
 
@@ -18,9 +18,8 @@ internal class MessageModel
     public string ReplyName { get; set; }
     // public SolidColorBrush ReplyNameColor { get; set; }
     public string ReplyText { get; set; }
-    public string AttachmentHash { get; set; }
-    public string AttachmentName { get; set; }
-    public string AttachmentSize { get; set; } = "0 MB";
+    public ObservableCollection<MediaModel> Media { get; set; }
+    public MediaType MediaType { get; set; }
     public bool Edited { get; set; }
     public MessageType Type { get; set; }
     public MessageStatus Status { get; set; }
@@ -32,6 +31,7 @@ public enum MessageType
     Own,
     OwnFirst,
     Group,
+    GroupSingle,
     GroupFirst,
     GroupLast,
     Date
@@ -43,4 +43,10 @@ public enum MessageStatus
     Delivered,
     Read,
     Error
+}
+public enum MediaType
+{
+    None,
+    Images,
+    Files,
 }

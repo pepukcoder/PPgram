@@ -6,6 +6,7 @@
 	<ControlTheme x:DataType="md:MessageModel" x:Key="Message" TargetType="ListBoxItem">
 		<ControlTheme.Resources>
 			<helpers:MessageStatusConverter x:Key="MessageStatusConverter"/>
+			<helpers:MediaTypeConverter x:Key="MediaTypeConverter"/>
 		</ControlTheme.Resources>
 		<Setter Property="Tag" Value="{Binding Type}"/>
 		<Setter Property="Background" Value="{StaticResource Surface}"/>
@@ -47,13 +48,15 @@
 									<TextBlock Text="{Binding ReplyText}" FontSize="13"/>
 								</StackPanel>
 							</Border>
-							<StackPanel x:Name="Attachment" Orientation="Horizontal" Grid.Row="2" Margin="0,0,10,0"
-										IsVisible="{Binding AttachmentHash,Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-								<icons:MaterialIcon Kind="File" Margin="0,0,3,0" Width="30" Height="30" VerticalAlignment="Center"/>
-								<StackPanel Orientation="Vertical">
-									<TextBlock Text="{Binding AttachmentName}"/>
-									<TextBlock Text="{Binding AttachmentSize}" Foreground="{StaticResource SecondaryText}" FontFamily="{StaticResource Cascadia}" FontSize="13"/>
-								</StackPanel>
+							<StackPanel x:Name="Attachment" Orientation="Vertical" Grid.Row="2" Margin="0,0,10,0"
+										IsVisible="{Binding Media.Count}">
+								
+								<ListBox ItemContainerTheme="{StaticResource MediaFile}"
+										 Background="Transparent" Padding="0" BorderThickness="0"
+										 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+										 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+										 ItemsSource="{Binding Media}"
+										 IsVisible="{Binding MediaType, Converter={StaticResource MediaTypeConverter}, ConverterParameter=Files}"/>
 							</StackPanel>
 							<TextBox x:Name="Text" Text="{Binding Text}" MaxWidth="400" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True"
 									 Grid.Row="3" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,10,0"
@@ -123,12 +126,24 @@
 				<Setter Property="Margin" Value="45,0,0,0"/>
 			</Style>
 		</Style>
+		<Style Selector="^[Tag=GroupSingle]">
+			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Style Selector="^ /template/ TextBlock#Sender">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+			<Style Selector="^ /template/ Border#Back">
+				<Setter Property="CornerRadius" Value="15 15 15 5"/>
+			</Style>
+			<Style Selector="^ /template/ Border#ProfilePic">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+		</Style>
 		<Style Selector="^[Tag=GroupFirst]">
+			<Setter Property="Margin" Value="0,5,0,2"/>
 			<Style Selector="^ /template/ Border#Back">
 				<Setter Property="Margin" Value="45,0,0,0"/>
 				<Setter Property="CornerRadius" Value="15 15 15 5"/>
 			</Style>
-			<Setter Property="Margin" Value="0,5,0,2"/>
 			<Style Selector="^ /template/ TextBlock#Sender">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>
@@ -139,7 +154,7 @@
 			</Style>
 		</Style>
 		<Style Selector="^:selected">
-			<Setter Property="Background" Value="{StaticResource Surface}"/>
+			
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>

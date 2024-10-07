@@ -72,16 +72,30 @@ partial class ChatViewModel : ViewModelBase
         });
         MessageList.Add(new MessageModel
         {
-            Text = "who is pavlo?",
+            Media = [
+                new() {
+                    Name = "file.zip",
+                    Size = 1200
+                },
+                new() {
+                    Name = "somethings.zip",
+                    Size = 5000000
+                }
+            ],
+            MediaType = MediaType.Files,
             Type = MessageType.Group
         });
         MessageList.Add(new MessageModel
         {
-            AttachmentName = "asd.asd",
-            AttachmentHash = "asdasd",
-            Type = MessageType.GroupLast,
-            Edited = true
+            Text = "who is pavlo?",
+            Type = MessageType.GroupLast
         });
+        MessageList.Add(new MessageModel
+        {
+            Text = "single group message",
+            Type = MessageType.GroupSingle
+        });
+
         MessageList.Add(new MessageModel
         {
             Text = "gay",
@@ -92,11 +106,22 @@ partial class ChatViewModel : ViewModelBase
         });
         MessageList.Add(new MessageModel
         {
-            AttachmentName = "proof.zip",
-            AttachmentHash = "asdasd",
             Text = "this is the proof",
+            MediaType = MediaType.Files,
             Type = MessageType.Own,
             Status = MessageStatus.Delivered,
+            Media = [
+                new() {
+                    Name = "file.txt",
+                    Size = 500,
+                    HasPreview = false
+                },
+                new() {
+                    Name = "proof.png",
+                    Size = 2000,
+                    HasPreview = false
+                }
+            ],
             Edited = true
         });
         MessageList.Add(new MessageModel

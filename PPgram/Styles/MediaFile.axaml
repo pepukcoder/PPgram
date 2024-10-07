@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:md="clr-namespace:PPgram.MVVM.Models;assembly=PPgram"
+                    xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+    <ControlTheme x:DataType="md:MediaModel" x:Key="MediaFile" TargetType="ListBoxItem">
+        <ControlTheme.Resources>
+			<helpers:SizeConverter x:Key="SizeConverter"/>
+		</ControlTheme.Resources>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                    <icons:MaterialIcon Kind="File" Margin="0,0,3,0" Width="30" Height="30" VerticalAlignment="Center"
+                                        IsVisible="{Binding !HasPreview}"/>
+                    <Border Margin="0,0,3,0" ClipToBounds="True" CornerRadius="5" Width="50" Height="50" IsVisible="{Binding HasPreview}" Background="Gray">
+                        <Image Source="{Binding Preview}"/>
+                    </Border>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" MaxWidth="150"/>
+                        <TextBlock Text="{Binding Size, Converter={StaticResource SizeConverter}}" Foreground="{StaticResource SecondaryText}" FontFamily="{StaticResource Cascadia}" FontSize="13"/>
+                    </StackPanel>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

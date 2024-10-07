@@ -3,8 +3,7 @@
 			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:local="using:PPgram"
              x:Class="PPgram.App"
-             RequestedThemeVariant="Dark">
-            
+             RequestedThemeVariant="Dark">     
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
@@ -24,6 +23,7 @@
 				<ResourceInclude Source="/Styles/Message.axaml"/>
 				<ResourceInclude Source="/Styles/Chat.axaml"/>
 				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
+				<ResourceInclude Source="/Styles/MediaFile.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>
