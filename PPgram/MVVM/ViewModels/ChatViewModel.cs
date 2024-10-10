@@ -20,7 +20,7 @@ partial class ChatViewModel : ViewModelBase
     private bool _rightGridVisible;
     public ChatViewModel()
     {
-        RightGridVisible = true;
+        RightGridVisible = false;
         ChatList.Add(new ChatModel
         {
             Name = "Pepuk",

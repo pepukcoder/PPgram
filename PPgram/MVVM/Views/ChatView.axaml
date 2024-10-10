@@ -82,13 +82,13 @@
 					</DockPanel>
 				</Border>
 				<ListBox x:Name="MessageHistory" Grid.Row="1" ItemContainerTheme="{StaticResource Message}"
-						 Background="Transparent" Padding="0" BorderThickness="0"
+						 Background="Transparent" Padding="0" BorderThickness="0" 
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						 ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,0,-6,0"
 						 ItemsSource="{Binding MessageList, Mode=OneWay}">
 					<ListBox.ItemsPanel>
 						<ItemsPanelTemplate>
-							<StackPanel />
+							<StackPanel VerticalAlignment="Bottom"/>
 						</ItemsPanelTemplate>
 					</ListBox.ItemsPanel>
 				</ListBox>
