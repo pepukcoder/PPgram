@@ -8,9 +8,9 @@ namespace PPgram.MVVM.ViewModels;
 partial class LoginViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _username;
+    private string _username = string.Empty;
     [ObservableProperty]
-    private string _password;
+    private string _password = string.Empty;
 
     [RelayCommand]
     private void TryLogin()
@@ -22,6 +22,7 @@ partial class LoginViewModel : ViewModelBase
             username = Username,
             password = Password
         });
+        // remove this LOL
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
         {
             header = "Trying to login huh?",
@@ -40,6 +41,6 @@ partial class LoginViewModel : ViewModelBase
 class Msg_ToReg;
 class Msg_Login
 {
-    public string username;
-    public string password;
+    public string username = string.Empty;
+    public string password = string.Empty;
 }

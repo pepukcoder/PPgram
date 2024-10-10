@@ -9,15 +9,15 @@ namespace PPgram.MVVM.ViewModels;
 partial class RegViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _name;
+    private string _name = string.Empty;
     [ObservableProperty]
-    private string _username;
+    private string _username = string.Empty;
     [ObservableProperty]
-    private string _password;
+    private string _password = string.Empty;
     [ObservableProperty]
-    private string _passwordConf;
+    private string _passwordConf = string.Empty;
     [ObservableProperty]
-    private string _usernameStatus;
+    private string _usernameStatus = string.Empty;
     [ObservableProperty]
     private bool _usernameOk;
     [ObservableProperty]
@@ -114,8 +114,8 @@ partial class RegViewModel : ViewModelBase
 class Msg_ToLogin;
 class Msg_Register
 {
-    public string name = "";
-    public string username = "";
-    public string password = "";
+    public string name = string.Empty;
+    public string username = string.Empty;
+    public string password = string.Empty;
     public bool check = false;
 }

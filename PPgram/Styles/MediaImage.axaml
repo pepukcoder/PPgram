@@ -1,0 +1,13 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:md="clr-namespace:PPgram.MVVM.Models;assembly=PPgram"
+                    xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+    <ControlTheme x:DataType="md:MediaModel" x:Key="MediaImage" TargetType="ListBoxItem">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Image Source="{Binding Preview}" MaxWidth="200" Margin="2"/>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

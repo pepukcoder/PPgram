@@ -9,15 +9,15 @@ namespace PPgram.MVVM.ViewModels;
 partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _dialogText;
+    private string _dialogText = string.Empty;
     [ObservableProperty]
-    private string _dialogHeader;
+    private string _dialogHeader = string.Empty;
     [ObservableProperty]
     private DialogIcons _dialogIcon = DialogIcons.None;
     [ObservableProperty]
-    private string _dialogAccept;
+    private string _dialogAccept = "Ok";
     [ObservableProperty]
-    private string _dialogDecline;
+    private string _dialogDecline = "Cancel";
     
     private void ShowDialog(Msg_ShowDialog options)
     {
@@ -53,8 +53,8 @@ partial class MainViewModel : ViewModelBase
 }
 class Msg_ShowDialog
 {
-    public string text;
-    public string header = "";
+    public string text = string.Empty;
+    public string header = string.Empty;
     public DialogIcons icon = DialogIcons.None;
     public string accept = "Ok";
     public string decline = "Cancel";

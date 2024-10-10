@@ -48,14 +48,25 @@
 									<TextBlock Text="{Binding ReplyText}" FontSize="13"/>
 								</StackPanel>
 							</Border>
-							<StackPanel x:Name="Attachment" Orientation="Vertical" Grid.Row="2" Margin="0,0,10,0"
-										IsVisible="{Binding Media.Count}">
-								
-								<ListBox ItemContainerTheme="{StaticResource MediaFile}"
+							<StackPanel x:Name="Attachment" Orientation="Vertical" Grid.Row="2" IsVisible="{Binding Media.Count}">
+								<Border x:Name="ImageFiles" IsVisible="{Binding MediaType, Converter={StaticResource MediaTypeConverter}, ConverterParameter=Images}"
+										ClipToBounds="True" CornerRadius="5" Background="White" Margin="0,0,10,0">
+									<ListBox ItemContainerTheme="{StaticResource MediaImage}" 
+											 Background="Transparent" Padding="0" BorderThickness="0" ItemsSource="{Binding Media}"
+											 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+											 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+										<ListBox.ItemsPanel>
+											<ItemsPanelTemplate>
+												<WrapPanel Orientation="Vertical"/>
+											</ItemsPanelTemplate>
+										</ListBox.ItemsPanel>
+									</ListBox>
+								</Border>
+								<ListBox ItemContainerTheme="{StaticResource MediaFile}" Margin="0,0,10,0"
 										 Background="Transparent" Padding="0" BorderThickness="0"
 										 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 										 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-										 ItemsSource="{Binding Media}"
+										 ItemsSource="{Binding Media}" 
 										 IsVisible="{Binding MediaType, Converter={StaticResource MediaTypeConverter}, ConverterParameter=Files}"/>
 							</StackPanel>
 							<TextBox x:Name="Text" Text="{Binding Text}" MaxWidth="400" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True"

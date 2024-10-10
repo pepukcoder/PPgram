@@ -12,9 +12,9 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<ChatModel> chatList = [];
     [ObservableProperty]
-    private string _messageInput;
+    private string _messageInput = string.Empty;
     [ObservableProperty]
-    private string _searchInput;
+    private string _searchInput = string.Empty;
     [ObservableProperty]
     private bool _rightGridVisible;
     public ChatViewModel()
@@ -63,27 +63,12 @@ partial class ChatViewModel : ViewModelBase
             Status = MessageStatus.Error
         });
 
-        MessageList.Add(new MessageModel
+        /*MessageList.Add(new MessageModel
         {
             Text = "hello",
             Type = MessageType.GroupFirst,
             ReplyText = "hello",
             ReplyName = "pavlo"
-        });
-        MessageList.Add(new MessageModel
-        {
-            Media = [
-                new() {
-                    Name = "file.zip",
-                    Size = 1200
-                },
-                new() {
-                    Name = "somethings.zip",
-                    Size = 5000000
-                }
-            ],
-            MediaType = MediaType.Files,
-            Type = MessageType.Group
         });
         MessageList.Add(new MessageModel
         {
@@ -95,7 +80,6 @@ partial class ChatViewModel : ViewModelBase
             Text = "single group message",
             Type = MessageType.GroupSingle
         });
-
         MessageList.Add(new MessageModel
         {
             Text = "gay",
@@ -103,27 +87,28 @@ partial class ChatViewModel : ViewModelBase
             ReplyText = "who is pavlo?",
             Type = MessageType.OwnFirst,
             Status = MessageStatus.Read
-        });
-        MessageList.Add(new MessageModel
+        });*/
+        for (int i = 0; i < 5; i++)
         {
-            Text = "this is the proof",
-            MediaType = MediaType.Files,
-            Type = MessageType.Own,
-            Status = MessageStatus.Delivered,
-            Media = [
-                new() {
-                    Name = "file.txt",
-                    Size = 500,
-                    HasPreview = false
-                },
-                new() {
-                    Name = "proof.png",
-                    Size = 2000,
-                    HasPreview = false
-                }
-            ],
-            Edited = true
-        });
+            MessageList.Add(new MessageModel
+            {
+                Text = "this is the proof",
+                Media = [
+                    new() {
+                        Name = "asd",
+                        Size = 5000000
+                    },
+                    new() {
+                        Name = "asd",
+                        Size = 5000000
+                    },
+                ],
+                MediaType = MediaType.Files,
+                Type = MessageType.Own,
+                Status = MessageStatus.Delivered,
+                Edited = true
+            });
+        }
         MessageList.Add(new MessageModel
         {
             Text = "okay that was personal",

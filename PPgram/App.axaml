@@ -24,6 +24,7 @@
 				<ResourceInclude Source="/Styles/Chat.axaml"/>
 				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
 				<ResourceInclude Source="/Styles/MediaFile.axaml"/>
+				<ResourceInclude Source="/Styles/MediaImage.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>

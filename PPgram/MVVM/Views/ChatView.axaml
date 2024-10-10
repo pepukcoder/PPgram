@@ -84,8 +84,14 @@
 				<ListBox x:Name="MessageHistory" Grid.Row="1" ItemContainerTheme="{StaticResource Message}"
 						 Background="Transparent" Padding="0" BorderThickness="0"
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-						 ScrollViewer.VerticalScrollBarVisibility="Hidden"
-						 ItemsSource="{Binding MessageList}"/>
+						 ScrollViewer.VerticalScrollBarVisibility="Visible"
+						 ItemsSource="{Binding MessageList, Mode=OneWay}">
+					<ListBox.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel />
+						</ItemsPanelTemplate>
+					</ListBox.ItemsPanel>
+				</ListBox>
 				<Border Background="{StaticResource Surface}"  CornerRadius="20"
 						BoxShadow="0 8 10 0 #0f0f0f" Padding="5" Grid.Row="2"
 						BorderThickness="1" BorderBrush="{StaticResource Panel}">			
