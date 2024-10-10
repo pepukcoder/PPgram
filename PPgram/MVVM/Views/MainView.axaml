@@ -15,7 +15,7 @@
         <vm:MainViewModel/>
     </Design.DataContext>
 	<UserControl.Resources>
-		<helpers:DialogIconsConverter x:Key="DialogIconsConverter"/>
+		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 	</UserControl.Resources>
 	<Grid x:Name="ContentGrid" Margin="0,0,0,0">
 		<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}" ZIndex="0"/>
@@ -36,11 +36,11 @@
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,20"
 								IsVisible="{Binding DialogHeader, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 						<icons:MaterialIcon Kind="AlertCircle" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-											IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Error}"/>
+											IsVisible="{Binding DialogIcon, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"/>
 						<icons:MaterialIcon Kind="CheckCircle" Foreground="LightGreen"	  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-											IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Check}"/>
+											IsVisible="{Binding DialogIcon, Converter={StaticResource EnumConvert}, ConverterParameter=Check}"/>
 						<icons:MaterialIcon Kind="InfoCircle"  Foreground="SkyBlue"		  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-											IsVisible="{Binding DialogIcon, Converter={StaticResource DialogIconsConverter}, ConverterParameter=Info}"/>
+											IsVisible="{Binding DialogIcon, Converter={StaticResource EnumConvert}, ConverterParameter=Info}"/>
 
 						<TextBlock Text="{Binding DialogHeader}" MaxWidth="270" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
 								   FontWeight="Bold" FontSize="16"/>

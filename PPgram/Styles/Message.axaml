@@ -5,8 +5,7 @@
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
 	<ControlTheme x:DataType="md:MessageModel" x:Key="Message" TargetType="ListBoxItem">
 		<ControlTheme.Resources>
-			<helpers:MessageStatusConverter x:Key="MessageStatusConverter"/>
-			<helpers:MediaTypeConverter x:Key="MediaTypeConverter"/>
+			<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 		</ControlTheme.Resources>
 		<Setter Property="Tag" Value="{Binding Type}"/>
 		<Setter Property="Background" Value="{StaticResource Surface}"/>
@@ -49,7 +48,7 @@
 								</StackPanel>
 							</Border>
 							<StackPanel x:Name="Attachment" Orientation="Vertical" Grid.Row="2" IsVisible="{Binding Media.Count}">
-								<Border x:Name="ImageFiles" IsVisible="{Binding MediaType, Converter={StaticResource MediaTypeConverter}, ConverterParameter=Images}"
+								<Border x:Name="ImageFiles" IsVisible="{Binding MediaType, Converter={StaticResource EnumConvert}, ConverterParameter=Images}"
 										ClipToBounds="True" CornerRadius="5" Background="White" Margin="0,0,10,0">
 									<ListBox ItemContainerTheme="{StaticResource MediaImage}" 
 											 Background="Transparent" Padding="0" BorderThickness="0" ItemsSource="{Binding Media}"
@@ -62,12 +61,12 @@
 										</ListBox.ItemsPanel>
 									</ListBox>
 								</Border>
-								<ListBox ItemContainerTheme="{StaticResource MediaFile}" Margin="0,0,10,0"
+								<ListBox IsVisible="{Binding MediaType, Converter={StaticResource EnumConvert}, ConverterParameter=Files}"
+										 ItemContainerTheme="{StaticResource MediaFile}" Margin="0,0,10,0"
 										 Background="Transparent" Padding="0" BorderThickness="0"
 										 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 										 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-										 ItemsSource="{Binding Media}" 
-										 IsVisible="{Binding MediaType, Converter={StaticResource MediaTypeConverter}, ConverterParameter=Files}"/>
+										 ItemsSource="{Binding Media}"/>
 							</StackPanel>
 							<TextBox x:Name="Text" Text="{Binding Text}" MaxWidth="400" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True"
 									 Grid.Row="3" Padding="0" Background="Transparent" BorderThickness="0" Margin="0,0,10,0"
@@ -77,13 +76,13 @@
 								<TextBlock Text="edited" FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" IsVisible="{Binding Edited}" VerticalAlignment="Bottom"/>
 								<TextBlock Text="{Binding Date}"  FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
 								<StackPanel x:Name="StatusIcons" Orientation="Horizontal" VerticalAlignment="Bottom" IsVisible="False">
-									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Sending}"
+									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
 														Kind="ClockOutline" Height="16" Width="18" Foreground="{StaticResource SecondaryText}"/>
-									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Delivered}"
+									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
 														Kind="Check" Height="18" Width="18"/>
-									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Read}"
+									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
 														Kind="CheckMultiple" Height="18" Width="18"/>
-									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Error}"
+									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
 														Kind="AlertCircleOutline" Height="16" Width="18" Foreground="PaleVioletRed"/>
 								</StackPanel>
 							</StackPanel>

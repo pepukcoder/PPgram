@@ -5,7 +5,7 @@
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
 	<ControlTheme x:Key="Chat" TargetType="ListBoxItem" x:DataType="md:ChatModel">
 		<ControlTheme.Resources>
-			<helpers:MessageStatusConverter x:Key="MessageStatusConverter"/>
+			<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 		</ControlTheme.Resources>
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -24,13 +24,13 @@
 						<StackPanel Orientation="Vertical" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
 							<TextBlock Text="{Binding Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
 							<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Sending}"
+								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
 													Kind="ClockOutline" Height="18" Width="16" Foreground="{StaticResource SecondaryText}"/>
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Delivered}"
+								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
 													Kind="Check" Height="18" Width="18"/>
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Read}"
+								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
 													Kind="CheckMultiple" Height="18" Width="18"/>
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource MessageStatusConverter}, ConverterParameter=Error}"
+								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
 													Kind="AlertCircleOutline" Height="18" Width="16" Foreground="PaleVioletRed"/>
 							</StackPanel>
 							<Border x:Name="Unread" IsVisible="{Binding UnreadCount}" CornerRadius="10" Background="{StaticResource Panel}"

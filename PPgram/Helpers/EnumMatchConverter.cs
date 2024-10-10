@@ -1,17 +1,16 @@
 using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
-using PPgram.MVVM.Models;
 
 namespace PPgram.Helpers;
 
-public class MediaTypeConverter : IValueConverter
+public class EnumMatchConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is MediaType mediaType && parameter is string targetStatus)
+        if (value?.ToString() is string current && parameter is string target)
         {
-            return mediaType.ToString() == targetStatus;
+            return current == target;
         }
         return false;
     }
