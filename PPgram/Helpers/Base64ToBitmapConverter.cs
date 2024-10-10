@@ -3,7 +3,7 @@ using System.IO;
 using Avalonia.Platform;
 using Avalonia.Media.Imaging;
 
-namespace PPgram_desktop.Core;
+namespace PPgram.Helpers;
 
 public class Base64ToBitmapConverter
 {

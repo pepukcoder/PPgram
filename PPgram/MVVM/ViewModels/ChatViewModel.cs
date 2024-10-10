@@ -1,7 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PPgram.MVVM.Models;
 using System.Collections.ObjectModel;
+using PPgram.MVVM.Models;
+using PPgram.Shared;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -63,7 +64,7 @@ partial class ChatViewModel : ViewModelBase
             Status = MessageStatus.Error
         });
 
-        /*MessageList.Add(new MessageModel
+        MessageList.Add(new MessageModel
         {
             Text = "hello",
             Type = MessageType.GroupFirst,
@@ -87,12 +88,13 @@ partial class ChatViewModel : ViewModelBase
             ReplyText = "who is pavlo?",
             Type = MessageType.OwnFirst,
             Status = MessageStatus.Read
-        });*/
-        for (int i = 0; i < 5; i++)
+        });
+        // use this piece for performance checks
+        for (int i = 0; i < 1; i++)
         {
             MessageList.Add(new MessageModel
             {
-                Text = "this is the proof",
+                Text = "here is some files",
                 Media = [
                     new() {
                         Name = "asd",

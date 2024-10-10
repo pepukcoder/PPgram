@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
+using PPgram.Shared;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -110,12 +111,4 @@ partial class RegViewModel : ViewModelBase
         PassConfOk = false;
         WeakReferenceMessenger.Default.Send<Msg_ToLogin>();
     }
-}
-class Msg_ToLogin;
-class Msg_Register
-{
-    public string name = string.Empty;
-    public string username = string.Empty;
-    public string password = string.Empty;
-    public bool check = false;
 }

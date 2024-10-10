@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
+using PPgram.Shared;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -22,13 +23,6 @@ partial class LoginViewModel : ViewModelBase
             username = Username,
             password = Password
         });
-        // remove this LOL
-        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        {
-            header = "Trying to login huh?",
-            text = "you just a clown, use terminal",
-            accept = "yes you are right"
-        });
     }
     [RelayCommand]
     private void ToRegPage()
@@ -37,10 +31,4 @@ partial class LoginViewModel : ViewModelBase
         Password = "";
         WeakReferenceMessenger.Default.Send<Msg_ToReg>();
     }
-}
-class Msg_ToReg;
-class Msg_Login
-{
-    public string username = string.Empty;
-    public string password = string.Empty;
 }

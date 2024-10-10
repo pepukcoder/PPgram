@@ -2,6 +2,7 @@
 using Avalonia.Platform;
 using System;
 using System.Collections.ObjectModel;
+using PPgram.Shared;
 
 namespace PPgram.MVVM.Models;
 
@@ -23,30 +24,4 @@ internal class MessageModel
     public bool Edited { get; set; }
     public MessageType Type { get; set; }
     public MessageStatus Status { get; set; }
-}
-public enum MessageType
-{
-    User,
-    UserFirst,
-    Own,
-    OwnFirst,
-    Group,
-    GroupSingle,
-    GroupFirst,
-    GroupLast,
-    Date
-}
-public enum MessageStatus
-{
-    None,
-    Sending,
-    Delivered,
-    Read,
-    Error
-}
-public enum MediaType
-{
-    None,
-    Images,
-    Files,
 }

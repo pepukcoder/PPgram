@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using PPgram.Shared;
 
 namespace PPgram.MVVM.Models;
 

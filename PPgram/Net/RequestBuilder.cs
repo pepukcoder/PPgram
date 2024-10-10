@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace PPgram_desktop.Net.IO;
+namespace PPgram.Net;
 
 class RequestBuilder
 {

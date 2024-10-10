@@ -1,4 +1,4 @@
-﻿using PPgram_desktop.Net.IO;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,39 +7,56 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
+using PPgram.Shared;
 
 namespace PPgram.Net;
 
 internal class Client
 {
-    private readonly TcpClient client;
+    private readonly TcpClient client = new();
     private NetworkStream? stream;
-
-    public Client()
-    {
-        client = new();
-    }
     public void Connect(string host, int port)
     {
         try
         {
+            // try to connect the socket
             client.Connect(host, port);
             stream = client.GetStream();
+            // make a background thread for connection handling
             Thread listenThread = new(new ThreadStart(Listen))
             { IsBackground = true };
             listenThread.Start();
         }
         catch
         {
-            // Handle
+            // show dialog on error
+            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+            {
+                icon = DialogIcons.Error,
+                header = "Connection error",
+                text = "Unable to connect to the server",
+                accept = "Retry",
+                decline = ""
+            });
+            // listen for retry dialog action
+            WeakReferenceMessenger.Default.Register<Msg_DialogResult>(this, (r, e) =>
+            {
+                WeakReferenceMessenger.Default.Unregister<Msg_DialogResult>(this);
+                if (e.action == DialogAction.Accepted)
+                {
+                    Connect(host, port);
+                }
+            });
         }
     }
     private void Listen()
     {
         if (stream == null) return;
+        // init reponse chunks
         List<byte> response_chunks = [];
         int expected_size = 0;
         bool isFirst = true;
+
         while (true)
         {
             try
@@ -107,6 +124,47 @@ internal class Client
         stream?.Dispose();
         client.Close();
     }
+    public void AuthSessionId(string sessionId, int userId)
+    { 
+        var data = new
+        {
+            method = "auth",
+            user_id = userId,
+            session_id = sessionId,
+        };
+        Send(data);
+    }
+    public void AuthLogin(string login, string password)
+    {
+        var data = new
+        {
+            method = "login",
+            username = login,
+            password_hash = password
+        };
+        Send(data);
+    }
+    public void RegisterUser(string new_username, string new_name, string new_password)
+    {
+        var data = new
+        {
+            method = "register",
+            username= new_username,
+            name = new_name,
+            password_hash = new_password
+        };
+        Send(data);
+    }
+    public void ChekUsername(string username)
+    {
+        var data = new
+        {
+            method = "check",
+            what = "username",
+            data = username
+        };
+        Send(data);
+    }
     private void HandleResponse(string response)
     {
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -115,81 +173,82 @@ internal class Client
         string? r_event = rootNode?["event"]?.GetValue<string>();
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
-        /* parse specific fields
+        // parse specific fields
         switch (r_method)
         {
             case "login":
                 if (ok == true)
                 {
-                    LoggedIn?.Invoke(this, new ResponseSessionEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_AuthResult
                     {
-                        ok = true,
-                        sessionId = rootNode?["session_id"]?.GetValue<string>(),
-                        userId = rootNode?["user_id"]?.GetValue<int>()
+                        sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
+                        userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
                     });
                 }
                 else if (ok == false && r_error != null)
                 {
-                    LoggedIn?.Invoke(this, new ResponseSessionEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
                     {
-                        ok = false,
-                        error = r_error
+                        icon = DialogIcons.Error,
+                        header = "Auth error",
+                        text = "Wrong username or password",
+                        decline = ""
                     });
                 }
                 break;
             case "register":
                 if (ok == true)
                 {
-                    Registered?.Invoke(this, new ResponseSessionEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_AuthResult
                     {
-                        ok = true,
-                        sessionId = rootNode?["session_id"]?.GetValue<string>(),
-                        userId = rootNode?["user_id"]?.GetValue<int>()
+                        sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
+                        userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
                     });
                 }
                 else if (ok == false && r_error != null)
                 {
-                    Registered?.Invoke(this, new ResponseSessionEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
                     {
-                        ok = false,
-                        error = r_error
+                        icon = DialogIcons.Error,
+                        header = "Auth error",
+                        text = "Registration failed",
+                        decline = ""
                     });
                 }
                 break;
             case "auth":
                 if (ok == true)
                 {
-                    Authorized?.Invoke(this, new ResponseSessionEventArgs
-                    {
-                        ok = true
-                    });
+                    WeakReferenceMessenger.Default.Send(new Msg_AuthResult{ auto = true });
                 }
                 else if (ok == false && r_error != null)
                 {
-                    Authorized?.Invoke(this, new ResponseSessionEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
                     {
-                        ok = false,
-                        error = r_error
+                        icon = DialogIcons.Error,
+                        header = "Auth error",
+                        text = "Auto authentification failed",
+                        decline = ""
                     });
                 }
                 break;
             case "check_username":
                 if (ok == true)
                 {
-                    UsernameChecked?.Invoke(this, new ResponseUsernameCheckEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_CheckResult
                     {
                         available = false
                     });
                 }
                 else if (ok == false)
                 {
-                    UsernameChecked?.Invoke(this, new ResponseUsernameCheckEventArgs
+                    WeakReferenceMessenger.Default.Send(new Msg_CheckResult
                     {
                         available = true
                     });
                 }
                 break;
-            case "fetch_self":
+            /*case "fetch_self":
                 if (ok == true)
                 {
                     JsonNode? userNode = rootNode?["data"];
@@ -344,7 +403,7 @@ internal class Client
                         error = r_error
                     });
                 }
-                break; 
-        } */
+                break; */
+        }
     }
 }
