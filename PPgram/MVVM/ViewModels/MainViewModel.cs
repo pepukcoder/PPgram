@@ -1,4 +1,4 @@
-﻿
+﻿using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Net;
@@ -25,8 +25,9 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
 
-        CurrentPage = login_vm;
-        client.Connect("127.0.0.1", 8080);
+        // DEBUG
+        CurrentPage = chat_vm;
+        //client.Connect("127.0.0.1", 8080);
 
         // after connection events
         WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) =>

@@ -25,6 +25,7 @@
 				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
 				<ResourceInclude Source="/Styles/MediaFile.axaml"/>
 				<ResourceInclude Source="/Styles/MediaImage.axaml"/>
+				<ResourceInclude Source="/Styles/ScrollBar.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>

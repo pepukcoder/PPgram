@@ -84,7 +84,7 @@
 				<ListBox x:Name="MessageHistory" Grid.Row="1" ItemContainerTheme="{StaticResource Message}"
 						 Background="Transparent" Padding="0" BorderThickness="0"
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-						 ScrollViewer.VerticalScrollBarVisibility="Visible"
+						 ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,0,-6,0"
 						 ItemsSource="{Binding MessageList, Mode=OneWay}">
 					<ListBox.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -92,20 +92,27 @@
 						</ItemsPanelTemplate>
 					</ListBox.ItemsPanel>
 				</ListBox>
-				<Border Background="{StaticResource Surface}"  CornerRadius="20"
+				<Border Background="{StaticResource Surface}"  CornerRadius="20" Margin="0,5,0,0"
 						BoxShadow="0 8 10 0 #0f0f0f" Padding="5" Grid.Row="2"
 						BorderThickness="1" BorderBrush="{StaticResource Panel}">			
-					<DockPanel>	
-						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,0,0,0"
-								Command="{Binding SendMessageCommand}">
-							<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24"/>
+					<DockPanel>
+						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" 
+								VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,6">
+							<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24"/>
 						</Button>
-						<Border Padding="0" Background="{StaticResource Panel}"
-								CornerRadius="15">
+						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+								Command="{Binding SendMessageCommand}" Margin="0,0,0,6">
+							<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24" />
+						</Button>
+						<Border Padding="5" Background="{StaticResource Panel}"
+								CornerRadius="15" Margin="5,0">
 							<TextBox Background="Transparent" BorderThickness="0" AcceptsReturn="True"
 									CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+									ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+						 			ScrollViewer.VerticalScrollBarVisibility="Hidden"
 									FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
-									TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+									TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+									Watermark="Message..." MaxLines="15">
 								<TextBox.KeyBindings>
 									<KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
 								</TextBox.KeyBindings>
