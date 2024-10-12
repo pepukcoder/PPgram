@@ -127,6 +127,13 @@ partial class ChatViewModel : ViewModelBase
     [RelayCommand]
     private void SendMessage()
     {
+        MessageModel message = new MessageModel
+        {
+            Text = MessageInput,
+            Type = MessageType.Own,
+            Status = MessageStatus.Sending,
+        };
+        MessageList.Add(message);
         MessageInput = "";
     }
     [RelayCommand]

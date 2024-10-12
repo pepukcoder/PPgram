@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels;assembly=PPgram"
+			 xmlns:bh="clr-namespace:PPgram.Behaviors;assembly=PPgram"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.MVVM.Views.ChatView"
 			 x:DataType="vm:ChatViewModel"
@@ -69,7 +70,7 @@
 								</Ellipse.Fill>
 							</Ellipse>
 							<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-								<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
+								<TextBlock Text="{Binding MessageList.Count}" FontWeight="Medium" FontSize="16"/>
 								<TextBlock Text="last seen 12:34" Foreground="{StaticResource SecondaryText}"/>
 							</StackPanel>
 						</StackPanel>
@@ -86,6 +87,9 @@
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						 ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,0,-6,0"
 						 ItemsSource="{Binding MessageList, Mode=OneWay}">
+					<Interaction.Behaviors>
+						<bh:ScrollToEndBehavior />
+					</Interaction.Behaviors>
 					<ListBox.ItemsPanel>
 						<ItemsPanelTemplate>
 							<StackPanel VerticalAlignment="Bottom"/>
