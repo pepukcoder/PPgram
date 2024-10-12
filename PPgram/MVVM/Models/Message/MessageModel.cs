@@ -1,10 +1,10 @@
-﻿using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
+using Avalonia.Platform;
+using Avalonia.Media.Imaging;
 using PPgram.Shared;
 
-namespace PPgram.MVVM.Models;
+namespace PPgram.MVVM.Models.Message;
 
 internal class MessageModel
 {
@@ -20,8 +20,8 @@ internal class MessageModel
     // public SolidColorBrush ReplyNameColor { get; set; }
     public string ReplyText { get; set; } = string.Empty;
     public ObservableCollection<MediaModel> Media { get; set; } = [];
-    public MediaType MediaType { get; set; }
     public bool Edited { get; set; }
+    public MediaType MediaType { get; set; }
     public MessageType Type { get; set; }
     public MessageStatus Status { get; set; }
 }

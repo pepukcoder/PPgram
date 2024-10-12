@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using PPgram.MVVM.Models;
 using PPgram.Shared;
+using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Message;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -21,47 +22,20 @@ partial class ChatViewModel : ViewModelBase
     public ChatViewModel()
     {
         RightGridVisible = false;
-        ChatList.Add(new ChatModel
+        ChatList.Add(new UserModel
         {
-            Name = "Pepuk",
-            Username = "@pepukcoder",
+            Profile = new() { Name = "Pepuk" },
             LastMessage = "hehehe",
             UnreadCount = 12,
             Online = true
         });
-        ChatList.Add(new ChatModel
+        ChatList.Add(new UserModel
         {
-            Name = "Someone???",
-            LastMessage = "is there anything sussy",
-            Username = "@whoami"
-        });
-        ChatList.Add(new ChatModel
-        {
-            Name = "Pavlo",
-            Username = "@pavloalpha",
-            LastMessage = "asdasdasd",
-            Status = MessageStatus.Delivered
-        });
-        ChatList.Add(new ChatModel
-        {
-            Name = "Artem",
-            Username = "@gay",
-            LastMessage = "asdasdasdasdasd",
-            Status = MessageStatus.Read
-        });
-        ChatList.Add(new ChatModel
-        {
-            Name = "Itea",
-            Username = "@tea",
-            LastMessage = "asdasd",
-            Status = MessageStatus.Sending
-        });
-        ChatList.Add(new ChatModel
-        {
-            Name = "Illiah",
-            Username = "@iii",
-            LastMessage = "asdasd",
-            Status = MessageStatus.Error
+            Profile = new() { Name = "Pavlo" },
+            LastMessage = "nice",
+            MessageStatus = MessageStatus.Delivered,
+            Date = "00:00",
+            Online = false
         });
 
         MessageList.Add(new MessageModel
@@ -142,8 +116,5 @@ partial class ChatViewModel : ViewModelBase
         ClearSearch();
     }
     [RelayCommand]
-    private void ClearSearch()
-    {
-        SearchInput = "";
-    }
+    private void ClearSearch() => SearchInput = string.Empty;
 }

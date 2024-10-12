@@ -1,9 +1,9 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-					xmlns:md="clr-namespace:PPgram.MVVM.Models;assembly=PPgram"
+					xmlns:md="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
 					xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
-	<ControlTheme x:Key="Chat" TargetType="ListBoxItem" x:DataType="md:ChatModel">
+	<ControlTheme x:Key="Chat" TargetType="ListBoxItem" x:DataType="md:UserModel">
 		<ControlTheme.Resources>
 			<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 		</ControlTheme.Resources>
@@ -14,7 +14,7 @@
 						<Grid Margin="0,0,5,0">
 							<Ellipse  Height="45" Width="45" VerticalAlignment="Center">
 								<Ellipse.Fill>
-									<ImageBrush Source="{Binding Avatar}"/>
+									<ImageBrush Source="{Binding Profile.Avatar}"/>
 								</Ellipse.Fill>
 							</Ellipse>
 							<Ellipse x:Name="Online" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="12" Width="12" ZIndex="2"
@@ -24,13 +24,13 @@
 						<StackPanel Orientation="Vertical" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
 							<TextBlock Text="{Binding Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
 							<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
+								<icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
 													Kind="ClockOutline" Height="18" Width="16" Foreground="{StaticResource SecondaryText}"/>
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
+								<icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
 													Kind="Check" Height="18" Width="18"/>
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
+								<icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
 													Kind="CheckMultiple" Height="18" Width="18"/>
-								<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
+								<icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
 													Kind="AlertCircleOutline" Height="18" Width="16" Foreground="PaleVioletRed"/>
 							</StackPanel>
 							<Border x:Name="Unread" IsVisible="{Binding UnreadCount}" CornerRadius="10" Background="{StaticResource Panel}"
@@ -39,7 +39,7 @@
 							</Border>
 						</StackPanel>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-							<TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+							<TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
 							<TextBlock Text="{Binding LastMessage}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>	
 					</DockPanel>
