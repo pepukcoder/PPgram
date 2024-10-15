@@ -23,7 +23,7 @@
 						</Grid>
 						<StackPanel Orientation="Vertical" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
 							<TextBlock Text="{Binding Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
-							<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+							<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 								<icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
 													Kind="ClockOutline" Height="18" Width="16" Foreground="{StaticResource SecondaryText}"/>
 								<icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
@@ -34,7 +34,7 @@
 													Kind="AlertCircleOutline" Height="18" Width="16" Foreground="PaleVioletRed"/>
 							</StackPanel>
 							<Border x:Name="Unread" IsVisible="{Binding UnreadCount}" CornerRadius="10" Background="{StaticResource Panel}"
-									HorizontalAlignment="Center" Padding="5,0">
+									HorizontalAlignment="Right" Padding="5,0">
 								<TextBlock Text="{Binding UnreadCount}" HorizontalAlignment="Center" FontSize="13"/>
 							</Border>
 						</StackPanel>

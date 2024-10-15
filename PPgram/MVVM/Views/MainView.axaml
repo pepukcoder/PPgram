@@ -2,12 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.MVVM.Views.MainView"
-			 xmlns:views="clr-namespace:PPgram.MVVM.Views"
              x:DataType="vm:MainViewModel"
 			 Background="{StaticResource BackgroundWindow}"
 			 Loaded="UserControl_Loaded">
@@ -62,10 +61,5 @@
 				</StackPanel>
 			</Border>
 		</Viewbox>
-		<Grid.Transitions>
-			<Transitions>
-
-			</Transitions>
-		</Grid.Transitions>
 	</Grid>
 </UserControl>

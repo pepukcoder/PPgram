@@ -5,6 +5,8 @@
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels;assembly=PPgram"
 			 xmlns:bh="clr-namespace:PPgram.Behaviors;assembly=PPgram"
+			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
+			 xmlns:mchat="clr-namespace:PPgram.MVVM.Models.Chat"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.MVVM.Views.ChatView"
 			 x:DataType="vm:ChatViewModel"
@@ -16,7 +18,7 @@
 	</Design.DataContext>
 	<Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="Auto" MinWidth="120"/>
+			<ColumnDefinition Width="Auto" MinWidth="125"/>
 			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="*" MinWidth="314"/>
 			<ColumnDefinition Width="Auto"/>
@@ -50,8 +52,13 @@
 				<ListBox Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						 ScrollViewer.VerticalScrollBarVisibility="Hidden"
-						 ItemContainerTheme="{StaticResource Chat}"
-						 ItemsSource="{Binding ChatList}"/>
+						 ItemsSource="{Binding ChatList}">
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<c:ChatListEntryControl/>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
 			</Grid>
 		</Border>
 		
@@ -165,6 +172,47 @@
 				</StackPanel>
 			</Border>
 		</Grid>
-		<!--Panel Grid.ColumnSpan="5" Background="Gray" Opacity="0.5" ZIndex="2"></Panel-->
 	</Grid>
+	<UserControl.Styles>
+		<Style Selector="ListBoxItem">
+			<Setter Property="Padding" Value="0"/>
+            <Style Selector="^ /template/ ContentPresenter">
+            	<Setter Property="Background" Value="Transparent" />
+        	</Style>
+			<Style Selector="^ Ellipse.Online">
+				<Setter Property="Stroke" Value="{StaticResource Surface}"/>
+			</Style>
+			<Style Selector="^ Border.Back">
+				<Setter Property="Background" Value="Transparent" />
+			</Style>
+			<Style Selector="^ Border.Unread">
+				<Setter Property="Background" Value="{StaticResource Panel}"/>
+			</Style>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover">
+			<Style Selector="^ /template/ ContentPresenter">
+            	<Setter Property="Background" Value="Transparent" />
+        	</Style>
+			<Style Selector="^ Border.Back">
+				<Setter Property="Background" Value="{StaticResource SurfaceLight}" />
+			</Style>
+			<Style Selector="^ Ellipse.Online">
+				<Setter Property="Stroke" Value="{StaticResource SurfaceLight}"/>
+			</Style>
+		</Style>
+		<Style Selector="ListBoxItem:selected">
+            <Style Selector="^ /template/ ContentPresenter">
+            	<Setter Property="Background" Value="Transparent" />
+        	</Style>
+			<Style Selector="^ Ellipse.Online">
+				<Setter Property="Stroke" Value="{StaticResource Panel}"/>
+			</Style>
+			<Style Selector="^ Border.Back">
+				<Setter Property="Background" Value="{StaticResource Panel}" />
+			</Style>
+			<Style Selector="^ Border.Unread">
+				<Setter Property="Background" Value="{StaticResource PanelAccent}"/>
+			</Style>
+        </Style>
+	</UserControl.Styles>
 </UserControl>

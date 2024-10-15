@@ -34,8 +34,16 @@ partial class ChatViewModel : ViewModelBase
             Profile = new() { Name = "Pavlo" },
             LastMessage = "nice",
             MessageStatus = MessageStatus.Delivered,
-            Date = "00:00",
+            Date = "12:11",
             Online = false
+        });
+        ChatList.Add(new GroupModel
+        {
+            Profile = new() { Name = "TestingGroup" },
+            LastSender = "Pepuk",
+            LastMessage = "hi",
+            MessageStatus = MessageStatus.Read,
+            Date = "15:00"
         });
 
         MessageList.Add(new MessageModel
