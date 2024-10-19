@@ -9,17 +9,15 @@ public class ViewLocator : IDataTemplate
 {
     public Control? Build(object? data)
     {
-        if (data is null)
-            return null;
+        if (data is null) return null;
         string name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
         if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
         {
-            if (name.StartsWith("Chat"))
-                name = data.GetType().FullName!.Replace("View", "MobileView", StringComparison.Ordinal);
+            if (name.Contains("Chat"))
+                name = data.GetType().FullName!.Replace("ViewModel", "MobileView", StringComparison.Ordinal);
         }
         var type = Type.GetType(name);
-        if (type != null) 
-            return (Control)Activator.CreateInstance(type)!;
+        if (type != null) return (Control)Activator.CreateInstance(type)!;
         return new TextBlock { Text = "Not Found: " + name };
     }
     public bool Match(object? data) => data is ViewModelBase;
