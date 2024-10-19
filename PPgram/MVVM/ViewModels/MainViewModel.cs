@@ -1,7 +1,11 @@
-﻿using System;
-using System.IO;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using PPgram.Helpers;
+using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Shared;
 
@@ -29,6 +33,7 @@ partial class MainViewModel : ViewModelBase
     private static readonly string appSettingsFilePath = Path.Combine(settingsPath, "app.setf");
     #endregion
     private readonly Client client = new();
+    private ProfileState profileState = ProfileState.Instance;
     public MainViewModel() 
     {
         // events 
@@ -60,6 +65,19 @@ partial class MainViewModel : ViewModelBase
         {
             if(!e.auto) CreateFile(sessionFilePath, e.sessionId + Environment.NewLine + e.userId);
             CurrentPage = chat_vm;
+            client.FetchSelf();
+        });
+        WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) => 
+        {
+            profileState.UserId = e.profile?.Id ?? 0;
+            profileState.Name = e.profile?.Name ?? string.Empty;
+            profileState.Username = e.profile?.Username ?? string.Empty;
+            profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
+            client.FetchChats();
+        });
+        WeakReferenceMessenger.Default.Register <Msg_FetchChatsResult>(this, (r, e) =>
+        {
+            ObservableCollection<ChatModel> chats = [];
         });
         // connection
         CurrentPage = login_vm;
@@ -75,8 +93,7 @@ partial class MainViewModel : ViewModelBase
     {
         string host;
         int port;
-        if(!File.Exists(connectionFilePath))
-            CreateFile(connectionFilePath, "127.0.0.1" + Environment.NewLine + "3000");
+        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, "127.0.0.1" + Environment.NewLine + "3000");
         try
         {
             string[] lines = File.ReadAllLines(connectionFilePath);
@@ -90,8 +107,7 @@ partial class MainViewModel : ViewModelBase
             port = 3000;
         }
         client.Connect(host, port);
-        if (!File.Exists(sessionFilePath))
-            return;
+        if (!File.Exists(sessionFilePath)) return;
         try
         {
             string[] lines = File.ReadAllLines(sessionFilePath);

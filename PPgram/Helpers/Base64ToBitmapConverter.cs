@@ -7,10 +7,11 @@ namespace PPgram.Helpers;
 
 public class Base64ToBitmapConverter
 {
-    public static Bitmap ConvertBase64(string base64String)
+    public static Bitmap ConvertBase64(string? base64String)
     {
         try
         {
+            ArgumentNullException.ThrowIfNull(base64String);
             byte[] imageBytes = Convert.FromBase64String(base64String);
             using MemoryStream ms = new(imageBytes);
             return new Bitmap(ms);
