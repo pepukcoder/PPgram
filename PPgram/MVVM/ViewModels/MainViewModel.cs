@@ -76,7 +76,7 @@ partial class MainViewModel : ViewModelBase
         string host;
         int port;
         if(!File.Exists(connectionFilePath))
-            CreateFile(connectionFilePath, "127.0.0.1" + Environment.NewLine + "8080");
+            CreateFile(connectionFilePath, "127.0.0.1" + Environment.NewLine + "3000");
         try
         {
             string[] lines = File.ReadAllLines(connectionFilePath);
@@ -87,7 +87,7 @@ partial class MainViewModel : ViewModelBase
         {
             File.Delete(connectionFilePath);
             host = "127.0.0.1";
-            port = 8080;
+            port = 3000;
         }
         client.Connect(host, port);
         if (!File.Exists(sessionFilePath))

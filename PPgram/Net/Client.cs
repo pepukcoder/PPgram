@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using PPgram.Shared;
+using System.Diagnostics;
 
 namespace PPgram.Net;
 
@@ -140,7 +141,7 @@ internal class Client
         {
             method = "login",
             username = login,
-            password_hash = password
+            password = password
         };
         Send(data);
     }
@@ -151,7 +152,7 @@ internal class Client
             method = "register",
             username= new_username,
             name = new_name,
-            password_hash = new_password
+            password = new_password
         };
         Send(data);
     }
@@ -204,6 +205,7 @@ internal class Client
                         sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
                         userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
                     });
+                    
                 }
                 else if (ok == false && r_error != null)
                 {
@@ -214,6 +216,7 @@ internal class Client
                         text = "Registration failed",
                         decline = ""
                     });
+                    Debug.WriteLine(response);
                 }
                 break;
             case "auth":

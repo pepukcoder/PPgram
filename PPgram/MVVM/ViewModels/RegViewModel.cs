@@ -85,7 +85,7 @@ partial class RegViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Send(new Msg_Register()
         {
             name = Name,
-            username = Username,
+            username = $"@{Username}",
             password = Password
         });
     }

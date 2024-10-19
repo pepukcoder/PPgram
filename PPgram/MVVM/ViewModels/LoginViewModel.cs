@@ -20,7 +20,7 @@ partial class LoginViewModel : ViewModelBase
         if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password)) return;
         WeakReferenceMessenger.Default.Send(new Msg_Login
         {
-            username = Username,
+            username = $"@{Username}",
             password = Password
         });
     }
