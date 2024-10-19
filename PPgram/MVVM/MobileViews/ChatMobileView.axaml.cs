@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace PPgram.MVVM.Views;
+namespace PPgram.MVVM.MobileViews;
 
-public partial class Mobile_ChatView : UserControl
+public partial class ChatMobileView : UserControl
 {
-    public Mobile_ChatView()
+    public ChatMobileView()
     {
         InitializeComponent();
     }

@@ -11,28 +11,16 @@ public class ViewLocator : IDataTemplate
     {
         if (data is null)
             return null;
-
-        var name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-        
-        if(OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
+        string name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
+        if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
         {
-            if (name.EndsWith("ChatView", StringComparison.Ordinal))
-            {
-                name = name.Replace("ChatView", "Mobile_ChatView", StringComparison.Ordinal);
-            }
+            if (name.StartsWith("Chat"))
+                name = data.GetType().FullName!.Replace("View", "MobileView", StringComparison.Ordinal);
         }
-
         var type = Type.GetType(name);
-        if (type != null)
-        {
+        if (type != null) 
             return (Control)Activator.CreateInstance(type)!;
-        }
-
         return new TextBlock { Text = "Not Found: " + name };
     }
-
-    public bool Match(object? data)
-    {
-        return data is ViewModelBase;
-    }
+    public bool Match(object? data) => data is ViewModelBase;
 }

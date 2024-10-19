@@ -37,12 +37,18 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
         WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) =>
             reg_vm.ShowUsernameStatus(e.available 
-            ? "This username is available"
-            : "This username is already taken",
+            ? "Username is available"
+            : "Username is already taken",
             e.available)
         );
         WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => 
         {
+            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+            {
+                icon = DialogIcons.Error,
+                header = "Connection error",
+                text = sessionFilePath,
+            });
             client.AuthLogin(e.username, e.password);
         });
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 

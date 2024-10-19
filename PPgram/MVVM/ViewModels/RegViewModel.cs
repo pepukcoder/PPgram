@@ -16,15 +16,11 @@ partial class RegViewModel : ViewModelBase
     [ObservableProperty]
     private string _password = string.Empty;
     [ObservableProperty]
-    private string _passwordConf = string.Empty;
-    [ObservableProperty]
     private string _usernameStatus = string.Empty;
     [ObservableProperty]
     private bool _usernameOk;
     [ObservableProperty]
     private bool _passOk;
-    [ObservableProperty]
-    private bool _passConfOk;
 
     private readonly DispatcherTimer _timer;
     public RegViewModel()
@@ -38,13 +34,6 @@ partial class RegViewModel : ViewModelBase
         // check if password length is valid
         if (value.Length >= 8 && value.Length <= 28) PassOk = true;
         else PassOk = false;
-        OnPasswordConfChanged(PasswordConf);
-    }
-    partial void OnPasswordConfChanged(string value)
-    {
-        // check if password confirmation matches password
-        if (!String.IsNullOrEmpty(value) && value == Password) PassConfOk = true;
-        else PassConfOk = false;
     }
     partial void OnUsernameChanged(string value)
     {
@@ -58,7 +47,7 @@ partial class RegViewModel : ViewModelBase
             {
                 if (!Char.IsAsciiLetterOrDigit(c) && c != '_' || value.StartsWith('_'))
                 {
-                    ShowUsernameStatus("Invalid username");
+                    ShowUsernameStatus("Username is invalid");
                     return;
                 }
             }
@@ -88,12 +77,11 @@ partial class RegViewModel : ViewModelBase
         UsernameStatus = status;
         UsernameOk = ok;
     }
-
     [RelayCommand]
     private void TryRegister()
     {
         // check if all fields are valid
-        if (String.IsNullOrEmpty(Name) || !UsernameOk || !PassOk || !PassConfOk) return;
+        if (String.IsNullOrEmpty(Name) || !UsernameOk || !PassOk ) return;
         WeakReferenceMessenger.Default.Send(new Msg_Register()
         {
             name = Name,
@@ -106,9 +94,7 @@ partial class RegViewModel : ViewModelBase
     {
         // reset password fields
         Password = "";
-        PasswordConf = "";
         PassOk = false;
-        PassConfOk = false;
         WeakReferenceMessenger.Default.Send<Msg_ToLogin>();
     }
 }

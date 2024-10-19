@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels;assembly=PPgram"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="PPgram.MVVM.Views.Mobile_ChatView"
+             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="800"
+             x:Class="PPgram.MVVM.MobileViews.ChatMobileView"
 			 x:DataType="vm:ChatViewModel"
 			 FontFamily="{StaticResource Montserrat}">
 	<Design.DataContext>

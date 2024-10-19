@@ -19,6 +19,12 @@
 			<Button Margin="0,5" Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Center">
 				<icons:MaterialIcon Kind="Cog" Width="20" Height="20"/>
 			</Button>
+			<ToggleButton x:Name="Toggle" Margin="0,5" Theme="{StaticResource ButtonToggle}" HorizontalAlignment="Center">
+				<StackPanel>
+					<icons:MaterialIcon Kind="EyeOff" Width="20" Height="20" IsVisible="{Binding #Toggle.IsChecked}"/>
+					<icons:MaterialIcon Kind="Eye" Width="20" Height="20" IsVisible="{Binding !#Toggle.IsChecked}"/>
+				</StackPanel>
+			</ToggleButton>
 		</StackPanel>
 		</Border>
 	</Design.PreviewWith>
@@ -70,6 +76,27 @@
 			</ControlTemplate>
 		</Setter>
 
+		<Style Selector="^:pointerover">
+			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
+		</Style>
+		<Style Selector="^:pressed">
+			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
+		</Style>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="ButtonToggle" TargetType="ToggleButton">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{StaticResource ButtonIdle}"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="FontFamily" Value="{StaticResource Montserrat}"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border CornerRadius="5" Background="{TemplateBinding Background}" Cursor="Hand">
+					<ContentPresenter Content="{TemplateBinding Content}"/>
+				</Border>
+			</ControlTemplate>
+		</Setter>
 		<Style Selector="^:pointerover">
 			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
 		</Style>
