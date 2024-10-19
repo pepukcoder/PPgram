@@ -250,18 +250,10 @@ internal class Client
             case "fetch_self":
                 if (ok == true)
                 {
-                    JsonNode? userNode = rootNode?["data"];
                     WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
-                    {
-                        profile = new ProfileDTO
-                        {
-                            Name = userNode?["name"]?.GetValue<string>(),
-                            Username = userNode?["username"]?.GetValue<string>(),
-                            Id = userNode?["user_id"]?.GetValue<int>(),
-                            Photo = userNode?["photo"]?.GetValue<string>()
-                        }
+                    {  
+                        profile = rootNode?.Deserialize<ProfileDTO>()
                     });
-                    Debug.WriteLine(response);
                 }
                 else if (ok == false && r_error != null)
                 {
