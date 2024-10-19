@@ -8,6 +8,7 @@ using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Shared;
+using System.Diagnostics;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -73,6 +74,9 @@ partial class MainViewModel : ViewModelBase
             profileState.Name = e.profile?.Name ?? string.Empty;
             profileState.Username = e.profile?.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
+            Debug.WriteLine(profileState.Name);
+            Debug.WriteLine(profileState.Username);
+            Debug.WriteLine(profileState.UserId);
             client.FetchChats();
         });
         WeakReferenceMessenger.Default.Register <Msg_FetchChatsResult>(this, (r, e) =>

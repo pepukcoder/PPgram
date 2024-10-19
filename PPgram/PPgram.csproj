@@ -107,4 +107,8 @@
       <DependentUpon>ChatMobileView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="MVVM\Views\ProfileView.axaml" />
+  </ItemGroup>
 </Project>

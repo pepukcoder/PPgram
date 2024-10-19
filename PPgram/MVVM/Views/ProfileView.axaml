@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+             x:Class="PPgram.MVVM.Views.ProfileView"
+			 x:DataType="vm:ProfileViewModel">
+	<Design.DataContext>
+		<vm:ProfileViewModel/>
+	</Design.DataContext>
+	<Grid>
+		<TextBlock Text="Profile view" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+	</Grid>
+</UserControl>
