@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+
              xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 					   xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="PPgram.Controls.ChatListEntryControl"
@@ -31,7 +31,7 @@
 			</StackPanel>	
       <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,0,0,0">
         <TextBlock Text="{Binding Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Panel HorizontalAlignment="Right">
           <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
                     Kind="ClockOutline" Height="18" Width="16" Foreground="{StaticResource SecondaryText}"/>
           <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
@@ -40,7 +40,7 @@
                     Kind="CheckMultiple" Height="18" Width="18"/>
           <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
                     Kind="AlertCircleOutline" Height="18" Width="16" Foreground="PaleVioletRed"/>
-        </StackPanel>
+        </Panel>
         <Border Classes="Unread" IsVisible="{Binding UnreadCount}" CornerRadius="10"
                 HorizontalAlignment="Right" Padding="5,0">
           <TextBlock Text="{Binding UnreadCount}" HorizontalAlignment="Center" FontSize="13"/>

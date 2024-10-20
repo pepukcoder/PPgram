@@ -75,7 +75,7 @@
 							<StackPanel x:Name="Status" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,3">
 								<TextBlock Text="edited" FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" IsVisible="{Binding Edited}" VerticalAlignment="Bottom"/>
 								<TextBlock Text="{Binding Date}"  FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
-								<StackPanel x:Name="StatusIcons" Orientation="Horizontal" VerticalAlignment="Bottom" IsVisible="False">
+								<Panel x:Name="StatusIcons" VerticalAlignment="Bottom" IsVisible="False">
 									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
 														Kind="ClockOutline" Height="16" Width="18" Foreground="{StaticResource SecondaryText}"/>
 									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
@@ -84,7 +84,7 @@
 														Kind="CheckMultiple" Height="18" Width="18"/>
 									<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
 														Kind="AlertCircleOutline" Height="16" Width="18" Foreground="PaleVioletRed"/>
-								</StackPanel>
+								</Panel>
 							</StackPanel>
 						</Grid>			
 					</Border>					
