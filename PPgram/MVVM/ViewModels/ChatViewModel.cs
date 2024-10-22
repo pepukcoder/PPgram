@@ -4,24 +4,70 @@ using System.Collections.ObjectModel;
 using PPgram.Shared;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Message;
+using Avalonia.Media.Imaging;
+using System;
+using Avalonia.Platform;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Messaging;
+using PPgram.MVVM.Models.User;
 
 namespace PPgram.MVVM.ViewModels;
 
 partial class ChatViewModel : ViewModelBase
 {
     [ObservableProperty]
+    private Bitmap profileAvatar = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
+    [ObservableProperty]
+    private string profileName = string.Empty;
+    [ObservableProperty]
+    private string profileUsername = string.Empty;
+    [ObservableProperty]
+    private Bitmap chatAvatar = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
+    [ObservableProperty]
+    private string chatName = string.Empty;
+    [ObservableProperty]
+    private string chatStatus = "last seen 12:34";
+    [ObservableProperty]
     private ObservableCollection<MessageModel> messageList = [];
     [ObservableProperty]
     private ObservableCollection<ChatModel> chatList = [];
+    [ObservableProperty]
+    private ObservableCollection<SearchEntryModel> searchList = [];
     [ObservableProperty]
     private string _messageInput = string.Empty;
     [ObservableProperty]
     private string _searchInput = string.Empty;
     [ObservableProperty]
     private bool _rightGridVisible;
+    private readonly ProfileState profileState = ProfileState.Instance;
+    private readonly DispatcherTimer _timer;
     public ChatViewModel()
     {
         RightGridVisible = false;
+        // search request delay timer
+        _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
+        _timer.Tick += SearchChat;
+
+        // mockups
+        SearchList.Add(new SearchEntryModel
+        {
+            Name = "Papuga",
+            Username = "@papuga",
+            Type = ChatType.Chat
+        });
+        SearchList.Add(new SearchEntryModel
+        {
+            Name = "GayFront",
+            Username = "@ppfront",
+            Type = ChatType.Group
+        });
+        SearchList.Add(new SearchEntryModel
+        {
+            Name = "PPgram Official",
+            Username = "@ppgram",
+            Type = ChatType.Channel
+        });
+
         ChatList.Add(new UserModel
         {
             Profile = new() { Name = "Pepuk" },
@@ -106,6 +152,26 @@ partial class ChatViewModel : ViewModelBase
             Status = MessageStatus.Error,
         });
     }
+    partial void OnSearchInputChanged(string value)
+    {
+        // stop timer when editing search query
+        _timer.Stop();
+        // restart delay if username is not null
+        if (!String.IsNullOrEmpty(value.Trim())) _timer.Start();
+    }
+    private void SearchChat(object? sender, EventArgs e)
+    {
+        // stop timer to prevent request spam
+        _timer.Stop();
+        WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
+    }
+    public void UpdateProfile()
+    {
+        ProfileAvatar = profileState.Avatar;
+        ProfileName = profileState.Name;
+        ProfileUsername = profileState.Username;
+    }
+    public void UpdateSearch(ObservableCollection<SearchEntryModel> resultlist) => SearchList = resultlist;
     [RelayCommand]
     private void SendMessage()
     {
@@ -117,11 +183,6 @@ partial class ChatViewModel : ViewModelBase
         };
         MessageList.Add(message);
         MessageInput = "";
-    }
-    [RelayCommand]
-    private void SearchChat()
-    {
-        ClearSearch();
     }
     [RelayCommand]
     private void ClearSearch() => SearchInput = string.Empty;

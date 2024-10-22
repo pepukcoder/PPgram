@@ -9,6 +9,7 @@ using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Shared;
 using System.Diagnostics;
+using PPgram.Net.DTO;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -62,6 +63,7 @@ partial class MainViewModel : ViewModelBase
             if (e.check) client.ChekUsername(e.username);
             else client.RegisterUser(e.username, e.name, e.password);
         });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { client.SearchChats(e.searchQuery); });
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
         {
             if(!e.auto) CreateFile(sessionFilePath, e.sessionId + Environment.NewLine + e.userId);
@@ -74,18 +76,32 @@ partial class MainViewModel : ViewModelBase
             profileState.Name = e.profile?.Name ?? string.Empty;
             profileState.Username = e.profile?.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
-            Debug.WriteLine(profileState.Name);
-            Debug.WriteLine(profileState.Username);
-            Debug.WriteLine(profileState.UserId);
+            chat_vm.UpdateProfile();
             client.FetchChats();
         });
-        WeakReferenceMessenger.Default.Register <Msg_FetchChatsResult>(this, (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
         {
             ObservableCollection<ChatModel> chats = [];
         });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChatsResult>(this, (r, e) =>
+        {
+            ObservableCollection<SearchEntryModel> resultList = [];
+            foreach (ProfileDTO chat in e.users)
+            {
+                SearchEntryModel result = new() 
+                {
+                    Type = ChatType.Chat,
+                    Name = chat.Name ?? "",
+                    Username = chat.Username ?? "",
+                    Avatar = Base64ToBitmapConverter.ConvertBase64(chat.Photo)
+                };
+                resultList.Add(result);
+            }
+            chat_vm.UpdateSearch(resultList);
+        });
         // connection
-        CurrentPage = login_vm;
-        ConnectToServer();   
+        CurrentPage = chat_vm;
+        //ConnectToServer();   
     }
     private static void CreateFile(string path, string data)
     {
