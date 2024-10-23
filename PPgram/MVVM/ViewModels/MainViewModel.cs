@@ -123,12 +123,8 @@ partial class MainViewModel : ViewModelBase
         {
             string json = File.ReadAllText(sessionFilePath);
             AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json);
-            if (creds != null) {
-                AuthCredentialsModel c = creds;
-                client.AuthSessionId(c.SessionId, c.UserId);
-            } else {
-                File.Delete(sessionFilePath);
-            }
+            if (creds == null) throw new Exception();
+            client.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch
         {
