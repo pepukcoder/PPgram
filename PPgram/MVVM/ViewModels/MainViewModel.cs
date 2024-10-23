@@ -9,6 +9,7 @@ using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Shared;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -64,7 +65,13 @@ partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
         {
-            if(!e.auto) CreateFile(sessionFilePath, e.sessionId + Environment.NewLine + e.userId);
+            var data = new AuthCredentialsModel
+            {
+                UserId = e.userId,
+                SessionId = e.sessionId
+            };
+            var options = new JsonSerializerOptions { WriteIndented = true }; // Pretty print the JSON
+            if(!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             client.FetchSelf();
         });
@@ -114,10 +121,14 @@ partial class MainViewModel : ViewModelBase
         if (!File.Exists(sessionFilePath)) return;
         try
         {
-            string[] lines = File.ReadAllLines(sessionFilePath);
-            string session_id = lines[0];
-            int user_id = Int32.Parse(lines[1]);
-            client.AuthSessionId(session_id, user_id);
+            string json = File.ReadAllText(sessionFilePath);
+            AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json);
+            if (creds != null) {
+                AuthCredentialsModel c = creds;
+                client.AuthSessionId(c.SessionId, c.UserId);
+            } else {
+                File.Delete(sessionFilePath);
+            }
         }
         catch
         {
