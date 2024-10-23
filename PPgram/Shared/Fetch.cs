@@ -13,5 +13,5 @@ class Msg_FetchUserResult
 }
 class Msg_FetchChatsResult
 {
-    public List<ChatDTO> chats;
+    public List<ChatDTO> chats = [];
 }

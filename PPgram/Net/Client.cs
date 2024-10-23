@@ -173,6 +173,16 @@ internal class Client
         };
         Send(data);
     }
+    public void SearchChats(string searchQuery)
+    {
+        var data = new
+        {
+            method = "fetch",
+            what = "users",
+            query = searchQuery
+        };
+        Send(data);
+    }
     private void HandleResponse(string response)
     {
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -306,6 +316,30 @@ internal class Client
                         icon = DialogIcons.Error,
                         header = "Fetch error",
                         text = "Fetch chats failed",
+                        decline = ""
+                    });
+                }
+                break;
+            case "fetch_users":
+                if (ok == true)
+                {
+                    JsonArray? usersJson = rootNode?["users"]?.AsArray();
+                    List<ProfileDTO> userlist = [];
+                    if (usersJson == null) return;
+                    foreach (JsonNode? userNode in usersJson)
+                    {
+                        ProfileDTO? user = userNode?.Deserialize<ProfileDTO>();
+                        if (user != null) userlist.Add(user);
+                    }
+                    WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult{ users = userlist });
+                }
+                else if (ok == false && r_error != null)
+                {
+                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+                    {
+                        icon = DialogIcons.Error,
+                        header = "Fetch error",
+                        text = "Search failed",
                         decline = ""
                     });
                 }
