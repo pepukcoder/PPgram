@@ -194,6 +194,26 @@ internal class Client
 
         // LATER: remove debug errors dialogs and insted proccess them in mainview
 
+        if (ok == false && r_method != null && r_error != null) {
+            string method = r_method;
+            string error = r_error;
+
+            string result;
+            #if DEBUG
+                result = $"[DEBUG] Error in method: {method}\n Error:{error}";
+            #else
+                result = $"Error: {error}";
+            #endif
+            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+            {
+                icon = DialogIcons.Error,
+                header = "Error occured!",
+                text = result,
+                decline = ""
+            });
+            return;
+        }
+
         // parse specific fields
         switch (r_method)
         {
