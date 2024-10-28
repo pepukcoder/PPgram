@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace PPgram.Net;
 
-internal class Client
+internal class TCPClient
 {
     private string host = string.Empty;
     private int port;

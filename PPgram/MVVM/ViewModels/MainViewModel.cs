@@ -35,7 +35,7 @@ partial class MainViewModel : ViewModelBase
     private static readonly string connectionFilePath = Path.Combine(settingsPath, "connection.setf");
     private static readonly string appSettingsFilePath = Path.Combine(settingsPath, "app.setf");
     #endregion
-    private readonly Client client = new();
+    private readonly TCPClient client = new();
     private ProfileState profileState = ProfileState.Instance;
     public MainViewModel() 
     {
