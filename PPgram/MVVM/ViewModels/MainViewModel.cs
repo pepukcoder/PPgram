@@ -11,6 +11,7 @@ using PPgram.Shared;
 using System.Diagnostics;
 using System.Text.Json;
 using PPgram.Net.DTO;
+using System.Net.Quic;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -35,7 +36,7 @@ partial class MainViewModel : ViewModelBase
     private static readonly string connectionFilePath = Path.Combine(settingsPath, "connection.setf");
     private static readonly string appSettingsFilePath = Path.Combine(settingsPath, "app.setf");
     #endregion
-    private readonly TCPClient client = new();
+    private readonly JsonClient tcpClient = new();
     private ProfileState profileState = ProfileState.Instance;
     public MainViewModel() 
     {
@@ -57,14 +58,14 @@ partial class MainViewModel : ViewModelBase
                 header = "Connection error",
                 text = sessionFilePath,
             });
-            client.AuthLogin(e.username, e.password);
+            tcpClient.AuthLogin(e.username, e.password);
         });
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
         {
-            if (e.check) client.ChekUsername(e.username);
-            else client.RegisterUser(e.username, e.name, e.password);
+            if (e.check) tcpClient.ChekUsername(e.username);
+            else tcpClient.RegisterUser(e.username, e.name, e.password);
         });
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { client.SearchChats(e.searchQuery); });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { tcpClient.SearchChats(e.searchQuery); });
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
         {
             var data = new AuthCredentialsModel
@@ -75,7 +76,7 @@ partial class MainViewModel : ViewModelBase
             var options = new JsonSerializerOptions { WriteIndented = true }; // Pretty print the JSON
             if(!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
-            client.FetchSelf();
+            tcpClient.FetchSelf();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) => 
         {
@@ -84,7 +85,7 @@ partial class MainViewModel : ViewModelBase
             profileState.Username = e.profile?.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
             chat_vm.UpdateProfile();
-            client.FetchChats();
+            tcpClient.FetchChats();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
         {
@@ -108,7 +109,7 @@ partial class MainViewModel : ViewModelBase
         });
         // connection
         CurrentPage = chat_vm;
-        //ConnectToServer();   
+        ConnectToServer();   
     }
     private static void CreateFile(string path, string data)
     {
@@ -133,14 +134,14 @@ partial class MainViewModel : ViewModelBase
             host = "127.0.0.1";
             port = 3000;
         }
-        client.Connect(host, port);
+        tcpClient.Connect(host, port);
         if (!File.Exists(sessionFilePath)) return;
         try
         {
             string json = File.ReadAllText(sessionFilePath);
             AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json);
             if (creds == null) throw new Exception();
-            client.AuthSessionId(creds.SessionId, creds.UserId);
+            tcpClient.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch
         {

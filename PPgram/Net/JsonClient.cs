@@ -9,15 +9,17 @@ using System.Threading;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System.Diagnostics;
+using System.Net.Quic;
 
 namespace PPgram.Net;
 
-internal class TCPClient
+internal class JsonClient
 {
     private string host = string.Empty;
     private int port;
     private readonly TcpClient client = new();
     private NetworkStream? stream;
+    private readonly FilesClient filesClient = new();
     public void Connect(string remoteHost, int remotePort)
     {
         host = remoteHost;
