@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Text;
+using System.Text.Json;
+using PPgram.MVVM.Models.Message;
 
 namespace PPgram.Net;
 
 class RequestBuilder
 {
-    public static byte[] GetBytes(string message)
+    public static byte[] BuildJsonRequest(string message)
     {
         // Get request bytes from text
         byte[] messageBytes = Encoding.UTF8.GetBytes(message);

@@ -36,7 +36,8 @@ partial class MainViewModel : ViewModelBase
     private static readonly string connectionFilePath = Path.Combine(settingsPath, "connection.setf");
     private static readonly string appSettingsFilePath = Path.Combine(settingsPath, "app.setf");
     #endregion
-    private readonly JsonClient tcpClient = new();
+    private readonly JsonClient jsonClient = new();
+    private readonly FilesClient filesClient = new();
     private ProfileState profileState = ProfileState.Instance;
     public MainViewModel() 
     {
@@ -58,14 +59,14 @@ partial class MainViewModel : ViewModelBase
                 header = "Connection error",
                 text = sessionFilePath,
             });
-            tcpClient.AuthLogin(e.username, e.password);
+            jsonClient.AuthLogin(e.username, e.password);
         });
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
         {
-            if (e.check) tcpClient.ChekUsername(e.username);
-            else tcpClient.RegisterUser(e.username, e.name, e.password);
+            if (e.check) jsonClient.ChekUsername(e.username);
+            else jsonClient.RegisterUser(e.username, e.name, e.password);
         });
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { tcpClient.SearchChats(e.searchQuery); });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { jsonClient.SearchChats(e.searchQuery); });
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
         {
             var data = new AuthCredentialsModel
@@ -76,7 +77,7 @@ partial class MainViewModel : ViewModelBase
             var options = new JsonSerializerOptions { WriteIndented = true }; // Pretty print the JSON
             if(!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
-            tcpClient.FetchSelf();
+            jsonClient.FetchSelf();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) => 
         {
@@ -85,7 +86,7 @@ partial class MainViewModel : ViewModelBase
             profileState.Username = e.profile?.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
             chat_vm.UpdateProfile();
-            tcpClient.FetchChats();
+            jsonClient.FetchChats();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
         {
@@ -119,29 +120,38 @@ partial class MainViewModel : ViewModelBase
     }
     private void ConnectToServer()
     {
-        string host;
-        int port;
-        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, "127.0.0.1" + Environment.NewLine + "3000");
+        ConnectionDataModel defaultConnection = new()
+        {
+            Host = "127.0.0.1",
+            JsonPort = 3000,
+            FilesPort = 8080
+        };
+        var defaultConSerialized = JsonSerializer.Serialize(defaultConnection);
+
+        ConnectionDataModel connectionModel = defaultConnection;
+        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, defaultConSerialized);
         try
         {
-            string[] lines = File.ReadAllLines(connectionFilePath);
-            host = lines[0];
-            port = int.Parse(lines[1]);
+            string data = File.ReadAllText(connectionFilePath);
+            var der = JsonSerializer.Deserialize<ConnectionDataModel>(data);
+            if (der != null) {
+                connectionModel = der;
+            }
         }
         catch
         {
             File.Delete(connectionFilePath);
-            host = "127.0.0.1";
-            port = 3000;
         }
-        tcpClient.Connect(host, port);
+        jsonClient.Connect(connectionModel.Host, connectionModel.JsonPort);
+        filesClient.Connect(connectionModel.Host, connectionModel.FilesPort);
+        filesClient.UploadFile("C:\\Users\\askk\\Downloads\\nc64.exe");
+
         if (!File.Exists(sessionFilePath)) return;
         try
         {
             string json = File.ReadAllText(sessionFilePath);
-            AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json);
-            if (creds == null) throw new Exception();
-            tcpClient.AuthSessionId(creds.SessionId, creds.UserId);
+            AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json) ?? throw new Exception();
+            jsonClient.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch
         {

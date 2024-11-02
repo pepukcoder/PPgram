@@ -88,7 +88,7 @@ internal class JsonClient
         try
         {
             string request = JsonSerializer.Serialize(data);
-            stream?.Write(RequestBuilder.GetBytes(request));
+            stream?.Write(RequestBuilder.BuildJsonRequest(request));
         }
         catch { Disconnected(); }
     }

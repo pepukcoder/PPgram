@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Quic;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Messaging;
+using PPgram.Net;
 using PPgram.Shared;
 
 internal class FilesClient
@@ -20,8 +23,13 @@ internal class FilesClient
     private readonly TcpClient client = new();
     private NetworkStream? stream;
     
-    // If needed Skip next message(if we know that next message is e.g. file itself)
-    private bool skipNext = false;
+    // Controls suspension and resumption of the Listen method
+    private readonly ManualResetEventSlim listenEvent = new(true);
+    private const int chunkSize = 64 * 1024 * 1024; // 64 MiB
+
+    // Needed to suspend listening -> when retrieving the file binary, we don't want to handle message as Json
+    public void SuspendListening() => listenEvent.Reset();
+    public void ResumeListening() => listenEvent.Set();
     
     public void Connect(string remoteHost, int remotePort)
     {
@@ -39,9 +47,51 @@ internal class FilesClient
         }
         catch { Disconnected(); }
     }
+
+    /// <summary>
+    /// Uploads file by opening a 64 MiB window on the file, and then sending chunks to the stream.
+    /// </summary>
+    /// <param name="filePath">The path of the file to upload.</param>
+    public void UploadFile(string filePath)
+    {
+        uint fileBytesSent = 0;
+
+        var data = new {
+            name = Path.GetFileName(filePath),
+            is_media = false,
+            compress = false
+        };
+        var metadata = JsonSerializer.Serialize(data);
+
+        FileInfo fileInfo = new(filePath);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("File not found", filePath);
+
+        using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read);
+        byte[] buffer = new byte[chunkSize];
+        int bytesRead;
+
+        // Write metadata
+        stream?.Write(RequestBuilder.BuildJsonRequest(metadata));
+        
+        // Write Binary Size
+        byte[] lengthBytes = BitConverter.GetBytes(fileInfo.Length);
+        if (BitConverter.IsLittleEndian)
+            Array.Reverse(lengthBytes);
+        stream?.Write(lengthBytes);
+
+        while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            // Send the binary itself
+            stream?.Write(buffer, 0, bytesRead);
+            fileBytesSent += (uint)bytesRead;
+        }
+    }
+
     private void Listen()
     {
-        if (stream == null || skipNext) return;
+        if (stream == null) return;
         // init response chunks
         List<byte> response_chunks = [];
         int expected_size = 0;
@@ -140,7 +190,7 @@ internal class FilesClient
         // parse specific fields
         switch (r_method)
         {
-            case "upload_media":
+            case "upload_file":
                 string? sha256_hash = rootNode?["sha256_hash"]?.GetValue<string>();
                 if (sha256_hash != null) {
                     string hash = sha256_hash;
