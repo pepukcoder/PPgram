@@ -49,25 +49,6 @@ partial class ChatViewModel : ViewModelBase
         _timer.Tick += SearchChat;
 
         // mockups
-        SearchList.Add(new SearchEntryModel
-        {
-            Name = "Papuga",
-            Username = "@papuga",
-            Type = ChatType.Chat
-        });
-        SearchList.Add(new SearchEntryModel
-        {
-            Name = "GayFront",
-            Username = "@ppfront",
-            Type = ChatType.Group
-        });
-        SearchList.Add(new SearchEntryModel
-        {
-            Name = "PPgram Official",
-            Username = "@ppgram",
-            Type = ChatType.Channel
-        });
-
         ChatList.Add(new UserModel
         {
             Profile = new() { Name = "Pepuk" },
@@ -185,5 +166,9 @@ partial class ChatViewModel : ViewModelBase
         MessageInput = "";
     }
     [RelayCommand]
-    private void ClearSearch() => SearchInput = string.Empty;
+    private void ClearSearch()
+    {
+        SearchInput = string.Empty;
+        SearchList = [];
+    }
 }

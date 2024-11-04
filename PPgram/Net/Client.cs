@@ -9,6 +9,7 @@ using System.Threading;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System.Diagnostics;
+using PPgram.MVVM.Models.Message;
 
 namespace PPgram.Net;
 
@@ -183,6 +184,10 @@ internal class Client
         };
         Send(data);
     }
+    public void SendMessage(MessageModel message)
+    {
+
+    }
     private void HandleResponse(string response)
     {
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -213,6 +218,8 @@ internal class Client
             });
             return;
         }
+
+        Debug.WriteLine(response);
 
         // parse specific fields
         switch (r_method)
@@ -299,7 +306,7 @@ internal class Client
             case "fetch_chats":
                 if (ok == true)
                 {
-                    JsonArray? chatsJson = rootNode?["data"]?.AsArray();
+                    JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
                     List<ChatDTO> chatlist = [];
                     if (chatsJson == null) return;
                     foreach (JsonNode? chatNode in chatsJson)

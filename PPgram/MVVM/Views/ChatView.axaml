@@ -50,11 +50,14 @@
 						  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						  ScrollViewer.VerticalScrollBarVisibility="Hidden"
 						  ItemsSource="{Binding ChatList}">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<c:ChatListEntryControl/>
+					<ListBox.DataTemplates>
+						<DataTemplate DataType="mchat:UserModel">
+							<c:UserEntryControl/>
 						</DataTemplate>
-					</ListBox.ItemTemplate>
+						<DataTemplate DataType="mchat:GroupModel">
+							<c:GroupEntryControl/>
+						</DataTemplate>
+					</ListBox.DataTemplates>
 				</ListBox>
         		<ListBox Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
               			 IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"

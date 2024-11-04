@@ -1,0 +1,34 @@
+<Style xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:md="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
+					xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+	<Style Selector="ListBoxItem">
+		<Setter Property="Padding" Value="0"/>
+	</Style>
+	<Style Selector="ListBoxItem:pointerover">
+		<Style Selector="^ /template/ ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="^ Border.Back">
+			<Setter Property="Background" Value="{StaticResource SurfaceLight}" />
+		</Style>
+		<Style Selector="^ Ellipse.Online">
+			<Setter Property="Stroke" Value="{StaticResource SurfaceLight}"/>
+		</Style>
+	</Style>
+	<Style Selector="ListBoxItem:selected">
+		<Style Selector="^ /template/ ContentPresenter">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+		<Style Selector="^ Ellipse.Online">
+			<Setter Property="Stroke" Value="{StaticResource Panel}"/>
+		</Style>
+		<Style Selector="^ Border.Back">
+			<Setter Property="Background" Value="{StaticResource Panel}" />
+		</Style>
+		<Style Selector="^ Border.Unread">
+			<Setter Property="Background" Value="{StaticResource PanelAccent}"/>
+		</Style>
+	</Style>
+</Style>

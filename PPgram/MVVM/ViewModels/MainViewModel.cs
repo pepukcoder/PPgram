@@ -107,8 +107,8 @@ partial class MainViewModel : ViewModelBase
             chat_vm.UpdateSearch(resultList);
         });
         // connection
-        CurrentPage = chat_vm;
-        //ConnectToServer();   
+        CurrentPage = login_vm;
+        ConnectToServer();   
     }
     private static void CreateFile(string path, string data)
     {

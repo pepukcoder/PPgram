@@ -8,11 +8,6 @@
         <local:ViewLocator/>
     </Application.DataTemplates>
 
-    <Application.Styles>
-		<SimpleTheme/>
-		<materialIcons:MaterialIconStyles/>
-	</Application.Styles>
-
 	<Application.Resources>
 		<ResourceDictionary>
 			<FontFamily x:Key="Montserrat">/Fonts#Montserrat</FontFamily>
@@ -29,4 +24,12 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>
+	
+    <Application.Styles>
+		<StyleInclude Source="/Styles/ListThemes.axaml"/>
+		<SimpleTheme/>
+		<materialIcons:MaterialIconStyles/>
+	</Application.Styles>
+
+	
 </Application>
