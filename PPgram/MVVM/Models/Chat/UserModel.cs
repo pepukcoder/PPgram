@@ -1,5 +1,8 @@
 ﻿namespace PPgram.MVVM.Models.Chat;
 
+/// <summary>
+/// Repsenets properties of a user chat
+/// </summary>
 internal class UserModel : ChatModel
 {
     public bool Online { get; set; }

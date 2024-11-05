@@ -4,6 +4,9 @@ using Avalonia.Data.Converters;
 
 namespace PPgram.Helpers;
 
+/// <summary>
+/// Converts byte size value into prefixed UI-compatible size string
+/// </summary>
 internal class SizeConverter : IValueConverter
 {
     static readonly string[] SizeSuffixes = ["bytes", "KB", "MB", "GB"];

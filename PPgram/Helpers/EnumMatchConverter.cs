@@ -4,6 +4,9 @@ using System.Globalization;
 
 namespace PPgram.Helpers;
 
+/// <summary>
+/// Checks if model property value matches binding ConverterParameter
+/// </summary>
 public class EnumMatchConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

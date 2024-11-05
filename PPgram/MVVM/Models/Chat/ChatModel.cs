@@ -5,6 +5,9 @@ using PPgram.Shared;
 
 namespace PPgram.MVVM.Models.Chat;
 
+/// <summary>
+/// Repsesents common properties of a chat
+/// </summary>
 internal abstract class ChatModel
 {
     public int Id { get; set; }

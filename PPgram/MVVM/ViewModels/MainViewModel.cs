@@ -83,28 +83,65 @@ partial class MainViewModel : ViewModelBase
             profileState.Name = e.profile?.Name ?? string.Empty;
             profileState.Username = e.profile?.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
-            chat_vm.UpdateProfile();
             client.FetchChats();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
         {
             ObservableCollection<ChatModel> chats = [];
+            foreach (ChatDTO chat in e.chats)
+            {
+                ProfileModel profile = new()
+                {
+                    Name = chat.Name ?? string.Empty,
+                    Username = chat.Username ?? string.Empty,
+                    Avatar = Base64ToBitmapConverter.ConvertBase64(chat.Photo)
+                };
+                if (chat.IsGroup == true)
+                {
+                    GroupModel group = new()
+                    {
+                        Id = chat.Id ?? 0,
+                        Type = ChatType.Group,
+                        Profile = profile,
+                    };
+                    chats.Add(group);
+                }
+                else
+                {
+                    UserModel user = new()
+                    {
+                        Id = chat.Id ?? 0,
+                        Type = ChatType.Chat,
+                        Profile = profile,
+                    };
+                    chats.Add(user);
+                }
+            }
+            chat_vm.UpdateChats(chats);
         });
         WeakReferenceMessenger.Default.Register<Msg_SearchChatsResult>(this, (r, e) =>
         {
             ObservableCollection<SearchEntryModel> resultList = [];
             foreach (ProfileDTO chat in e.users)
             {
-                SearchEntryModel result = new() 
+                SearchEntryModel result = new()
                 {
                     Type = ChatType.Chat,
-                    Name = chat.Name ?? "",
-                    Username = chat.Username ?? "",
-                    Avatar = Base64ToBitmapConverter.ConvertBase64(chat.Photo)
+                    Id = chat.Id ?? 0,
+                    Profile = new() 
+                    {
+                        Name = chat.Name ?? "",
+                        Username = chat.Username ?? "",
+                        Avatar = Base64ToBitmapConverter.ConvertBase64(chat.Photo)
+                    }
                 };
                 resultList.Add(result);
             }
             chat_vm.UpdateSearch(resultList);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
+        {
+            client.SendMessage(e.message, e.to);
         });
         // connection
         CurrentPage = login_vm;

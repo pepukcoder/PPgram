@@ -184,9 +184,20 @@ internal class Client
         };
         Send(data);
     }
-    public void SendMessage(MessageModel message)
+    public void SendMessage(MessageModel message, int to)
     {
-
+        var data = new
+        {
+            method = "send_message",
+            to = to,
+            has_reply = !String.IsNullOrEmpty(message.ReplyText),
+            reply_to = 0,
+            content = new
+            {
+                text = message.Text
+            }
+        };
+        Send(data);
     }
     private void HandleResponse(string response)
     {

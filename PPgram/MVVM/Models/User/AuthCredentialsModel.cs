@@ -1,5 +1,6 @@
-// Basic Model for Authentication
-// Required to store the provided by the API UserId and SessionId in a json file 
+/// <summary>
+/// Model for Authentication to store UserId and SessionId provided by the API in a json file
+/// </summary>
 internal class AuthCredentialsModel
 {
     public int UserId { get; set; }

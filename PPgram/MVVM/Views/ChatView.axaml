@@ -46,9 +46,10 @@
 					</Border>
 				</StackPanel>
 				<ListBox x:Name="ChatListBox" Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
-              				IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+              			  IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"
 						  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						  ScrollViewer.VerticalScrollBarVisibility="Hidden"
+						  SelectedItem="{Binding ChatListSelected, Mode=TwoWay}"
 						  ItemsSource="{Binding ChatList}">
 					<ListBox.DataTemplates>
 						<DataTemplate DataType="mchat:UserModel">
@@ -64,13 +65,14 @@
 						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 					     ScrollViewer.VerticalScrollBarVisibility="Hidden"
                          ItemContainerTheme="{StaticResource SearchEntry}"
+						 SelectedItem="{Binding SearchListSelected, Mode=TwoWay}"
 					     ItemsSource="{Binding SearchList}">
 				</ListBox>
         		<Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Panel}" Padding="5">
 					<DockPanel>
 						<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
 							<Ellipse.Fill>
-								<ImageBrush Source="{Binding ProfileAvatar}"/>
+								<ImageBrush Source="{Binding ProfileState.Avatar}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right">
@@ -80,8 +82,8 @@
 							<icons:MaterialIcon Kind="ChatPlus" Height="24" Width="24" />
 						</Button>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-							<TextBlock Text="{Binding ProfileName}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
-							<TextBlock Text="{Binding ProfileUsername}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
+							<TextBlock Text="{Binding ProfileState.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+							<TextBlock Text="{Binding ProfileState.Username}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>	
 					</DockPanel>
         		</Border>
@@ -98,12 +100,12 @@
 					<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
 						<Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
 							<Ellipse.Fill>
-								<ImageBrush Source="/Assets/default_avatar.png"/>
+								<ImageBrush Source="{Binding SelectedChat.Profile.Avatar}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-							<TextBlock Text="Pavlo" FontWeight="Medium" FontSize="16"/>
-							<TextBlock Text="last seen 12:34" Foreground="{StaticResource SecondaryText}"/>
+							<TextBlock Text="{Binding SelectedChat.Profile.Name}" FontWeight="Medium" FontSize="16"/>
+							<TextBlock Text="{Binding ChatStatus}" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
 					</StackPanel>
 					<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">

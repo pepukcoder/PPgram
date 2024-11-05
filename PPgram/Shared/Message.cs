@@ -1,5 +1,6 @@
-namespace PPgram.Shared;
+using PPgram.MVVM.Models.Message;
 
+namespace PPgram.Shared;
 public enum MessageType
 {
     User,
@@ -25,4 +26,9 @@ public enum MediaType
     None,
     Images,
     Files,
+}
+class Msg_SendMessage
+{
+    public MessageModel message = new();
+    public int to;
 }
