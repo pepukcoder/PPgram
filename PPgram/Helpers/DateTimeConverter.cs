@@ -19,7 +19,15 @@ internal class DateTimeConverter : IValueConverter
             DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixtime).LocalDateTime;
             if (parameter as string == "Date" && dateTime.Date != DateTime.Today)
             {
+                if (dateTime.Year != DateTime.Today.Year)
+                    return dateTime.ToString("d MMM yyyy");
                 return dateTime.ToString("d MMM");
+            }
+            if (parameter as string == "Badge")
+            {
+                if (dateTime.Year != DateTime.Today.Year)
+                    return dateTime.ToString("d MMMM yyyy");
+                return dateTime.ToString("d MMMM");
             }
             return dateTime.ToString("H:mm");
         }
