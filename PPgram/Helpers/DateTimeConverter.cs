@@ -17,13 +17,13 @@ internal class DateTimeConverter : IValueConverter
         if(value is long unixtime)
         {
             DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixtime).LocalDateTime;
-            if (parameter is string mode && mode == "Date" && dateTime.Date != DateTime.Today)
+            if (parameter as string == "Date" && dateTime.Date != DateTime.Today)
             {
-                return dateTime.ToString("ddd");
+                return dateTime.ToString("d MMM");
             }
             return dateTime.ToString("H:mm");
         }
-        return "0:00";
+        return "???";
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
