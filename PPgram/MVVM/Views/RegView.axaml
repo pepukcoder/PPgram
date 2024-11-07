@@ -31,7 +31,7 @@
 								<TextBox Background="Transparent" BorderThickness="0"
 										 Watermark="e.g. Pavlo Alphovich"
 										 CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-										 FontFamily="{StaticResource Cascadia}" FontWeight="Light"
+										 FontFamily="{StaticResource Mono}" FontWeight="Light"
 										 MaxLength="30" MinWidth="255" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
 										 ContextFlyout="{StaticResource RegularFlyout}"/>
 							</DockPanel>
@@ -48,7 +48,7 @@
 										<TextBox Background="Transparent" BorderThickness="0"
 												 Watermark="e.g. user_clown123"
 												 CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-												 FontFamily="{StaticResource Cascadia}" FontWeight="Light" TextChanged="TextBox_TextChanged"
+												 FontFamily="{StaticResource Mono}" FontWeight="Light" TextChanged="TextBox_TextChanged"
 												 MaxLength="30" MinWidth="255" Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 												 ContextFlyout="{StaticResource RegularFlyout}"/>
 									</DockPanel>
@@ -76,7 +76,7 @@
 								<TextBox Background="Transparent" BorderThickness="0"
 										 CaretBrush="White" SelectionBrush="{StaticResource Selection}"
 										 FontWeight="Light" MinWidth="240"
-										 FontFamily="{StaticResource Cascadia}"
+										 FontFamily="{StaticResource Mono}"
 										 PasswordChar="●" MaxLength="28" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
 										 ContextFlyout="{StaticResource RegularFlyout}"
 										 RevealPassword="{Binding #ShowPassword.IsChecked}"/>

@@ -190,12 +190,7 @@ internal class Client
         {
             method = "send_message",
             to = to,
-            has_reply = !String.IsNullOrEmpty(message.ReplyText),
-            reply_to = 0,
-            content = new
-            {
-                text = message.Text
-            }
+            
         };
         Send(data);
     }

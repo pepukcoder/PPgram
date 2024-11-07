@@ -11,7 +11,7 @@ public enum ChatStatus
     None,
     Typing,
 }
-public enum ChatRole
+public enum GroupRole
 {
     None,
     Admin,

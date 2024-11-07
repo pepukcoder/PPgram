@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:m="clr-namespace:PPgram.MVVM.Models.Message"
+             x:Class="PPgram.Controls.ReplyControl"
+			 x:DataType="m:ReplyModel"
+			 FontSize="13"
+			 FontFamily="{StaticResource Roboto}">
+	<UserControl.Resources>
+		<helpers:UserColorConverter x:Key="UCConvert"/>
+	</UserControl.Resources>
+	<Border CornerRadius="5" ClipToBounds="True">
+		<Panel>
+			<Rectangle Opacity="0.13" Fill="{Binding Color, Converter={StaticResource UCConvert}}"/>
+			<Rectangle Opacity="1" Fill="{Binding Color, Converter={StaticResource UCConvert}}" Width="3" HorizontalAlignment="Left"/>
+			<StackPanel Orientation="Vertical" Margin="10,3">
+				<TextBlock FontWeight="Medium" Text="{Binding Name}" Foreground="{Binding Color, Converter={StaticResource UCConvert}}" Margin="0,0,0,2"/>
+				<TextBlock FontWeight="Light" Text="{Binding Text}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource PrimaryText}"/>
+			</StackPanel>
+		</Panel>
+	</Border>
+</UserControl>

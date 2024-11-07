@@ -10,16 +10,24 @@
 
 	<Application.Resources>
 		<ResourceDictionary>
+			<SolidColorBrush x:Key="UserColor0">#CFCFCF</SolidColorBrush>
+			<SolidColorBrush x:Key="UserColor1">#85E9FF</SolidColorBrush>		
+			<SolidColorBrush x:Key="UserColor2">#CC85FF</SolidColorBrush>
+			<SolidColorBrush x:Key="UserColor3">#85A5FF</SolidColorBrush>
+			<SolidColorBrush x:Key="UserColor4">#FF337A</SolidColorBrush>
+			<SolidColorBrush x:Key="UserColor5">#FFA333</SolidColorBrush>
+			<SolidColorBrush x:Key="UserColor6">#B4E600</SolidColorBrush>
+			
 			<FontFamily x:Key="Montserrat">/Fonts#Montserrat</FontFamily>
-			<FontFamily x:Key="Cascadia">/Fonts#Cascadia Mono</FontFamily>
+			<FontFamily x:Key="Roboto">/Fonts#Roboto</FontFamily>
+			<FontFamily x:Key="Mono">/Fonts#Roboto Mono</FontFamily>
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceInclude Source="/Styles/ThemeColors.axaml"/>
 				<ResourceInclude Source="/Styles/Button.axaml"/>
-				<ResourceInclude Source="/Styles/Message.axaml"/>
+				<ResourceInclude Source="/Styles/File.axaml"/>
+				<ResourceInclude Source="/Styles/Media.axaml"/>
 				<ResourceInclude Source="/Styles/SearchEntry.axaml"/>
 				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
-				<ResourceInclude Source="/Styles/MediaFile.axaml"/>
-				<ResourceInclude Source="/Styles/MediaImage.axaml"/>
 				<ResourceInclude Source="/Styles/ScrollBar.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>

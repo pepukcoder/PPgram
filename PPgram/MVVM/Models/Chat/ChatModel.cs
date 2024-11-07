@@ -12,7 +12,7 @@ internal abstract class ChatModel
 {
     public int Id { get; set; }
     public int UnreadCount { get; set; }
-    public string Date { get; set; } = "00:00";
+    public long Date { get; set; }
     public ChatType Type { get; set; }
     public ChatStatus Status { get; set; }
     public MessageStatus MessageStatus { get; set; }

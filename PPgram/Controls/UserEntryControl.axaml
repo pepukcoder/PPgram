@@ -10,6 +10,7 @@
              x:DataType="m:UserModel">
   <UserControl.Resources>
     <helpers:EnumMatchConverter x:Key="EnumConvert"/>
+	<helpers:DateTimeConverter x:Key="DTConvert"/>
   </UserControl.Resources>
   <Border Classes="Back" CornerRadius="15" Padding="5" HorizontalAlignment="Stretch">
     <Grid ColumnDefinitions="Auto,*,Auto">
@@ -26,7 +27,7 @@
         <TextBlock Text="{Binding LastMessage}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
       </StackPanel>	
       <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,0,0,0">
-        <TextBlock Text="{Binding Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
+        <TextBlock Text="{Binding Date, Converter={StaticResource DTConvert},ConverterParameter=Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
         <Panel HorizontalAlignment="Right">
           <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
                     Kind="ClockOutline" Height="18" Width="16" Foreground="{StaticResource SecondaryText}"/>

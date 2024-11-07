@@ -1,7 +1,7 @@
 using PPgram.MVVM.Models.Message;
 
 namespace PPgram.Shared;
-public enum MessageType
+public enum MessageRole
 {
     User,
     UserFirst,
@@ -11,7 +11,6 @@ public enum MessageType
     GroupSingle,
     GroupFirst,
     GroupLast,
-    Date
 }
 public enum MessageStatus
 {
@@ -21,9 +20,9 @@ public enum MessageStatus
     Read,
     Error
 }
-public enum MediaType
+public enum ContentType
 {
-    None,
+    Text,
     Images,
     Files,
 }

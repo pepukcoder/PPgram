@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:m="clr-namespace:PPgram.MVVM.Models.Item;assembly=PPgram"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+             x:Class="PPgram.Controls.DateBadgeControl"
+			 x:DataType="m:DateBadgeModel"
+			 HorizontalAlignment="Center"
+			 FontFamily="{StaticResource Roboto}"
+			 FontSize="13">
+	<ContentControl.Resources>
+		<helpers:DateTimeConverter x:Key="DTConvert"/>
+	</ContentControl.Resources>
+	<Border CornerRadius="20" ClipToBounds="True" Margin="0,2">
+		<Panel>
+			<Rectangle Opacity="0.5" Fill="{StaticResource Surface}"/>
+			<TextBlock FontWeight="Medium" Text="{Binding Date,Converter={StaticResource DTConvert},ConverterParameter=Badge}" Margin="10,5"/>
+		</Panel>
+	</Border>
+</UserControl>
