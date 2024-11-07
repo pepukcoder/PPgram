@@ -1,8 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:md="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
-					          xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
-					          xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+					xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
   <ControlTheme x:Key="SearchEntry" TargetType="ListBoxItem" x:DataType="md:SearchEntryModel">
     <ControlTheme.Resources>
 			<helpers:EnumMatchConverter x:Key="EnumConvert"/>

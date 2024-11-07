@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:m="clr-namespace:PPgram.MVVM.Models.MessageContent;assembly=PPgram"
-             x:Class="PPgram.Controls.Content.TextContentControl"
+             x:Class="PPgram.Controls.MessageContent.TextContentControl"
 			 x:DataType="m:TextContentModel">
   <TextBlock Text="{Binding Text}" Margin="0,0,10,0"/>
 </UserControl>

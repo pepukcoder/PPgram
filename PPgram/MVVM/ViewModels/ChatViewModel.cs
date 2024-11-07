@@ -13,6 +13,8 @@ using PPgram.MVVM.Models.User;
 using System.ComponentModel;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.MessageContent;
+using PPgram.MVVM.Models.File;
+using PPgram.Helpers;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -63,22 +65,35 @@ partial class ChatViewModel : ViewModelBase
         });
         MessageList.Add(new MessageModel()
         {
-            Reply = new()
-            {
-                Name = SelectedChat.Profile.Name,
-                Color = 0,
-                Text = "asdasdasdasd",
-            },
             Content = new TextContentModel()
             {
-                Text = "pavlo gay"
+                Text = "паша альфа"
             },
             Role = MessageRole.OwnFirst,
             Sender = ProfileState.Name,
             SenderId = ProfileState.UserId,
             
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            Status = MessageStatus.Delivered
+            Status = MessageStatus.Read
+        });
+        MessageList.Add(new MessageModel()
+        {
+            Reply = new()
+            {
+                Name = ProfileState.Name,
+                Color = 0,
+                Text = "паша альфа",
+            },
+            Content = new TextContentModel()
+            {
+                Text = "то есть гей"
+            },
+            Role = MessageRole.Own,
+            Sender = SelectedChat.Profile.Name,
+            SenderId = 0,
+
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            Status = MessageStatus.Read
         });
         MessageList.Add(new MessageModel()
         {
@@ -86,11 +101,11 @@ partial class ChatViewModel : ViewModelBase
             {
                 Name = ProfileState.Name,
                 Color = 3,
-                Text = "pavlo gay",
+                Text = "то есть гей",
             },
             Content = new TextContentModel()
             {
-                Text = "да я гей, и что?"
+                Text = "чзх"
             },
             Role = MessageRole.GroupFirst,
             Sender = SelectedChat.Profile.Name,
@@ -100,9 +115,55 @@ partial class ChatViewModel : ViewModelBase
         });
         MessageList.Add(new MessageModel()
         {
-            Content = new TextContentModel()
+            Reply = new()
             {
-                Text = "бывает"
+                Name = SelectedChat.Profile.Name,
+                Color = 1,
+                Text = "чекай",
+            },
+            Content = new FileContentModel()
+            {
+                Files = new()
+                {
+                    new FileModel()
+                    {
+                        Name = "file 500b.zip",
+                        Size = 500
+                    },
+                    new FileModel()
+                    {
+                        Name = "file 5mb.zip",
+                        Size = 5000000
+                    },
+                },
+                Text = "короче вот тебе файлики"
+            },
+            Role = MessageRole.GroupFirst,
+            Sender = SelectedChat.Profile.Name,
+            Color = 1,
+            SenderId = 0,
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        });
+        MessageList.Add(new MessageModel()
+        {
+            Content = new MediaContentModel()
+            {
+                MediaFiles = new()
+                {
+                    new MediaFileModel()
+                    {
+                        Preview = Base64ToBitmapConverter.ConvertBase64(null),
+                        Name = "Fileasdasdasd",
+                        Size = 500
+                    },
+                    new MediaFileModel()
+                    {
+                        Preview = Base64ToBitmapConverter.ConvertBase64(null),
+                        Name = "asdasdasd",
+                        Size = 5000
+                    },
+                },
+                Text = "вот тебе медиа"
             },
             Role = MessageRole.GroupLast,
             Sender = SelectedChat.Profile.Name,
@@ -132,14 +193,17 @@ partial class ChatViewModel : ViewModelBase
     private void SendMessage()
     {
         // mockup for testing
-        int colorid = Random.Shared.Next(0, 6);
         MessageModel message = new()
         {
             Reply = new()
             {
                 Name = "Павло Потужний",
-                Color = colorid,
+                Color = 0,
                 Text = "asdasdasdasd",
+            },
+            Content = new TextContentModel()
+            {
+                Text = MessageInput.Trim(),
             },
             Role = MessageRole.OwnFirst,
             Sender = ProfileState.Name,

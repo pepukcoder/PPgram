@@ -11,18 +11,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Remove="Fonts\CascadiaMono-Bold.ttf" />
-    <None Remove="Fonts\CascadiaMono-BoldItalic.ttf" />
-    <None Remove="Fonts\CascadiaMono-ExtraLight.ttf" />
-    <None Remove="Fonts\CascadiaMono-ExtraLightItalic.ttf" />
-    <None Remove="Fonts\CascadiaMono-Italic.ttf" />
-    <None Remove="Fonts\CascadiaMono-Light.ttf" />
-    <None Remove="Fonts\CascadiaMono-LightItalic.ttf" />
-    <None Remove="Fonts\CascadiaMono-Regular.ttf" />
-    <None Remove="Fonts\CascadiaMono-SemiBold.ttf" />
-    <None Remove="Fonts\CascadiaMono-SemiBoldItalic.ttf" />
-    <None Remove="Fonts\CascadiaMono-SemiLight.ttf" />
-    <None Remove="Fonts\CascadiaMono-SemiLightItalic.ttf" />
     <None Remove="Fonts\Montserrat-Black.ttf" />
     <None Remove="Fonts\Montserrat-BlackItalic.ttf" />
     <None Remove="Fonts\Montserrat-Bold.ttf" />
@@ -47,6 +35,32 @@
     <None Remove="Fonts\MontserratAlternatesLight.ttf" />
     <None Remove="Fonts\MontserratAlternatesRegular.ttf" />
     <None Remove="Fonts\MontserratAlternatesSemiBold.ttf" />
+    <None Remove="Fonts\Roboto-Black.ttf" />
+    <None Remove="Fonts\Roboto-BlackItalic.ttf" />
+    <None Remove="Fonts\Roboto-Bold.ttf" />
+    <None Remove="Fonts\Roboto-BoldItalic.ttf" />
+    <None Remove="Fonts\Roboto-Italic.ttf" />
+    <None Remove="Fonts\Roboto-Light.ttf" />
+    <None Remove="Fonts\Roboto-LightItalic.ttf" />
+    <None Remove="Fonts\Roboto-Medium.ttf" />
+    <None Remove="Fonts\Roboto-MediumItalic.ttf" />
+    <None Remove="Fonts\Roboto-Regular.ttf" />
+    <None Remove="Fonts\Roboto-Thin.ttf" />
+    <None Remove="Fonts\Roboto-ThinItalic.ttf" />
+    <None Remove="Fonts\RobotoMono-Bold.ttf" />
+    <None Remove="Fonts\RobotoMono-BoldItalic.ttf" />
+    <None Remove="Fonts\RobotoMono-ExtraLight.ttf" />
+    <None Remove="Fonts\RobotoMono-ExtraLightItalic.ttf" />
+    <None Remove="Fonts\RobotoMono-Italic.ttf" />
+    <None Remove="Fonts\RobotoMono-Light.ttf" />
+    <None Remove="Fonts\RobotoMono-LightItalic.ttf" />
+    <None Remove="Fonts\RobotoMono-Medium.ttf" />
+    <None Remove="Fonts\RobotoMono-MediumItalic.ttf" />
+    <None Remove="Fonts\RobotoMono-Regular.ttf" />
+    <None Remove="Fonts\RobotoMono-SemiBold.ttf" />
+    <None Remove="Fonts\RobotoMono-SemiBoldItalic.ttf" />
+    <None Remove="Fonts\RobotoMono-Thin.ttf" />
+    <None Remove="Fonts\RobotoMono-ThinItalic.ttf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,18 +80,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Fonts\CascadiaMono-Bold.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-BoldItalic.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-ExtraLight.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-ExtraLightItalic.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-Italic.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-Light.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-LightItalic.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-Regular.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-SemiBold.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-SemiBoldItalic.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-SemiLight.ttf" />
-    <AvaloniaResource Include="Fonts\CascadiaMono-SemiLightItalic.ttf" />
     <AvaloniaResource Include="Fonts\Montserrat-Black.ttf" />
     <AvaloniaResource Include="Fonts\Montserrat-BlackItalic.ttf" />
     <AvaloniaResource Include="Fonts\Montserrat-Bold.ttf" />
@@ -96,10 +98,32 @@
     <AvaloniaResource Include="Fonts\Montserrat-SemiBoldItalic.ttf" />
     <AvaloniaResource Include="Fonts\Montserrat-Thin.ttf" />
     <AvaloniaResource Include="Fonts\Montserrat-ThinItalic.ttf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Styles\UserColors.axaml" />
+    <AvaloniaResource Include="Fonts\Roboto-Black.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-BlackItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-Bold.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-BoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-Italic.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-Light.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-LightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-Medium.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-MediumItalic.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-Regular.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-Thin.ttf" />
+    <AvaloniaResource Include="Fonts\Roboto-ThinItalic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-Bold.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-BoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-ExtraLight.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-ExtraLightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-Italic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-Light.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-LightItalic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-Medium.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-MediumItalic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-Regular.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-SemiBold.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-SemiBoldItalic.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-Thin.ttf" />
+    <AvaloniaResource Include="Fonts\RobotoMono-ThinItalic.ttf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -116,5 +140,9 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="MVVM\Views\ProfileView.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Controls\ReplyControl.axaml" />
   </ItemGroup>
 </Project>
