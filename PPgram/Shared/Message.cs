@@ -20,9 +20,9 @@ public enum MessageStatus
     Read,
     Error
 }
-public enum MediaType
+public enum ContentType
 {
-    None,
+    Text,
     Images,
     Files,
 }

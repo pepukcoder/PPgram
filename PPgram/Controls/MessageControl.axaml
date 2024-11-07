@@ -4,7 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
+			 xmlns:cc="clr-namespace:PPgram.Controls.Content;assembly=PPgram"
 			 xmlns:m="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
+			 xmlns:mct="clr-namespace:PPgram.MVVM.Models.MessageContent;assembly=PPgram"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="PPgram.Controls.MessageControl"
 			 x:DataType="m:MessageModel"
@@ -34,7 +36,13 @@
 									<TextBlock Text="{Binding Sender}" FontWeight="Medium"/>
 								</Button>
 								<c:ReplyControl DataContext="{Binding Reply}" Margin="0,0,10,3" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-								<ContentPresenter x:Name="PART_ContentPresenter" Content="{TemplateBinding Content}"/>
+								<ContentControl x:Name="PART_ContentControl" Content="{Binding Content}">
+									<ContentControl.DataTemplates>
+										<DataTemplate DataType="mct:TextContentModel">
+											<cc:TextContentControl/>
+										</DataTemplate>
+									</ContentControl.DataTemplates>
+								</ContentControl>
 								<StackPanel x:Name="PART_StatusBar" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,3">
 									<TextBlock Text="edited" FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" IsVisible="{Binding Edited}" VerticalAlignment="Bottom"/>
 									<TextBlock Text="{Binding Time,Converter={StaticResource DTConvert}}"  FontSize="13" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" VerticalAlignment="Bottom"/>

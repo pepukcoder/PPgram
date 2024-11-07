@@ -32,7 +32,7 @@
 								<icons:MaterialIcon Kind="At" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
 								<TextBox Background="Transparent" BorderThickness="0"
 										CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-										FontFamily="{StaticResource Cascadia}" FontWeight="Light"
+										FontFamily="{StaticResource Mono}" FontWeight="Light"
 										MaxLength="30" MinWidth="255"
 										Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
 										ContextFlyout="{StaticResource RegularFlyout}"/>
@@ -47,6 +47,7 @@
 											CaretBrush="White" SelectionBrush="{StaticResource Selection}"
 											FontWeight="Light" MinWidth="255"
 											PasswordChar="●" MaxLength="28"
+											FontFamily="{StaticResource Mono}"
 											Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
 											ContextFlyout="{StaticResource RegularFlyout}">
 								</TextBox>

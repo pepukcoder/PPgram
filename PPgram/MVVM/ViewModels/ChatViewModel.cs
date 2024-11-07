@@ -11,6 +11,8 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.MVVM.Models.User;
 using System.ComponentModel;
+using PPgram.MVVM.Models.Item;
+using PPgram.MVVM.Models.MessageContent;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -20,7 +22,7 @@ partial class ChatViewModel : ViewModelBase
     private string chatStatus = "last seen 12:34";
 
     [ObservableProperty]
-    private ObservableCollection<MessageModel> messageList = [];
+    private ObservableCollection<ChatItem> messageList = [];
     [ObservableProperty]
     private ObservableCollection<ChatModel> chatList = [];
     [ObservableProperty]
@@ -48,12 +50,66 @@ partial class ChatViewModel : ViewModelBase
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
+
     }
     partial void OnSearchListSelectedChanged(ChatModel value) => SelectedChat = value;
     partial void OnChatListSelectedChanged(ChatModel value) => SelectedChat = value;
     partial void OnSelectedChatChanged(ChatModel value)
     {
-        
+        MessageList.Clear();
+        MessageList.Add(new DateBadgeModel()
+        {
+            Date = DateTimeOffset.Now.ToUnixTimeSeconds()
+        });
+        MessageList.Add(new MessageModel()
+        {
+            Reply = new()
+            {
+                Name = SelectedChat.Profile.Name,
+                Color = 0,
+                Text = "asdasdasdasd",
+            },
+            Content = new TextContentModel()
+            {
+                Text = "pavlo gay"
+            },
+            Role = MessageRole.OwnFirst,
+            Sender = ProfileState.Name,
+            SenderId = ProfileState.UserId,
+            
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            Status = MessageStatus.Delivered
+        });
+        MessageList.Add(new MessageModel()
+        {
+            Reply = new()
+            {
+                Name = ProfileState.Name,
+                Color = 3,
+                Text = "pavlo gay",
+            },
+            Content = new TextContentModel()
+            {
+                Text = "да я гей, и что?"
+            },
+            Role = MessageRole.GroupFirst,
+            Sender = SelectedChat.Profile.Name,
+            Color = 1,
+            SenderId = 0,
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        });
+        MessageList.Add(new MessageModel()
+        {
+            Content = new TextContentModel()
+            {
+                Text = "бывает"
+            },
+            Role = MessageRole.GroupLast,
+            Sender = SelectedChat.Profile.Name,
+            Color = 1,
+            SenderId = 0,
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        });
     }
     partial void OnSearchInputChanged(string value)
     {
@@ -76,20 +132,30 @@ partial class ChatViewModel : ViewModelBase
     private void SendMessage()
     {
         // mockup for testing
+        int colorid = Random.Shared.Next(0, 6);
         MessageModel message = new()
         {
-            Text = MessageInput,
-            From = ProfileState.UserId,
-            Avatar = ProfileState.Avatar,
-            Date = DateTime.Now.ToString("H:mm")
+            Reply = new()
+            {
+                Name = "Павло Потужний",
+                Color = colorid,
+                Text = "asdasdasdasd",
+            },
+            Role = MessageRole.OwnFirst,
+            Sender = ProfileState.Name,
+            Color = 3,
+            SenderId = ProfileState.UserId,
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            Status = MessageStatus.Delivered
         };
-
         MessageList.Add(message);
+        /*
         WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
         {
             message = message,
             to = SelectedChat.Id
         });
+        */
         MessageInput = "";
     }
     [RelayCommand]
