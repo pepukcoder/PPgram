@@ -1,9 +1,9 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:m="clr-namespace:PPgram.MVVM.Models.File;assembly=PPgram"
+                    xmlns:m="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
 					xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
-	<ControlTheme x:Key="Media" TargetType="ListBoxItem" x:DataType="m:MediaFileModel">
+	<ControlTheme x:Key="Media" TargetType="ListBoxItem" x:DataType="m:FileModel">
 		<ControlTheme.Resources>
 			<helpers:SizeConverter x:Key="SConvert"/>
 		</ControlTheme.Resources>

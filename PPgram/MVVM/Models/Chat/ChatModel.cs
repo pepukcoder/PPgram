@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.User;
 using PPgram.Shared;
@@ -17,5 +18,5 @@ internal abstract class ChatModel
     public ChatStatus Status { get; set; }
     public MessageStatus MessageStatus { get; set; }
     public ProfileModel Profile { get; set; } = new();
-    public ObservableCollection<MessageModel> Messages { get; set; } = [];
+    public ObservableCollection<ChatItem> Messages { get; set; } = [];
 }

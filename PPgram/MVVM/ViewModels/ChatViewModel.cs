@@ -1,22 +1,16 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using PPgram.Shared;
-using PPgram.MVVM.Models.Chat;
-using PPgram.MVVM.Models.Message;
-using Avalonia.Media.Imaging;
-using System;
-using Avalonia.Platform;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
-using PPgram.MVVM.Models.User;
-using System.ComponentModel;
-using PPgram.MVVM.Models.Item;
-using PPgram.MVVM.Models.MessageContent;
-using PPgram.MVVM.Models.File;
 using PPgram.Helpers;
-using System.Linq;
-using PPgram.Net.DTO;
+using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Item;
+using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
+using PPgram.MVVM.Models.User;
+using PPgram.Shared;
+using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace PPgram.MVVM.ViewModels;
@@ -67,11 +61,10 @@ partial class ChatViewModel : ViewModelBase
             {
                 chatId = value.Id,
             });
-            
         }
         else
         {
-            MessageList = new(value.Messages);
+            MessageList = value.Messages;
         }
     }
     partial void OnSearchInputChanged(string value)
@@ -93,8 +86,7 @@ partial class ChatViewModel : ViewModelBase
     public void UpdateChats(ObservableCollection<ChatModel> chatList) => ChatList = chatList;
     public void UpdateMessages(ObservableCollection<MessageModel> messageList)
     {
-        SelectedChat.Messages = messageList;
-        MessageList = new(SelectedChat.Messages);
+       MessageList = SelectedChat.Messages = chainManager.GenerateChain(messageList, SelectedChat);
     }
     [RelayCommand]
     private void SendMessage()

@@ -1,21 +1,18 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using System;
-using System.Collections.ObjectModel;
-using System.IO;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
 using PPgram.Net;
-using PPgram.Shared;
-using System.Diagnostics;
-using System.Text.Json;
 using PPgram.Net.DTO;
-using PPgram.MVVM.Models.Message;
-using System.Linq;
-using PPgram.MVVM.Models.MessageContent;
+using PPgram.Shared;
+using System;
 using System.Collections.Generic;
-using PPgram.MVVM.Models.File;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
 
 namespace PPgram.MVVM.ViewModels;
 

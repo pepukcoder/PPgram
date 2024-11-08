@@ -320,6 +320,7 @@ internal class Client
                         MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
                         if (message != null) messageList.Add(message);
                     }
+                    messageList.Reverse();
                     WeakReferenceMessenger.Default.Send(new Msg_FetchMessagesResult { messages = messageList });
                 }
                 break;

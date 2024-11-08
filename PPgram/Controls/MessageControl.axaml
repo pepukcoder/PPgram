@@ -44,9 +44,6 @@
 										<DataTemplate DataType="mmc:FileContentModel">
 											<cc:FileContentControl/>
 										</DataTemplate>
-										<DataTemplate DataType="mmc:MediaContentModel">
-											<cc:MediaContentControl/>
-										</DataTemplate>
 									</ContentControl.DataTemplates>
 								</ContentControl>
 								<StackPanel x:Name="PART_StatusBar" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,3">

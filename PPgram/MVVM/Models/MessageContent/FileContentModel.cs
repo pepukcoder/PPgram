@@ -1,4 +1,4 @@
-﻿using PPgram.MVVM.Models.File;
+﻿using PPgram.MVVM.Models.Message;
 using System.Collections.ObjectModel;
 
 namespace PPgram.MVVM.Models.MessageContent;
@@ -6,5 +6,6 @@ namespace PPgram.MVVM.Models.MessageContent;
 internal class FileContentModel : MessageContentModel
 {
     public ObservableCollection<FileModel> Files { get; set; } = [];
+    public bool Media { get; set; }
     public string Text { get; set; } = string.Empty;
 }
