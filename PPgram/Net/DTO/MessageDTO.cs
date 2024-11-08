@@ -18,8 +18,6 @@ internal class MessageDTO
     public int? ReplyTo { get; set; }
     [JsonPropertyName("is_unread")]
     public bool? Unread { get; set; }
-    [JsonPropertyName("media_names")]
-    public string[]? MediaNames { get; set; }
-    [JsonPropertyName("media_datas")]
-    public string[]? MediaDatas { get; set; }
+    [JsonPropertyName("media_hashes")]
+    public string[]? MediaHashes { get; set; }
 }

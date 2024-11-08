@@ -9,7 +9,6 @@
 			 x:DataType="m:FileContentModel">
 	<StackPanel Orientation="Vertical" Margin="0,0,10,0">
 		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" BorderThickness="0" ItemContainerTheme="{StaticResource File}"/>
-		<TextBlock Text="{Binding Text}"/>
+		<TextBlock Text="{Binding Text}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 	</StackPanel>
-	
 </UserControl>

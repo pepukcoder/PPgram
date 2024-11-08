@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using PPgram.Shared;
 using PPgram.MVVM.Models.Item;
 using Avalonia.Media.Imaging;
@@ -15,6 +14,7 @@ internal class MessageModel : ChatItem
     public int SenderId { get; set; }
     public int Color { get; set; }
     public string Sender { get; set; } = string.Empty;
+    public int ReplyTo { get; set; }
     public ReplyModel Reply { get; set; } = new();
     public Bitmap Avatar { get; set; } = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
     public MessageContentModel Content { get; set; } = new TextContentModel();

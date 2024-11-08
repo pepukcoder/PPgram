@@ -11,6 +11,11 @@ using PPgram.Shared;
 using System.Diagnostics;
 using System.Text.Json;
 using PPgram.Net.DTO;
+using PPgram.MVVM.Models.Message;
+using System.Linq;
+using PPgram.MVVM.Models.MessageContent;
+using System.Collections.Generic;
+using PPgram.MVVM.Models.File;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -43,28 +48,21 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { client.SearchChats(e.searchQuery); });
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) => { client.SendMessage(e.message, e.to); });
+        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => { client.FetchMessages(e.chatId, e.range); });
+        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => { client.AuthLogin(e.username, e.password); });
         WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) =>
             reg_vm.ShowUsernameStatus(e.available 
             ? "Username is available"
             : "Username is already taken",
             e.available)
         );
-        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => 
-        {
-            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-            {
-                icon = DialogIcons.Error,
-                header = "Connection error",
-                text = sessionFilePath,
-            });
-            client.AuthLogin(e.username, e.password);
-        });
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
         {
             if (e.check) client.ChekUsername(e.username);
             else client.RegisterUser(e.username, e.name, e.password);
-        });
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { client.SearchChats(e.searchQuery); });
+        });      
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
         {
             var data = new AuthCredentialsModel
@@ -139,9 +137,45 @@ partial class MainViewModel : ViewModelBase
             }
             chat_vm.UpdateSearch(resultList);
         });
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_FetchMessagesResult>(this, (r, e) =>
         {
-            client.SendMessage(e.message, e.to);
+            ObservableCollection<MessageModel> messages = [];
+            foreach (MessageDTO messageDTO in e.messages)
+            {
+                MessageContentModel content;
+                if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
+                {
+                    List<FileModel> files = [];
+                    foreach (string hash in messageDTO.MediaHashes)
+                    {
+                        files.Add(new() { Hash = hash });
+                    }
+                    content = new FileContentModel()
+                    {
+                        Files = new(files),
+                        Text = messageDTO.Text ?? string.Empty
+                    };
+                }
+                else
+                {
+                    content = new TextContentModel()
+                    {
+                        Text = messageDTO.Text ?? string.Empty
+                    };
+                }
+                MessageModel messageModel = new()
+                {
+                    Id = messageDTO.Id ?? 0,
+                    Chat = messageDTO.ChatId ?? 0,
+                    SenderId = messageDTO.From ?? 0,
+                    Time = messageDTO.Date ?? 0,
+                    ReplyTo = messageDTO.ReplyTo ?? 0,
+                    Content = content,
+                    Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
+                };
+                messages.Add(messageModel);
+            }
+            chat_vm.UpdateMessages(messages);
         });
         // connection
         CurrentPage = login_vm;
@@ -175,8 +209,7 @@ partial class MainViewModel : ViewModelBase
         try
         {
             string json = File.ReadAllText(sessionFilePath);
-            AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json);
-            if (creds == null) throw new Exception();
+            AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json) ?? throw new Exception();
             client.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch

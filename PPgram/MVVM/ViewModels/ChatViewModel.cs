@@ -15,6 +15,9 @@ using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.File;
 using PPgram.Helpers;
+using System.Linq;
+using PPgram.Net.DTO;
+using System.Diagnostics;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -46,131 +49,30 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
     private readonly DispatcherTimer _timer;
+    private MessageChainManager chainManager = new();
     public ChatViewModel()
     {
         RightGridVisible = false;
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
-
     }
     partial void OnSearchListSelectedChanged(ChatModel value) => SelectedChat = value;
     partial void OnChatListSelectedChanged(ChatModel value) => SelectedChat = value;
     partial void OnSelectedChatChanged(ChatModel value)
     {
-        MessageList.Clear();
-        MessageList.Add(new DateBadgeModel()
+        if (value.Messages.Count == 0)
         {
-            Date = DateTimeOffset.Now.ToUnixTimeSeconds()
-        });
-        MessageList.Add(new MessageModel()
-        {
-            Content = new TextContentModel()
+            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages()
             {
-                Text = "паша альфа"
-            },
-            Role = MessageRole.OwnFirst,
-            Sender = ProfileState.Name,
-            SenderId = ProfileState.UserId,
+                chatId = value.Id,
+            });
             
-            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            Status = MessageStatus.Read
-        });
-        MessageList.Add(new MessageModel()
+        }
+        else
         {
-            Reply = new()
-            {
-                Name = ProfileState.Name,
-                Color = 0,
-                Text = "паша альфа",
-            },
-            Content = new TextContentModel()
-            {
-                Text = "то есть гей"
-            },
-            Role = MessageRole.Own,
-            Sender = SelectedChat.Profile.Name,
-            SenderId = 0,
-
-            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            Status = MessageStatus.Read
-        });
-        MessageList.Add(new MessageModel()
-        {
-            Reply = new()
-            {
-                Name = ProfileState.Name,
-                Color = 3,
-                Text = "то есть гей",
-            },
-            Content = new TextContentModel()
-            {
-                Text = "чзх"
-            },
-            Role = MessageRole.GroupFirst,
-            Sender = SelectedChat.Profile.Name,
-            Color = 1,
-            SenderId = 0,
-            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
-        MessageList.Add(new MessageModel()
-        {
-            Reply = new()
-            {
-                Name = SelectedChat.Profile.Name,
-                Color = 1,
-                Text = "чекай",
-            },
-            Content = new FileContentModel()
-            {
-                Files = new()
-                {
-                    new FileModel()
-                    {
-                        Name = "file 500b.zip",
-                        Size = 500
-                    },
-                    new FileModel()
-                    {
-                        Name = "file 5mb.zip",
-                        Size = 5000000
-                    },
-                },
-                Text = "короче вот тебе файлики"
-            },
-            Role = MessageRole.GroupFirst,
-            Sender = SelectedChat.Profile.Name,
-            Color = 1,
-            SenderId = 0,
-            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
-        MessageList.Add(new MessageModel()
-        {
-            Content = new MediaContentModel()
-            {
-                MediaFiles = new()
-                {
-                    new MediaFileModel()
-                    {
-                        Preview = Base64ToBitmapConverter.ConvertBase64(null),
-                        Name = "Fileasdasdasd",
-                        Size = 500
-                    },
-                    new MediaFileModel()
-                    {
-                        Preview = Base64ToBitmapConverter.ConvertBase64(null),
-                        Name = "asdasdasd",
-                        Size = 5000
-                    },
-                },
-                Text = "вот тебе медиа"
-            },
-            Role = MessageRole.GroupLast,
-            Sender = SelectedChat.Profile.Name,
-            Color = 1,
-            SenderId = 0,
-            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-        });
+            MessageList = new(value.Messages);
+        }
     }
     partial void OnSearchInputChanged(string value)
     {
@@ -187,8 +89,13 @@ partial class ChatViewModel : ViewModelBase
         _timer.Stop();
         WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
     }
-    public void UpdateSearch(ObservableCollection<SearchEntryModel> resultlist) => SearchList = resultlist;
-    public void UpdateChats(ObservableCollection<ChatModel> chatlist) => ChatList = chatlist;
+    public void UpdateSearch(ObservableCollection<SearchEntryModel> resultList) => SearchList = resultList;
+    public void UpdateChats(ObservableCollection<ChatModel> chatList) => ChatList = chatList;
+    public void UpdateMessages(ObservableCollection<MessageModel> messageList)
+    {
+        SelectedChat.Messages = messageList;
+        MessageList = new(SelectedChat.Messages);
+    }
     [RelayCommand]
     private void SendMessage()
     {

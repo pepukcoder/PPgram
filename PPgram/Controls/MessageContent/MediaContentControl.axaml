@@ -13,6 +13,6 @@
 				</ItemsPanelTemplate>
 			</ListBox.ItemsPanel>
 		</ListBox>
-		<TextBlock Text="{Binding Text}"/>
+		<TextBlock Text="{Binding Text}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 	</StackPanel>
 </UserControl>

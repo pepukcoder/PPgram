@@ -10,6 +10,7 @@ using PPgram.Net.DTO;
 using PPgram.Shared;
 using System.Diagnostics;
 using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
 
 namespace PPgram.Net;
 
@@ -184,13 +185,24 @@ internal class Client
         };
         Send(data);
     }
-    public void SendMessage(MessageModel message, int to)
+    public void FetchMessages(int id, int[] fetchRange)
+    {
+        var data = new
+        {
+            method = "fetch",
+            what = "messages",
+            chat_id = id,
+            range = fetchRange
+        };
+        Send(data);
+    }
+    public void SendMessage(MessageModel message, int chatId)
     {
         var data = new
         {
             method = "send_message",
-            to = to,
-            
+            to = chatId,
+            has_reply = !String.IsNullOrEmpty(message.Reply.Text),
         };
         Send(data);
     }
@@ -239,16 +251,6 @@ internal class Client
                         userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
                     });
                 }
-                else if (ok == false && r_error != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                    {
-                        icon = DialogIcons.Error,
-                        header = "Auth error",
-                        text = "Wrong username or password",
-                        decline = ""
-                    });
-                }
                 break;
             case "register":
                 if (ok == true)
@@ -259,31 +261,11 @@ internal class Client
                         userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
                     });
                 }
-                else if (ok == false && r_error != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                    {
-                        icon = DialogIcons.Error,
-                        header = "Auth error",
-                        text = "Registration failed",
-                        decline = ""
-                    });
-                }
                 break;
             case "auth":
                 if (ok == true)
                 {
                     WeakReferenceMessenger.Default.Send(new Msg_AuthResult{ auto = true });
-                }
-                else if (ok == false && r_error != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                    {
-                        icon = DialogIcons.Error,
-                        header = "Auth error",
-                        text = "Auto authentification failed",
-                        decline = ""
-                    });
                 }
                 break;
             case "check_username":
@@ -296,16 +278,6 @@ internal class Client
                     WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
                     {  
                         profile = rootNode?.Deserialize<ProfileDTO>()
-                    });
-                }
-                else if (ok == false && r_error != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                    {
-                        icon = DialogIcons.Error,
-                        header = "Fetch error",
-                        text = "Fetch self failed",
-                        decline = ""
                     });
                 }
                 break;
@@ -322,71 +294,36 @@ internal class Client
                     }
                     WeakReferenceMessenger.Default.Send(new Msg_FetchChatsResult { chats = chatlist });
                 }
-                else if (ok == false && r_error != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                    {
-                        icon = DialogIcons.Error,
-                        header = "Fetch error",
-                        text = "Fetch chats failed",
-                        decline = ""
-                    });
-                }
                 break;
             case "fetch_users":
                 if (ok == true)
                 {
                     JsonArray? usersJson = rootNode?["users"]?.AsArray();
-                    List<ProfileDTO> userlist = [];
+                    List<ProfileDTO> userList = [];
                     if (usersJson == null) return;
                     foreach (JsonNode? userNode in usersJson)
                     {
                         ProfileDTO? user = userNode?.Deserialize<ProfileDTO>();
-                        if (user != null) userlist.Add(user);
+                        if (user != null) userList.Add(user);
                     }
-                    WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult{ users = userlist });
-                }
-                else if (ok == false && r_error != null)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                    {
-                        icon = DialogIcons.Error,
-                        header = "Fetch error",
-                        text = "Search failed",
-                        decline = ""
-                    });
+                    WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult { users = userList });
                 }
                 break;
-            /*case "fetch_messages":
+            case "fetch_messages":
                 if (ok == true)
                 {
-                    JsonArray? messagesJson = rootNode?["data"]?.AsArray();
-                    ObservableCollection<MessageDTO> messagelist = [];
-                    if (messagesJson != null)
+                    JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
+                    List<MessageDTO> messageList = [];
+                    if (messagesJson == null) return;
+                    foreach(JsonNode? messageNode in messagesJson)
                     {
-                        foreach (JsonNode? chatNode in messagesJson)
-                        {
-                            MessageDTO? message = chatNode?.Deserialize<MessageDTO>();
-                            if (message != null)
-                                messagelist.Add(message);
-                        }
+                        MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
+                        if (message != null) messageList.Add(message);
                     }
-                    MessagesFetched?.Invoke(this, new ResponseFetchMessagesEventArgs
-                    {
-                        ok = true,
-                        messages = messagelist
-                    });
-                }
-                else if (ok == false && r_error != null)
-                {
-                    MessagesFetched?.Invoke(this, new ResponseFetchMessagesEventArgs
-                    {
-                        ok = false,
-                        error = r_error
-                    });
+                    WeakReferenceMessenger.Default.Send(new Msg_FetchMessagesResult { messages = messageList });
                 }
                 break;
-            case "fetch_user":
+            /*case "fetch_user":
                 if (ok == true)
                 {
                     JsonNode? userNode = rootNode?["data"];
