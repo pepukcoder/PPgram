@@ -33,7 +33,7 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ChatModel? searchListSelected = new UserModel();
     [ObservableProperty]
-    private ProfileModel currentProfile = new(); 
+    private ProfileModel currentProfile = new();
 
     [ObservableProperty]
     private string _messageInput = string.Empty;
@@ -86,13 +86,13 @@ partial class ChatViewModel : ViewModelBase
         // restart delay if username is not null
         // clean searchlist if search closed
         if (!String.IsNullOrEmpty(value.Trim()))
-        { 
+        {
             _timer.Start();
             inSearch = true;
             MessageList = [];
         }
         else
-        { 
+        {
             MessageList = ChatListSelected?.Messages ?? [];
             inSearch = false;
         }
@@ -126,7 +126,7 @@ partial class ChatViewModel : ViewModelBase
     {
         // create message
         MessageModel message = new()
-        {   
+        {
             Content = new TextContentModel()
             {
                 Text = MessageInput.Trim(),

@@ -1,3 +1,5 @@
+namespace PPgram.MVVM.Models.User;
+
 /// <summary>
 /// Model for Authentication to store UserId and SessionId provided by the API in a json file
 /// </summary>

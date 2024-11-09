@@ -3,17 +3,13 @@ using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Message;
-using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
-using System.Reflection.Metadata;
 using System.Text.Json;
 
 namespace PPgram.MVVM.ViewModels;
@@ -39,18 +35,18 @@ partial class MainViewModel : ViewModelBase
     private static readonly string connectionFilePath = Path.Combine(settingsPath, "connection.setf");
     private static readonly string appSettingsFilePath = Path.Combine(settingsPath, "app.setf");
     #endregion
-    private readonly Client client = new();
-    private ProfileState profileState = ProfileState.Instance;
+    private readonly JsonClient jsonClient = new();
+    private readonly FilesClient filesClient = new();
+    private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel() 
     {
-        // events 
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { client.SearchChats(e.searchQuery); });
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) => { client.SendMessage(e.message, e.to); });
-        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => { client.FetchMessages(e.chatId, e.range); });
-        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => { client.AuthLogin(e.username, e.password); });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { jsonClient.SearchChats(e.searchQuery); });
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) => { jsonClient.SendMessage(e.message, e.to); });
+        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => { jsonClient.FetchMessages(e.chatId, e.range); });
+        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => { jsonClient.AuthLogin(e.username, e.password); });
         WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) =>
             reg_vm.ShowUsernameStatus(e.available 
             ? "Username is available"
@@ -59,9 +55,9 @@ partial class MainViewModel : ViewModelBase
         );
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
         {
-            if (e.check) client.ChekUsername(e.username);
-            else client.RegisterUser(e.username, e.name, e.password);
-        });      
+            if (e.check) jsonClient.ChekUsername(e.username);
+            else jsonClient.RegisterUser(e.username, e.name, e.password);
+        });
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
         {
             var data = new AuthCredentialsModel
@@ -72,7 +68,7 @@ partial class MainViewModel : ViewModelBase
             var options = new JsonSerializerOptions { WriteIndented = true }; // Pretty print the JSON
             if(!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
-            client.FetchSelf();
+            jsonClient.FetchSelf();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) => 
         {
@@ -80,7 +76,7 @@ partial class MainViewModel : ViewModelBase
             profileState.Name = e.profile?.Name ?? string.Empty;
             profileState.Username = e.profile?.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
-            client.FetchChats();
+            jsonClient.FetchChats();
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
         {
@@ -143,28 +139,31 @@ partial class MainViewModel : ViewModelBase
     }
     private void ConnectToServer()
     {
-        string host;
-        int port;
-        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, "127.0.0.1" + Environment.NewLine + "3000");
+        ConnectionOptions connectionOptions = new()
+        {
+            Host = "127.0.0.1",
+            JsonPort = 3000,
+            FilesPort = 8080
+        };
+        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
         try
         {
-            string[] lines = File.ReadAllLines(connectionFilePath);
-            host = lines[0];
-            port = int.Parse(lines[1]);
+            string data = File.ReadAllText(connectionFilePath);
+            connectionOptions = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new Exception();
         }
         catch
         {
             File.Delete(connectionFilePath);
-            host = "127.0.0.1";
-            port = 3000;
         }
-        client.Connect(host, port);
+        jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
+        filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
+
         if (!File.Exists(sessionFilePath)) return;
         try
         {
             string json = File.ReadAllText(sessionFilePath);
             AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json) ?? throw new Exception();
-            client.AuthSessionId(creds.SessionId, creds.UserId);
+            jsonClient.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch
         {
