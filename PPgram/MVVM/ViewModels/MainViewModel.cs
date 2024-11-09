@@ -11,7 +11,6 @@ using PPgram.Shared;
 using System.Diagnostics;
 using System.Text.Json;
 using PPgram.Net.DTO;
-using System.Net.Quic;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -41,7 +40,6 @@ partial class MainViewModel : ViewModelBase
     private ProfileState profileState = ProfileState.Instance;
     public MainViewModel() 
     {
-        // events 
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
@@ -108,8 +106,7 @@ partial class MainViewModel : ViewModelBase
             }
             chat_vm.UpdateSearch(resultList);
         });
-        // connection
-        CurrentPage = chat_vm;
+        CurrentPage = login_vm;
         ConnectToServer();   
     }
     private static void CreateFile(string path, string data)
@@ -120,31 +117,24 @@ partial class MainViewModel : ViewModelBase
     }
     private void ConnectToServer()
     {
-        ConnectionDataModel defaultConnection = new()
+        ConnectionOptions connectionOptions = new()
         {
             Host = "127.0.0.1",
             JsonPort = 3000,
             FilesPort = 8080
         };
-        var defaultConSerialized = JsonSerializer.Serialize(defaultConnection);
-
-        ConnectionDataModel connectionModel = defaultConnection;
-        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, defaultConSerialized);
+        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
         try
         {
             string data = File.ReadAllText(connectionFilePath);
-            var der = JsonSerializer.Deserialize<ConnectionDataModel>(data);
-            if (der != null) {
-                connectionModel = der;
-            }
+            connectionOptions = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new Exception();
         }
         catch
         {
             File.Delete(connectionFilePath);
         }
-        jsonClient.Connect(connectionModel.Host, connectionModel.JsonPort);
-        filesClient.Connect(connectionModel.Host, connectionModel.FilesPort);
-        //filesClient.UploadFile("C:\\Users\\askk\\Downloads\\nc64.exe");
+        jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
+        filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
 
         if (!File.Exists(sessionFilePath)) return;
         try
