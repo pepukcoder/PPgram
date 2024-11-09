@@ -308,7 +308,7 @@ internal class Client
                 if (ok != true) return;
                 JsonArray? usersJson = rootNode?["users"]?.AsArray();
                 List<ChatDTO> userList = [];
-                if (usersJson == null) return;
+                if (usersJson == null || usersJson.Count == 0) return;
                 foreach (JsonNode? userNode in usersJson)
                 {
                     ChatDTO? user = userNode?.Deserialize<ChatDTO>();  

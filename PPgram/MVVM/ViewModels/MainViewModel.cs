@@ -96,6 +96,7 @@ partial class MainViewModel : ViewModelBase
             ObservableCollection<ChatModel> resultList = [];
             foreach (ChatDTO chat in e.users)
             {
+                if (chat.Id == profileState.UserId) continue;
                 UserModel result = new()
                 {
                     Type = ChatType.Chat,

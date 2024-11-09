@@ -29,11 +29,11 @@ partial class ChatViewModel : ViewModelBase
     private ObservableCollection<ChatModel> searchList = [];
 
     [ObservableProperty]
-    private ChatModel chatListSelected = new UserModel();
+    private ChatModel? chatListSelected = new UserModel();
     [ObservableProperty]
-    private ChatModel searchListSelected = new UserModel();
+    private ChatModel? searchListSelected = new UserModel();
     [ObservableProperty]
-    private ChatModel selectedChat = new UserModel();
+    private ProfileModel currentProfile = new(); 
 
     [ObservableProperty]
     private string _messageInput = string.Empty;
@@ -44,7 +44,8 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
     private readonly DispatcherTimer _timer;
-    private MessageChainManager chainManager = new();
+    private readonly MessageChainManager chainManager = new();
+    private bool inSearch;
     public ChatViewModel()
     {
         RightGridVisible = false;
@@ -52,21 +53,31 @@ partial class ChatViewModel : ViewModelBase
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
     }
-    partial void OnSearchListSelectedChanged(ChatModel value) => SelectedChat = value;
-    partial void OnChatListSelectedChanged(ChatModel value) => SelectedChat = value;
-    partial void OnSelectedChatChanged(ChatModel value)
+    partial void OnSearchListSelectedChanged(ChatModel? value)
     {
-        if (value.Messages.Count == 0)
+        if (String.IsNullOrEmpty(SearchInput)) return;
+        if (ChatList.Any(c => c.Id == value?.Id))
+        {
+            ChatListSelected = ChatList.FirstOrDefault(c => c.Id == value?.Id) ?? ChatList[0];
+            ClearSearch();
+        }
+        else
+        {
+            CurrentProfile = value?.Profile ?? CurrentProfile;
+            MessageList = [];
+        }
+    }
+    partial void OnChatListSelectedChanged(ChatModel? value)
+    {
+        CurrentProfile = value?.Profile ?? CurrentProfile;
+        if (value?.Messages.Count == 0 && !inSearch)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages()
             {
                 chatId = value.Id,
             });
         }
-        else
-        {
-            MessageList = value.Messages;
-        }
+        MessageList = value?.Messages ?? [];
     }
     partial void OnSearchInputChanged(string value)
     {
@@ -74,8 +85,16 @@ partial class ChatViewModel : ViewModelBase
         _timer.Stop();
         // restart delay if username is not null
         // clean searchlist if search closed
-        if (!String.IsNullOrEmpty(value.Trim())) _timer.Start();
-        else SearchList = [];
+        if (!String.IsNullOrEmpty(value.Trim()))
+        { 
+            _timer.Start();
+            inSearch = true;
+        }
+        else
+        { 
+            MessageList = ChatListSelected?.Messages ?? [];
+            inSearch = false;
+        }
     }
     private void SearchChat(object? sender, EventArgs e)
     {
@@ -83,19 +102,27 @@ partial class ChatViewModel : ViewModelBase
         _timer.Stop();
         WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
     }
-    public void UpdateSearch(ObservableCollection<ChatModel> resultList) => SearchList = resultList;
+    public void UpdateSearch(ObservableCollection<ChatModel> resultList)
+    {
+        SearchList = resultList;
+        SearchListSelected = null;
+    }
     public void UpdateChats(ObservableCollection<ChatModel> chatList) => ChatList = chatList;
-    public void UpdateMessages(ObservableCollection<MessageModel> messageList) => MessageList = SelectedChat.Messages = chainManager.GenerateChain(messageList, SelectedChat);
+    public void UpdateMessages(ObservableCollection<MessageModel> messageList)
+    {
+        if (ChatListSelected == null) return;
+        MessageList = ChatListSelected.Messages = chainManager.GenerateChain(messageList, ChatListSelected);
+    }
     public void AddChat(ChatModel chat) => ChatList.Add(chat);
     public void AddMessage(MessageModel message)
     {
-        SelectedChat.Messages.Add(message);
+        ChatList.FirstOrDefault(c => c.Id == message.Id)?.Messages.Add(message);
         // call chainer to chain new message
     }
     [RelayCommand]
     private void SendMessage()
     {
-        if (SelectedChat.Id == 0 || SelectedChat == null) return;
+        // create message
         MessageModel message = new()
         {   
             Content = new TextContentModel()
@@ -107,12 +134,25 @@ partial class ChatViewModel : ViewModelBase
             Color = 3,
             SenderId = ProfileState.UserId,
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            Status = MessageStatus.Delivered
+            Status = MessageStatus.Sending
         };
+        // move chat from search to chats
+        if (inSearch && SearchListSelected != null)
+        {
+            ChatList.Add(SearchListSelected);
+            ChatListSelected = SearchListSelected;
+            ClearSearch();
+            inSearch = false;
+        }
+        // check if selected sender is valid
+        if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
+        ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages.Add(message);
+        // call chainer
+
         WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
         {
             message = message,
-            to = SelectedChat.Id
+            to = ChatListSelected.Id
         });
         MessageInput = "";
     }
@@ -120,6 +160,6 @@ partial class ChatViewModel : ViewModelBase
     private void ClearSearch()
     {
         SearchInput = string.Empty;
-        SearchList = [];
+        inSearch = false;
     }
 }

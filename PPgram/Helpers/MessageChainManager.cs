@@ -15,8 +15,9 @@ namespace PPgram.Helpers;
 internal class MessageChainManager
 {
     private readonly ProfileState profileState = ProfileState.Instance;
-    public ObservableCollection<ChatItem> GenerateChain(ObservableCollection<MessageModel> messages, ChatModel chat)
+    public ObservableCollection<ChatItem> GenerateChain(ObservableCollection<MessageModel> messages, ChatModel? chat)
     {
+        if (chat == null) return [];
         ObservableCollection<ChatItem> chain = [];
         foreach (MessageModel message in messages)
         {
