@@ -26,6 +26,7 @@ internal class FilesClient : BaseClient
         uint fileBytesSent = 0;
 
         var data = new {
+            method = "upload_file",
             name = Path.GetFileName(filePath),
             is_media = false,
             compress = false
