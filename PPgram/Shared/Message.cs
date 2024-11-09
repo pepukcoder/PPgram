@@ -1,4 +1,5 @@
 using PPgram.MVVM.Models.Message;
+using PPgram.Net.DTO;
 
 namespace PPgram.Shared;
 public enum MessageRole
@@ -30,4 +31,8 @@ class Msg_SendMessage
 {
     public MessageModel message = new();
     public int to;
+}
+class Msg_NewMessage
+{
+    public MessageDTO? message = new();
 }

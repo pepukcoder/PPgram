@@ -11,7 +11,9 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Text.Json;
 
 namespace PPgram.MVVM.ViewModels;
@@ -85,41 +87,16 @@ partial class MainViewModel : ViewModelBase
             ObservableCollection<ChatModel> chats = [];
             foreach (ChatDTO chat in e.chats)
             {
-                ProfileModel profile = new()
-                {
-                    Name = chat.Name ?? string.Empty,
-                    Username = chat.Username ?? string.Empty,
-                    Avatar = Base64ToBitmapConverter.ConvertBase64(chat.Photo)
-                };
-                if (chat.IsGroup == true)
-                {
-                    GroupModel group = new()
-                    {
-                        Id = chat.Id ?? 0,
-                        Type = ChatType.Group,
-                        Profile = profile,
-                    };
-                    chats.Add(group);
-                }
-                else
-                {
-                    UserModel user = new()
-                    {
-                        Id = chat.Id ?? 0,
-                        Type = ChatType.Chat,
-                        Profile = profile,
-                    };
-                    chats.Add(user);
-                }
+                chats.Add(DTOToModelConverter.ConvertChat(chat));
             }
             chat_vm.UpdateChats(chats);
         });
         WeakReferenceMessenger.Default.Register<Msg_SearchChatsResult>(this, (r, e) =>
         {
-            ObservableCollection<SearchEntryModel> resultList = [];
-            foreach (ProfileDTO chat in e.users)
+            ObservableCollection<ChatModel> resultList = [];
+            foreach (ChatDTO chat in e.users)
             {
-                SearchEntryModel result = new()
+                UserModel result = new()
                 {
                     Type = ChatType.Chat,
                     Id = chat.Id ?? 0,
@@ -139,40 +116,19 @@ partial class MainViewModel : ViewModelBase
             ObservableCollection<MessageModel> messages = [];
             foreach (MessageDTO messageDTO in e.messages)
             {
-                MessageContentModel content;
-                if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
-                {
-                    List<FileModel> files = [];
-                    foreach (string hash in messageDTO.MediaHashes)
-                    {
-                        files.Add(new() { Hash = hash });
-                    }
-                    content = new FileContentModel()
-                    {
-                        Files = new(files),
-                        Text = messageDTO.Text ?? string.Empty
-                    };
-                }
-                else
-                {
-                    content = new TextContentModel()
-                    {
-                        Text = messageDTO.Text ?? string.Empty
-                    };
-                }
-                MessageModel messageModel = new()
-                {
-                    Id = messageDTO.Id ?? 0,
-                    Chat = messageDTO.ChatId ?? 0,
-                    SenderId = messageDTO.From ?? 0,
-                    Time = messageDTO.Date ?? 0,
-                    ReplyTo = messageDTO.ReplyTo ?? 0,
-                    Content = content,
-                    Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
-                };
-                messages.Add(messageModel);
+                messages.Add(DTOToModelConverter.ConvertMessage(messageDTO));
             }
             chat_vm.UpdateMessages(messages);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_NewChat>(this, (r, e) =>
+        {
+            if (e.chat == null) return;
+            chat_vm.AddChat(DTOToModelConverter.ConvertChat(e.chat));
+        });
+        WeakReferenceMessenger.Default.Register<Msg_NewMessage>(this, (r, e) =>
+        {
+            if (e.message == null) return;
+            chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
         // connection
         CurrentPage = login_vm;

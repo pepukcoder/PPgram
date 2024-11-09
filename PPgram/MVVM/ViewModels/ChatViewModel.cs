@@ -12,6 +12,7 @@ using PPgram.Shared;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -25,7 +26,7 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<ChatModel> chatList = [];
     [ObservableProperty]
-    private ObservableCollection<SearchEntryModel> searchList = [];
+    private ObservableCollection<ChatModel> searchList = [];
 
     [ObservableProperty]
     private ChatModel chatListSelected = new UserModel();
@@ -82,24 +83,21 @@ partial class ChatViewModel : ViewModelBase
         _timer.Stop();
         WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
     }
-    public void UpdateSearch(ObservableCollection<SearchEntryModel> resultList) => SearchList = resultList;
+    public void UpdateSearch(ObservableCollection<ChatModel> resultList) => SearchList = resultList;
     public void UpdateChats(ObservableCollection<ChatModel> chatList) => ChatList = chatList;
-    public void UpdateMessages(ObservableCollection<MessageModel> messageList)
+    public void UpdateMessages(ObservableCollection<MessageModel> messageList) => MessageList = SelectedChat.Messages = chainManager.GenerateChain(messageList, SelectedChat);
+    public void AddChat(ChatModel chat) => ChatList.Add(chat);
+    public void AddMessage(MessageModel message)
     {
-       MessageList = SelectedChat.Messages = chainManager.GenerateChain(messageList, SelectedChat);
+        SelectedChat.Messages.Add(message);
+        // call chainer to chain new message
     }
     [RelayCommand]
     private void SendMessage()
     {
-        // mockup for testing
+        if (SelectedChat.Id == 0 || SelectedChat == null) return;
         MessageModel message = new()
-        {
-            Reply = new()
-            {
-                Name = "Павло Потужний",
-                Color = 0,
-                Text = "asdasdasdasd",
-            },
+        {   
             Content = new TextContentModel()
             {
                 Text = MessageInput.Trim(),
@@ -111,14 +109,11 @@ partial class ChatViewModel : ViewModelBase
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
             Status = MessageStatus.Delivered
         };
-        MessageList.Add(message);
-        /*
         WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
         {
             message = message,
             to = SelectedChat.Id
         });
-        */
         MessageInput = "";
     }
     [RelayCommand]

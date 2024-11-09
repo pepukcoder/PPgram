@@ -11,6 +11,7 @@ using PPgram.Shared;
 using System.Diagnostics;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
+using System.Net.Http.Headers;
 
 namespace PPgram.Net;
 
@@ -198,11 +199,29 @@ internal class Client
     }
     public void SendMessage(MessageModel message, int chatId)
     {
+        string text;
+        if (message.Content is TextContentModel textContent)
+        {
+            text = textContent.Text;
+        }
+        else if (message.Content is FileContentModel fileContent)
+        {
+            text = fileContent.Text;
+        }
+        else
+        {
+            text = "";
+        }
         var data = new
         {
             method = "send_message",
             to = chatId,
             has_reply = !String.IsNullOrEmpty(message.Reply.Text),
+            reply_to = 0,
+            content = new
+            {
+                text = text
+            }
         };
         Send(data);
     }
@@ -243,157 +262,92 @@ internal class Client
         switch (r_method)
         {
             case "login":
-                if (ok == true)
+                if (ok != true) return;
+                WeakReferenceMessenger.Default.Send(new Msg_AuthResult
                 {
-                    WeakReferenceMessenger.Default.Send(new Msg_AuthResult
-                    {
-                        sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
-                        userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
-                    });
-                }
+                    sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
+                    userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
+                });
                 break;
             case "register":
-                if (ok == true)
+                if (ok != true) return;
+                WeakReferenceMessenger.Default.Send(new Msg_AuthResult
                 {
-                    WeakReferenceMessenger.Default.Send(new Msg_AuthResult
-                    {
-                        sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
-                        userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
-                    });
-                }
+                    sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
+                    userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
+                });
                 break;
             case "auth":
-                if (ok == true)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_AuthResult{ auto = true });
-                }
+                if (ok != true) return;
+                WeakReferenceMessenger.Default.Send(new Msg_AuthResult { auto = true });
                 break;
             case "check_username":
                 if (ok == true) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = false });
                 else if (ok == false) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = true });   
                 break;
             case "fetch_self":
-                if (ok == true)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
-                    {  
-                        profile = rootNode?.Deserialize<ProfileDTO>()
-                    });
-                }
+                if (ok != true) return;
+                WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
+                {  
+                    profile = rootNode?.Deserialize<ProfileDTO>()
+                });
                 break;
             case "fetch_chats":
-                if (ok == true)
+                if (ok != true) return;
+                JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
+                List<ChatDTO> chatlist = [];
+                if (chatsJson == null) return;
+                foreach (JsonNode? chatNode in chatsJson)
                 {
-                    JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
-                    List<ChatDTO> chatlist = [];
-                    if (chatsJson == null) return;
-                    foreach (JsonNode? chatNode in chatsJson)
-                    {
-                        ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
-                        if (chat != null) chatlist.Add(chat);
-                    }
-                    WeakReferenceMessenger.Default.Send(new Msg_FetchChatsResult { chats = chatlist });
+                    ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
+                    if (chat != null) chatlist.Add(chat);
                 }
+                WeakReferenceMessenger.Default.Send(new Msg_FetchChatsResult { chats = chatlist });
                 break;
             case "fetch_users":
-                if (ok == true)
+                if (ok != true) return;
+                JsonArray? usersJson = rootNode?["users"]?.AsArray();
+                List<ChatDTO> userList = [];
+                if (usersJson == null) return;
+                foreach (JsonNode? userNode in usersJson)
                 {
-                    JsonArray? usersJson = rootNode?["users"]?.AsArray();
-                    List<ProfileDTO> userList = [];
-                    if (usersJson == null) return;
-                    foreach (JsonNode? userNode in usersJson)
+                    ChatDTO? user = userNode?.Deserialize<ChatDTO>();  
+                    if (user != null)
                     {
-                        ProfileDTO? user = userNode?.Deserialize<ProfileDTO>();
-                        if (user != null) userList.Add(user);
-                    }
-                    WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult { users = userList });
+                        user.Id = userNode?["user_id"]?.GetValue<int>() ?? 0;
+                        userList.Add(user);
+                    } 
                 }
+                WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult { users = userList });
                 break;
             case "fetch_messages":
-                if (ok == true)
+                if (ok != true) return;
+                JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
+                List<MessageDTO> messageList = [];
+                if (messagesJson == null) return;
+                foreach(JsonNode? messageNode in messagesJson)
                 {
-                    JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
-                    List<MessageDTO> messageList = [];
-                    if (messagesJson == null) return;
-                    foreach(JsonNode? messageNode in messagesJson)
-                    {
-                        MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
-                        if (message != null) messageList.Add(message);
-                    }
-                    messageList.Reverse();
-                    WeakReferenceMessenger.Default.Send(new Msg_FetchMessagesResult { messages = messageList });
+                    MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
+                    if (message != null) messageList.Add(message);
                 }
-                break;
-            /*case "fetch_user":
-                if (ok == true)
-                {
-                    JsonNode? userNode = rootNode?["data"];
-                    GotNewChat?.Invoke(this, new GotChatEventArgs
-                    {
-                        ok = true,
-                        chat = new ChatDTO
-                        {
-                            Name = userNode?["name"]?.GetValue<string>(),
-                            Username = userNode?["username"]?.GetValue<string>(),
-                            Id = userNode?["user_id"]?.GetValue<int>(),
-                            Photo = userNode?["photo"]?.GetValue<string>()
-                        }
-                    });
-                }
-                else if (ok == false && r_error != null)
-                {
-                    GotNewChat?.Invoke(this, new GotChatEventArgs
-                    {
-                        ok = false,
-                        error = r_error
-                    });
-                }
+                messageList.Reverse();
+                WeakReferenceMessenger.Default.Send(new Msg_FetchMessagesResult { messages = messageList });
                 break;
         }
         switch (r_event)
         {
             case "new_message":
-                if (ok == true)
-                {
-                    JsonNode? messageJson = rootNode?["data"];
-                    if (messageJson != null)
-                    {
-                        MessageDTO? message_dto = messageJson.Deserialize<MessageDTO>();
-                        NewMessage?.Invoke(this, new NewMessageEventArgs
-                        {
-                            ok = true,
-                            message = message_dto
-                        });
-                    }
-                }
-                else if (ok == false && r_error != null)
-                {
-                    NewMessage?.Invoke(this, new NewMessageEventArgs
-                    {
-                        ok = false,
-                        error = r_error
-                    });
-                }
+                JsonNode? messageNode = rootNode?["new_message"];
+                if (messageNode == null) return;
+                MessageDTO? messageDTO = messageNode.Deserialize<MessageDTO>();
+                WeakReferenceMessenger.Default.Send(new Msg_NewMessage { message = messageDTO });
                 break;
             case "new_chat":
-                if (ok == true)
-                {
-                    JsonNode? chatNode = rootNode?["data"];
-                    GotNewChat?.Invoke(this, new GotChatEventArgs
-                    {
-                        ok = true,
-                        chat = chatNode?.Deserialize<ChatDTO>()
-                    });
-                }
-                else if (ok == false && r_error != null)
-                {
-                    GotNewChat?.Invoke(this, new GotChatEventArgs
-                    {
-                        ok = false,
-                        error = r_error
-                    });
-                }
-                break; */
+                JsonNode? chatNode = rootNode?["new_chat"];
+                if (chatNode == null) return;
+                ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
+                WeakReferenceMessenger.Default.Send(new Msg_NewChat { chat = chatDTO });
+                break;
         }
     }
 }
