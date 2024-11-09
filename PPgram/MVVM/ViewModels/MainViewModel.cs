@@ -157,6 +157,13 @@ partial class MainViewModel : ViewModelBase
         }
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
+        string? sha256_hash = filesClient.UploadFile("C:\\Users\\pepuk\\Downloads\\pavlo.jpg");
+        // 3e59379f585ebf0becb6b4e06d0fbbf806de28a4bb256e837b4555f1b4245571
+        // Thread.Sleep(5000);
+        
+        if (sha256_hash != null) {
+            filesClient.DownloadFiles(sha256_hash);
+        }
 
         if (!File.Exists(sessionFilePath)) return;
         try
