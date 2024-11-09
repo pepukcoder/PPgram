@@ -144,7 +144,7 @@ partial class MainViewModel : ViewModelBase
         }
         jsonClient.Connect(connectionModel.Host, connectionModel.JsonPort);
         filesClient.Connect(connectionModel.Host, connectionModel.FilesPort);
-        filesClient.UploadFile("C:\\Users\\askk\\Downloads\\nc64.exe");
+        //filesClient.UploadFile("C:\\Users\\askk\\Downloads\\nc64.exe");
 
         if (!File.Exists(sessionFilePath)) return;
         try
