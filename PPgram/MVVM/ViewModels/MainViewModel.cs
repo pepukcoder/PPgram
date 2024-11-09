@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using PPgram.Net.DTO;
 using System.Net.Quic;
+using System.Threading;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -144,7 +145,13 @@ partial class MainViewModel : ViewModelBase
         }
         jsonClient.Connect(connectionModel.Host, connectionModel.JsonPort);
         filesClient.Connect(connectionModel.Host, connectionModel.FilesPort);
-        filesClient.UploadFile("C:\\Users\\askk\\Downloads\\nc64.exe");
+        string? sha256_hash = filesClient.UploadFile("C:\\Users\\askk\\Downloads\\nc64.exe");
+        // 3e59379f585ebf0becb6b4e06d0fbbf806de28a4bb256e837b4555f1b4245571
+        // Thread.Sleep(5000);
+        
+        if (sha256_hash != null) {
+            filesClient.DownloadFiles(sha256_hash);
+        }
 
         if (!File.Exists(sessionFilePath)) return;
         try
