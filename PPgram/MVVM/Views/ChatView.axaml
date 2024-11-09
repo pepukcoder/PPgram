@@ -107,7 +107,7 @@
 						</Ellipse>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 							<TextBlock Text="{Binding CurrentProfile.Name}" FontWeight="Medium" FontSize="16"/>
-							<TextBlock Text="{Binding ChatStatus}" Foreground="{StaticResource SecondaryText}"/>
+							<TextBlock Text="{Binding ChatListSelected.Id}" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
 					</StackPanel>
 					<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">

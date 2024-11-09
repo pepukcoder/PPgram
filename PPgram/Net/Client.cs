@@ -308,16 +308,18 @@ internal class Client
                 if (ok != true) return;
                 JsonArray? usersJson = rootNode?["users"]?.AsArray();
                 List<ChatDTO> userList = [];
-                if (usersJson == null || usersJson.Count == 0) return;
-                foreach (JsonNode? userNode in usersJson)
+                if (usersJson != null && usersJson.Count != 0)
                 {
-                    ChatDTO? user = userNode?.Deserialize<ChatDTO>();  
-                    if (user != null)
+                    foreach (JsonNode? userNode in usersJson)
                     {
-                        user.Id = userNode?["user_id"]?.GetValue<int>() ?? 0;
-                        userList.Add(user);
-                    } 
-                }
+                        ChatDTO? user = userNode?.Deserialize<ChatDTO>();  
+                        if (user != null)
+                        {
+                            user.Id = userNode?["user_id"]?.GetValue<int>() ?? 0;
+                            userList.Add(user);
+                        } 
+                    }
+                };
                 WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult { users = userList });
                 break;
             case "fetch_messages":

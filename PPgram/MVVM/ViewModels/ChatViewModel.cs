@@ -89,6 +89,7 @@ partial class ChatViewModel : ViewModelBase
         { 
             _timer.Start();
             inSearch = true;
+            MessageList = [];
         }
         else
         { 
@@ -116,7 +117,8 @@ partial class ChatViewModel : ViewModelBase
     public void AddChat(ChatModel chat) => ChatList.Add(chat);
     public void AddMessage(MessageModel message)
     {
-        ChatList.FirstOrDefault(c => c.Id == message.Id)?.Messages.Add(message);
+        Debug.WriteLine(message.Chat);
+        ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages.Add(message);
         // call chainer to chain new message
     }
     [RelayCommand]
