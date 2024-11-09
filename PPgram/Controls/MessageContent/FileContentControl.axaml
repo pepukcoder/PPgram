@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:m="clr-namespace:PPgram.MVVM.Models.MessageContent;assembly=PPgram"
+             xmlns:mf="clr-namespace:PPgram.MVVM.Models.File;assembly=PPgram"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+			 x:Class="PPgram.Controls.MessageContent.FileContentControl"
+			 x:DataType="m:FileContentModel">
+	<StackPanel Orientation="Vertical" Margin="0,0,10,0">
+		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" 
+				 BorderThickness="0" ItemContainerTheme="{StaticResource Media}" IsVisible="{Binding Media}">
+			<ListBox.ItemsPanel>
+				<ItemsPanelTemplate>
+					<WrapPanel/>
+				</ItemsPanelTemplate>
+			</ListBox.ItemsPanel>
+		</ListBox>
+		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}"
+				 BorderThickness="0" ItemContainerTheme="{StaticResource File}" IsVisible="{Binding !Media}"/>
+		<TextBlock Text="{Binding Text}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+	</StackPanel>
+</UserControl>

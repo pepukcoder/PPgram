@@ -77,7 +77,6 @@ internal abstract class BaseClient
             catch { Disconnected(); }
         }
     }
-
     protected void Disconnected()
     {
         // show disconnected dialog

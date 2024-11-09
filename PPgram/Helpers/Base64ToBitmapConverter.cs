@@ -5,6 +5,9 @@ using Avalonia.Media.Imaging;
 
 namespace PPgram.Helpers;
 
+/// <summary>
+/// Converts base64 string into bitmap
+/// </summary>
 public class Base64ToBitmapConverter
 {
     public static Bitmap ConvertBase64(string? base64String)

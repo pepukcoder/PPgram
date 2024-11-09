@@ -9,6 +9,9 @@ using Avalonia.Xaml.Interactivity;
 
 namespace PPgram.Behaviors;
 
+/// <summary>
+/// This behaviour is used to make message history listbox align and stick to bottom when scrolling and resizing
+/// </summary>
 public class ScrollToEndBehavior : Behavior<ListBox>
 {
     private bool _shouldScrollToEnd = true;

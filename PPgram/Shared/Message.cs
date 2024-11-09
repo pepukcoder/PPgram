@@ -1,6 +1,8 @@
-namespace PPgram.Shared;
+using PPgram.MVVM.Models.Message;
+using PPgram.Net.DTO;
 
-public enum MessageType
+namespace PPgram.Shared;
+public enum MessageRole
 {
     User,
     UserFirst,
@@ -10,7 +12,6 @@ public enum MessageType
     GroupSingle,
     GroupFirst,
     GroupLast,
-    Date
 }
 public enum MessageStatus
 {
@@ -20,9 +21,18 @@ public enum MessageStatus
     Read,
     Error
 }
-public enum MediaType
+public enum ContentType
 {
-    None,
+    Text,
     Images,
     Files,
+}
+class Msg_SendMessage
+{
+    public MessageModel message = new();
+    public int to;
+}
+class Msg_NewMessage
+{
+    public MessageDTO? message = new();
 }

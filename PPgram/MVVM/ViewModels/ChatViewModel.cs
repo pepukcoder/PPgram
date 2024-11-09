@@ -1,163 +1,101 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using PPgram.Shared;
-using PPgram.MVVM.Models.Chat;
-using PPgram.MVVM.Models.Message;
-using Avalonia.Media.Imaging;
-using System;
-using Avalonia.Platform;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
+using PPgram.Helpers;
+using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Item;
+using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
+using PPgram.Shared;
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 
 namespace PPgram.MVVM.ViewModels;
 
 partial class ChatViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private Bitmap profileAvatar = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
-    [ObservableProperty]
-    private string profileName = string.Empty;
-    [ObservableProperty]
-    private string profileUsername = string.Empty;
-    [ObservableProperty]
-    private Bitmap chatAvatar = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
-    [ObservableProperty]
-    private string chatName = string.Empty;
-    [ObservableProperty]
     private string chatStatus = "last seen 12:34";
+
     [ObservableProperty]
-    private ObservableCollection<MessageModel> messageList = [];
+    private ObservableCollection<ChatItem> messageList = [];
     [ObservableProperty]
     private ObservableCollection<ChatModel> chatList = [];
     [ObservableProperty]
-    private ObservableCollection<SearchEntryModel> searchList = [];
+    private ObservableCollection<ChatModel> searchList = [];
+
+    [ObservableProperty]
+    private ChatModel? chatListSelected = new UserModel();
+    [ObservableProperty]
+    private ChatModel? searchListSelected = new UserModel();
+    [ObservableProperty]
+    private ProfileModel currentProfile = new();
+
     [ObservableProperty]
     private string _messageInput = string.Empty;
     [ObservableProperty]
     private string _searchInput = string.Empty;
     [ObservableProperty]
     private bool _rightGridVisible;
-    private readonly ProfileState profileState = ProfileState.Instance;
+    [ObservableProperty]
+    private ProfileState profileState = ProfileState.Instance;
     private readonly DispatcherTimer _timer;
+    private readonly MessageChainManager chainManager = new();
+    private bool inSearch;
     public ChatViewModel()
     {
         RightGridVisible = false;
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
-
-        // mockups
-        SearchList.Add(new SearchEntryModel
+    }
+    partial void OnSearchListSelectedChanged(ChatModel? value)
+    {
+        if (String.IsNullOrEmpty(SearchInput)) return;
+        if (ChatList.Any(c => c.Id == value?.Id))
         {
-            Name = "Papuga",
-            Username = "@papuga",
-            Type = ChatType.Chat
-        });
-        SearchList.Add(new SearchEntryModel
+            ChatListSelected = ChatList.FirstOrDefault(c => c.Id == value?.Id) ?? ChatList[0];
+            ClearSearch();
+        }
+        else
         {
-            Name = "GayFront",
-            Username = "@ppfront",
-            Type = ChatType.Group
-        });
-        SearchList.Add(new SearchEntryModel
+            CurrentProfile = value?.Profile ?? CurrentProfile;
+            MessageList = [];
+        }
+    }
+    partial void OnChatListSelectedChanged(ChatModel? value)
+    {
+        CurrentProfile = value?.Profile ?? CurrentProfile;
+        if (value?.Messages.Count == 0 && !inSearch)
         {
-            Name = "PPgram Official",
-            Username = "@ppgram",
-            Type = ChatType.Channel
-        });
-
-        ChatList.Add(new UserModel
-        {
-            Profile = new() { Name = "Pepuk" },
-            LastMessage = "hehehe",
-            UnreadCount = 12,
-            Online = true
-        });
-        ChatList.Add(new UserModel
-        {
-            Profile = new() { Name = "Pavlo" },
-            LastMessage = "nice",
-            MessageStatus = MessageStatus.Delivered,
-            Date = "12:11",
-            Online = false
-        });
-        ChatList.Add(new GroupModel
-        {
-            Profile = new() { Name = "TestingGroup" },
-            LastSender = "Pepuk",
-            LastMessage = "hi",
-            MessageStatus = MessageStatus.Read,
-            Date = "15:00"
-        });
-
-        MessageList.Add(new MessageModel
-        {
-            Text = "hello",
-            Type = MessageType.GroupFirst,
-            ReplyText = "hello",
-            ReplyName = "pavlo"
-        });
-        MessageList.Add(new MessageModel
-        {
-            Text = "who is pavlo?",
-            Type = MessageType.GroupLast
-        });
-        MessageList.Add(new MessageModel
-        {
-            Text = "single group message",
-            Type = MessageType.GroupSingle
-        });
-        MessageList.Add(new MessageModel
-        {
-            Text = "gay",
-            ReplyName = "Pavlo",
-            ReplyText = "who is pavlo?",
-            Type = MessageType.OwnFirst,
-            Status = MessageStatus.Read
-        });
-        // use this piece for performance checks
-        for (int i = 0; i < 1; i++)
-        {
-            MessageList.Add(new MessageModel
+            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages()
             {
-                Text = "here is some files",
-                Media = [
-                    new() {
-                        Name = "asd",
-                        Size = 5000000
-                    },
-                    new() {
-                        Name = "asd",
-                        Size = 5000000
-                    },
-                ],
-                MediaType = MediaType.Files,
-                Type = MessageType.Own,
-                Status = MessageStatus.Delivered,
-                Edited = true
+                chatId = value.Id,
             });
         }
-        MessageList.Add(new MessageModel
-        {
-            Text = "okay that was personal",
-            Type = MessageType.Own,
-            Status = MessageStatus.Sending,
-        });
-        MessageList.Add(new MessageModel
-        {
-            Text = "my network is so slow why :(",
-            Type = MessageType.Own,
-            Status = MessageStatus.Error,
-        });
+        MessageList = value?.Messages ?? [];
     }
     partial void OnSearchInputChanged(string value)
     {
         // stop timer when editing search query
         _timer.Stop();
         // restart delay if username is not null
-        if (!String.IsNullOrEmpty(value.Trim())) _timer.Start();
+        // clean searchlist if search closed
+        if (!String.IsNullOrEmpty(value.Trim()))
+        {
+            _timer.Start();
+            inSearch = true;
+            MessageList = [];
+        }
+        else
+        {
+            MessageList = ChatListSelected?.Messages ?? [];
+            inSearch = false;
+        }
     }
     private void SearchChat(object? sender, EventArgs e)
     {
@@ -165,25 +103,65 @@ partial class ChatViewModel : ViewModelBase
         _timer.Stop();
         WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
     }
-    public void UpdateProfile()
+    public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
-        ProfileAvatar = profileState.Avatar;
-        ProfileName = profileState.Name;
-        ProfileUsername = profileState.Username;
+        SearchList = resultList;
+        SearchListSelected = null;
     }
-    public void UpdateSearch(ObservableCollection<SearchEntryModel> resultlist) => SearchList = resultlist;
+    public void UpdateChats(ObservableCollection<ChatModel> chatList) => ChatList = chatList;
+    public void UpdateMessages(ObservableCollection<MessageModel> messageList)
+    {
+        if (ChatListSelected == null) return;
+        MessageList = ChatListSelected.Messages = chainManager.GenerateChain(messageList, ChatListSelected);
+    }
+    public void AddChat(ChatModel chat) => ChatList.Add(chat);
+    public void AddMessage(MessageModel message)
+    {
+        Debug.WriteLine(message.Chat);
+        ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages.Add(message);
+        // call chainer to chain new message
+    }
     [RelayCommand]
     private void SendMessage()
     {
-        MessageModel message = new MessageModel
+        // create message
+        MessageModel message = new()
         {
-            Text = MessageInput,
-            Type = MessageType.Own,
-            Status = MessageStatus.Sending,
+            Content = new TextContentModel()
+            {
+                Text = MessageInput.Trim(),
+            },
+            Role = MessageRole.OwnFirst,
+            Sender = ProfileState.Name,
+            Color = 3,
+            SenderId = ProfileState.UserId,
+            Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            Status = MessageStatus.Sending
         };
-        MessageList.Add(message);
+        // move chat from search to chats
+        if (inSearch && SearchListSelected != null)
+        {
+            ChatList.Add(SearchListSelected);
+            ChatListSelected = SearchListSelected;
+            ClearSearch();
+            inSearch = false;
+        }
+        // check if selected sender is valid
+        if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
+        ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages.Add(message);
+        // call chainer
+
+        WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
+        {
+            message = message,
+            to = ChatListSelected.Id
+        });
         MessageInput = "";
     }
     [RelayCommand]
-    private void ClearSearch() => SearchInput = string.Empty;
+    private void ClearSearch()
+    {
+        SearchInput = string.Empty;
+        inSearch = false;
+    }
 }

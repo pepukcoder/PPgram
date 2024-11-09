@@ -5,5 +5,5 @@ namespace PPgram.MVVM.Models.User;
 internal class GroupMemberModel
 {
     public ProfileModel Profile { get; set; } = new();
-    public ChatRole Role { get; set; }
+    public GroupRole Role { get; set; }
 }

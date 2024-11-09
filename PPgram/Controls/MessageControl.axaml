@@ -1,0 +1,129 @@
+<ContentControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
+			 xmlns:cc="clr-namespace:PPgram.Controls.MessageContent;assembly=PPgram"
+			 xmlns:m="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
+			 xmlns:mmc="clr-namespace:PPgram.MVVM.Models.MessageContent;assembly=PPgram"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="PPgram.Controls.MessageControl"
+			 x:DataType="m:MessageModel"
+			 FontFamily="{StaticResource Roboto}"
+			 FontSize="13"
+			 FontWeight="Light"
+			 Margin="0,0,0,2">
+	<ContentControl.Resources>
+		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
+		<helpers:DateTimeConverter x:Key="DTConvert"/>
+		<helpers:UserColorConverter x:Key="UCConvert"/>
+	</ContentControl.Resources>
+	<ContentControl.Styles>
+		<Style Selector="c|MessageControl">
+			<Setter Property="Tag" Value="{Binding Role}"/>
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Grid ColumnDefinitions="Auto,Auto">
+						<Ellipse x:Name="PART_Avatar" Grid.Column="0" IsVisible="False" VerticalAlignment="Bottom" Width="35" Height="35" Margin="0,0,10,0">
+							<Ellipse.Fill>
+								<ImageBrush Source="{Binding Avatar}"/>
+							</Ellipse.Fill>
+						</Ellipse>
+						<Border x:Name="PART_Back" Grid.Column="1" CornerRadius="5 15 15 5" Background="{StaticResource Surface}" Padding="10,10,0,0" >
+							<StackPanel Orientation="Vertical">
+								<Button x:Name="PART_Sender" Theme="{StaticResource ButtonText}" IsVisible="False" Foreground="{Binding Color, Converter={StaticResource UCConvert}}" Margin="0,0,10,3">
+									<TextBlock Text="{Binding Sender}" FontWeight="Medium"/>
+								</Button>
+								<c:ReplyControl DataContext="{Binding Reply}" Margin="0,0,10,3" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+								<ContentControl x:Name="PART_ContentControl" Content="{Binding Content}">
+									<ContentControl.DataTemplates>
+										<DataTemplate DataType="mmc:TextContentModel">
+											<cc:TextContentControl/>
+										</DataTemplate>
+										<DataTemplate DataType="mmc:FileContentModel">
+											<cc:FileContentControl/>
+										</DataTemplate>
+									</ContentControl.DataTemplates>
+								</ContentControl>
+								<StackPanel x:Name="PART_StatusBar" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,3">
+									<TextBlock Text="edited" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" IsVisible="{Binding Edited}" VerticalAlignment="Bottom"/>
+									<TextBlock Text="{Binding Time,Converter={StaticResource DTConvert}}" Foreground="{StaticResource SecondaryText}" Margin="0,0,5,0" VerticalAlignment="Bottom"/>
+									<Panel x:Name="PART_StatusIcons" VerticalAlignment="Bottom">
+										<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
+															Kind="ClockOutline" Height="16" Width="18" Foreground="{StaticResource SecondaryText}"/>
+										<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
+															Kind="Check" Height="18" Width="18"/>
+										<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
+															Kind="CheckMultiple" Height="18" Width="18"/>
+										<icons:MaterialIcon IsVisible="{Binding Status, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
+															Kind="AlertCircleOutline" Height="16" Width="18" Foreground="PaleVioletRed"/>
+									</Panel>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+					</Grid>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=UserFirst]">
+			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="CornerRadius" Value="15 15 15 5"/>
+			</Style>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=Own]">
+			<Setter Property="HorizontalAlignment" Value="Right"/>
+			<Style Selector="^ /template/ StackPanel#PART_StatusIcons">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="CornerRadius" Value="15 5 5 15"/>
+				<Setter Property="Background" Value="{StaticResource Panel}"/>
+			</Style>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=OwnFirst]">
+			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Setter Property="HorizontalAlignment" Value="Right"/>
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="Background" Value="{StaticResource Panel}"/>
+				<Setter Property="CornerRadius" Value="15 15 5 15"/>
+			</Style>
+			<Style Selector="^ /template/ StackPanel#PART_StatusIcons">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=Group]">
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="Margin" Value="45,0,0,0"/>
+			</Style>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=GroupSingle]">
+			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Style Selector="^ /template/ Button#PART_Sender">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="CornerRadius" Value="15 15 15 5"/>
+			</Style>
+			<Style Selector="^ /template/ Ellipse#PART_Avatar">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=GroupFirst]">
+			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="Margin" Value="45,0,0,0"/>
+				<Setter Property="CornerRadius" Value="15 15 15 5"/>
+			</Style>
+			<Style Selector="^ /template/ Button#PART_Sender">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+		</Style>
+		<Style Selector="c|MessageControl[Tag=GroupLast]">
+			<Style Selector="^ /template/ Ellipse#PART_Avatar">
+				<Setter Property="IsVisible" Value="True"/>
+			</Style>
+		</Style>
+	</ContentControl.Styles>
+</ContentControl>

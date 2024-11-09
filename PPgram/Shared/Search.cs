@@ -9,5 +9,5 @@ class Msg_SearchChats
 }
 class Msg_SearchChatsResult
 {
-    public List<ProfileDTO> users = [];
+    public List<ChatDTO> users = [];
 }
