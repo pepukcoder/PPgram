@@ -147,7 +147,7 @@ internal class JsonClient
         };
         Send(data);
     }
-    public void ChekUsername(string username)
+    public void CheckUsername(string username)
     {
         var data = new
         {
@@ -333,6 +333,12 @@ internal class JsonClient
                 }
                 messageList.Reverse();
                 WeakReferenceMessenger.Default.Send(new Msg_FetchMessagesResult { messages = messageList });
+                break;
+            case "send_message":
+                if (ok != true) return;
+                int? messageId = rootNode?["message_id"]?.GetValue<int>();
+                int? chatId = rootNode?["chat_id"]?.GetValue<int>();
+                WeakReferenceMessenger.Default.Send(new Msg_ChangeMessageStatus { chat = chatId ?? 0, Id = messageId ?? 0, status = MessageStatus.Delivered});
                 break;
         }
         switch (r_event)

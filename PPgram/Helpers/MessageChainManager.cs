@@ -4,7 +4,6 @@ using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.User;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.Helpers;
@@ -21,18 +20,7 @@ internal class MessageChainManager
         ObservableCollection<ChatItem> chain = [];
         foreach (MessageModel message in messages)
         {
-            if (message.SenderId == profileState.UserId)
-            {
-                if (messages.IndexOf(message) == 0 ) message.Role = Shared.MessageRole.OwnFirst;
-                else message.Role = Shared.MessageRole.Own;
-            }
-            else
-            {
-                if (messages.IndexOf(message) == 0 ) message.Role = Shared.MessageRole.UserFirst;
-                else message.Role = Shared.MessageRole.User;
-
-                message.Status = Shared.MessageStatus.None;
-            }
+            SetRole(message, new(messages));
             chain.Add(message);
         }
         foreach (MessageModel message in messages)
@@ -46,5 +34,43 @@ internal class MessageChainManager
             chain.Insert(currentIndex, new DateBadgeModel() { Date = message.Time });
         }
         return chain;
+    }
+    public void AddChain(ObservableCollection<ChatItem> chat)
+    {
+        var message = chat.OfType<MessageModel>().LastOrDefault();
+        if (message == null) return;
+        SetRole(message, chat);
+    }
+    private void SetRole(MessageModel message, ObservableCollection<ChatItem> chat)
+    {
+        int currentIndex = chat.IndexOf(message);
+        ChatItem previous;
+        if (message.SenderId == profileState.UserId)
+        {
+            if (currentIndex == 0) message.Role = Shared.MessageRole.OwnFirst;
+            else if (currentIndex > 0)
+            {
+                previous = chat[currentIndex - 1];
+                if (previous is DateBadgeModel) message.Role = Shared.MessageRole.OwnFirst;
+                if (previous is MessageModel prevm 
+                    && prevm.Role != Shared.MessageRole.OwnFirst 
+                    && prevm.Role != Shared.MessageRole.Own) message.Role = Shared.MessageRole.OwnFirst;
+                else message.Role = Shared.MessageRole.Own;
+            }
+        }
+        else
+        {
+            if (currentIndex == 0) message.Role = Shared.MessageRole.UserFirst;
+            else if (currentIndex > 0)
+            {
+                previous = chat[currentIndex - 1];
+                if (previous is DateBadgeModel) message.Role = Shared.MessageRole.UserFirst;
+                if (previous is MessageModel prevm
+                    && prevm.Role != Shared.MessageRole.UserFirst
+                    && prevm.Role != Shared.MessageRole.User) message.Role = Shared.MessageRole.UserFirst;
+                else message.Role = Shared.MessageRole.User;
+            }
+            message.Status = Shared.MessageStatus.None;
+        }
     }
 }

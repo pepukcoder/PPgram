@@ -8,6 +8,7 @@ using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
+using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
 using System.Collections.ObjectModel;
@@ -52,6 +53,8 @@ partial class ChatViewModel : ViewModelBase
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
+
+        WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => { ChangeMessageStatus(e.chat, e.Id, e.status); });
     }
     partial void OnSearchListSelectedChanged(ChatModel? value)
     {
@@ -117,9 +120,19 @@ partial class ChatViewModel : ViewModelBase
     public void AddChat(ChatModel chat) => ChatList.Add(chat);
     public void AddMessage(MessageModel message)
     {
-        Debug.WriteLine(message.Chat);
-        ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages.Add(message);
-        // call chainer to chain new message
+        var messages = ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages;
+        if (messages == null) return;
+        messages.Add(message);
+        chainManager.AddChain(messages);
+    }
+    public void ChangeMessageStatus(int chat, int id, MessageStatus status)
+    {
+        MessageModel? message = ChatList.FirstOrDefault(c => c.Id == chat)?.Messages.OfType<MessageModel>().LastOrDefault();
+        if (message != null)
+        {
+            message.Id = id;
+            message.Status = status;
+        }
     }
     [RelayCommand]
     private void SendMessage()
@@ -148,8 +161,10 @@ partial class ChatViewModel : ViewModelBase
         }
         // check if selected sender is valid
         if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
-        ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages.Add(message);
-        // call chainer
+        var messages = ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages;
+        if (messages == null) return;
+        messages.Add(message);
+        chainManager.AddChain(messages);
 
         WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
         {

@@ -29,10 +29,16 @@ public enum ContentType
 }
 class Msg_SendMessage
 {
-    public MessageModel message = new();
+    public required MessageModel message;
     public int to;
 }
 class Msg_NewMessage
 {
-    public MessageDTO? message = new();
+    public MessageDTO? message;
+}
+class Msg_ChangeMessageStatus
+{
+    public required int chat;
+    public required int Id;
+    public required MessageStatus status;
 }

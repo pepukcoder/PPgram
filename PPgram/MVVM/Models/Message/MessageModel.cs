@@ -4,10 +4,11 @@ using PPgram.MVVM.Models.Item;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using PPgram.MVVM.Models.MessageContent;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace PPgram.MVVM.Models.Message;
 
-internal class MessageModel : ChatItem
+partial class MessageModel : ChatItem
 {
     public int Id { get; set; }
     public int Chat { get; set; }
@@ -20,6 +21,8 @@ internal class MessageModel : ChatItem
     public MessageContentModel Content { get; set; } = new TextContentModel();
     public bool Edited { get; set; }
     public long Time { get; set; }
-    public MessageRole Role { get; set; }
-    public MessageStatus Status { get; set; }
+    [ObservableProperty]
+    public MessageRole role;
+    [ObservableProperty]
+    public MessageStatus status;
 }
