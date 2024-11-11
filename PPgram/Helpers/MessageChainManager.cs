@@ -4,8 +4,8 @@ using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.User;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Security.Claims;
 
 namespace PPgram.Helpers;
 
@@ -18,21 +18,16 @@ internal class MessageChainManager
     public ObservableCollection<ChatItem> GenerateChain(ObservableCollection<MessageModel> messages, ChatModel? chat)
     {
         if (chat == null) return [];
-        ObservableCollection<ChatItem> chain = [];
+        ObservableCollection<ChatItem> chain = new(messages);
+
         foreach (MessageModel message in messages)
         {
-            SetRole(message, new(messages));
-            chain.Add(message);
+            SetBadge(message, chain);
         }
-        foreach (MessageModel message in messages)
+        foreach (ChatItem item in chain)
         {
-            int currentIndex = messages.IndexOf(message);
-            if (currentIndex > 0)
-            {
-                MessageModel previous = messages[currentIndex - 1];
-                if (DateTimeOffset.FromUnixTimeSeconds(message.Time).Date == DateTimeOffset.FromUnixTimeSeconds(previous.Time).Date) continue;
-            } 
-            chain.Insert(currentIndex, new DateBadgeModel() { Date = message.Time });
+            if (item is DateBadgeModel) continue;
+            else if (item is MessageModel message) SetRole(message, chain);
         }
         return chain;
     }
@@ -40,8 +35,8 @@ internal class MessageChainManager
     {
         var message = chat.OfType<MessageModel>().LastOrDefault();
         if (message == null) return;
-        SetRole(message, chat);
         SetBadge(message, chat);
+        SetRole(message, chat); 
     }
     private void SetRole(MessageModel message, ObservableCollection<ChatItem> chat)
     {
@@ -53,10 +48,10 @@ internal class MessageChainManager
             else if (currentIndex > 0)
             {
                 previous = chat[currentIndex - 1];
-                if (previous is DateBadgeModel) message.Role = Shared.MessageRole.OwnFirst;
                 if (previous is MessageModel prevm 
                     && prevm.Role != Shared.MessageRole.OwnFirst 
                     && prevm.Role != Shared.MessageRole.Own) message.Role = Shared.MessageRole.OwnFirst;
+                else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.OwnFirst;
                 else message.Role = Shared.MessageRole.Own;
             }
         }
@@ -66,11 +61,11 @@ internal class MessageChainManager
             else if (currentIndex > 0)
             {
                 previous = chat[currentIndex - 1];
-                if (previous is DateBadgeModel) message.Role = Shared.MessageRole.UserFirst;
                 if (previous is MessageModel prevm
                     && prevm.Role != Shared.MessageRole.UserFirst
                     && prevm.Role != Shared.MessageRole.User) message.Role = Shared.MessageRole.UserFirst;
-                else message.Role = Shared.MessageRole.User;
+                else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.UserFirst;     
+                else message.Role = Shared.MessageRole.User;     
             }
             message.Status = Shared.MessageStatus.None;
         }
