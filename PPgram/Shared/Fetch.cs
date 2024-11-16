@@ -5,22 +5,22 @@ namespace PPgram.Shared;
 
 class Msg_FetchMessages
 {
-    public int chatId;
+    public required int chatId;
     public int[] range = [-1, -99];
 }
 class Msg_FetchSelfResult
 {
-    public ProfileDTO? profile;
+    public required ProfileDTO? profile;
 }
 class Msg_FetchUserResult
 {
-    public ProfileDTO? user;
+    public required ProfileDTO? user;
 }
 class Msg_FetchChatsResult
 {
-    public List<ChatDTO> chats = [];
+    public required List<ChatDTO> chats;
 }
 class Msg_FetchMessagesResult
 {
-    public List<MessageDTO> messages = [];
+    public required List<MessageDTO> messages;
 }

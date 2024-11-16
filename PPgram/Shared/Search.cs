@@ -5,9 +5,9 @@ namespace PPgram.Shared;
 
 class Msg_SearchChats
 {
-    public string searchQuery = string.Empty;
+    public required string searchQuery;
 }
 class Msg_SearchChatsResult
 {
-    public List<ChatDTO> users = [];
+    public required List<ChatDTO> users;
 }

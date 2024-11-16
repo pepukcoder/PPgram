@@ -2,9 +2,9 @@ namespace PPgram.Shared;
 
 class Msg_ShowDialog
 {
-    public string text = string.Empty;
+    public required string text;
     public string header = string.Empty;
-    public DialogIcons icon = DialogIcons.None;
+    public DialogIcons icon;
     public string accept = "Ok";
     public string decline = "Cancel";
 }

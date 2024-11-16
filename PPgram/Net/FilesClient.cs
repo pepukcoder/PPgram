@@ -22,7 +22,6 @@ internal class FilesClient
 
     public void Connect(string remoteHost, int remotePort)
     {
-
         host = remoteHost;
         port = remotePort;
         try
@@ -81,20 +80,15 @@ internal class FilesClient
 
     private void ReadUntilFilled(byte[] buffer, int offset, long size)
     {
-        if (stream == null) { return; }
-
+        if (stream == null) return;
         long totalBytesRead = 0;
         while (totalBytesRead < size)
         {
             int bytesRead = stream.Read(buffer, offset + (int)totalBytesRead, (int)(size - totalBytesRead));
-            if (bytesRead == 0)
-            {
-                throw new EndOfStreamException("The connection was closed before the requested size was read.");
-            }
+            if (bytesRead == 0) throw new EndOfStreamException("The connection was closed before the requested size was read.");
             totalBytesRead += bytesRead;
         }
     }
-
     // TODO: Save files to the FS
     public void DownloadFiles(string sha256Hash)
     {
@@ -107,10 +101,7 @@ internal class FilesClient
         stream?.Write(RequestBuilder.BuildJsonRequest(request));
 
         JsonMessageParser parser = new();
-        while (!parser.IsReady())
-        {
-            parser.ReadStream(stream);
-        }
+        while (!parser.IsReady()) parser.ReadStream(stream);
 
         DownloadFileResponseModel? metadatas = parser.GetResponseAsJson<DownloadFileResponseModel>();
         if (metadatas == null) { return; }

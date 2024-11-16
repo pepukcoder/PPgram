@@ -30,11 +30,11 @@ public enum ContentType
 class Msg_SendMessage
 {
     public required MessageModel message;
-    public int to;
+    public required int to;
 }
 class Msg_NewMessage
 {
-    public MessageDTO? message;
+    public required MessageDTO? message;
 }
 class Msg_ChangeMessageStatus
 {

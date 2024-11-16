@@ -21,5 +21,5 @@ public enum GroupRole
 }
 class Msg_NewChat
 {
-    public ChatDTO? chat = new();
+    public required ChatDTO? chat;
 }

@@ -16,30 +16,27 @@ namespace PPgram.Net;
 
 internal class JsonClient
 {
-    protected string host = string.Empty;
-    protected int port;
-    protected readonly TcpClient client = new();
-    protected NetworkStream? stream;
+    private string host = string.Empty;
+    private int port;
+    private readonly TcpClient client = new();
+    private NetworkStream? stream;
     public void Connect(string remoteHost, int remotePort)
     {
         host = remoteHost;
         port = remotePort;
         try
         {
-            // try to connect the socket
-            if (!client.ConnectAsync(host, port).Wait(5000)) throw new Exception();
+            if (!client.ConnectAsync(host, port).Wait(5000)) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
-            // make a background thread for connection handling
-            Thread listenThread = new(new ThreadStart(Listen))
-            { IsBackground = true };
+
+            Thread listenThread = new(new ThreadStart(Listen)) { IsBackground = true };
             listenThread.Start();
         }
-        catch { Disconnected(); }
+        catch { Disconnect(); }
     }
-    protected void Listen()
+    private void Listen()
     {
         if (stream == null) return;
-        // init reponse chunks
         List<byte> response_chunks = [];
         int expected_size = 0;
         bool isFirst = true;
@@ -48,42 +45,39 @@ internal class JsonClient
             try
             {
                 int read_count;
-                // get server response length if chunk is first
                 if (isFirst)
                 {
+                    // get response size
                     byte[] length_bytes = new byte[4];
                     read_count = stream.Read(length_bytes, 0, 4);
                     if (read_count == 0) break;
                     if (BitConverter.IsLittleEndian) Array.Reverse(length_bytes);
                     int length = BitConverter.ToInt32(length_bytes);
-                    // set response size
                     expected_size = length;
                     isFirst = false;
                 }
-                // get server response chunk
+                // get response chunk
                 byte[] responseBytes = new byte[expected_size];
                 read_count = stream.Read(responseBytes, 0, expected_size);
-                // cut chunk by actual read count and to list 
+                // cut chunk by actual read count
                 ArraySegment<byte> segment = new(responseBytes, 0, read_count);
                 responseBytes = [.. segment];
                 response_chunks.AddRange(responseBytes);
-                // check if whole response was recieved
+
                 if (response_chunks.Count >= expected_size)
                 {
-                    // get whole response if size equals expected
                     string response = Encoding.UTF8.GetString(response_chunks.ToArray());
-                    // reset size and chunks
                     response_chunks.Clear();
                     expected_size = 0;
                     isFirst = true;
-                    // handle response
+
                     HandleResponse(response);
                 }
             }
-            catch { Disconnected(); }
+            catch { Disconnect(); }
         }
     }
-    protected void Disconnected()
+    private void Disconnect()
     {
         // show disconnected dialog
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
@@ -94,6 +88,7 @@ internal class JsonClient
             accept = "Retry",
             decline = ""
         });
+        Stop();
         // listen for retry action
         WeakReferenceMessenger.Default.Register<Msg_DialogResult>(this, (r, e) =>
         {
@@ -101,11 +96,10 @@ internal class JsonClient
             if (e.action == DialogAction.Accepted) Connect(host, port);
         });
     }
-    protected void Stop()
+    private void Stop()
     {
         stream?.Dispose();
         client.Close();
-        Disconnected();
     }
     private void Send(object data)
     {
@@ -114,7 +108,7 @@ internal class JsonClient
             string request = JsonSerializer.Serialize(data);
             stream?.Write(RequestBuilder.BuildJsonRequest(request));
         }
-        catch { Disconnected(); }
+        catch { Disconnect(); }
     }
     public void AuthSessionId(string sessionId, int userId)
     { 
@@ -224,14 +218,13 @@ internal class JsonClient
         };
         Send(data);
     }
-    public void DeleteMessage(int chatId, int id)
+    public void DeleteMessage(int chatId, int messageId)
     {
         var data = new
         {
-            ok = true,
             method = "delete",
             chat_id = chatId,
-            message_id = id,
+            message_id = messageId,
         };
         Send(data);
     }
@@ -244,7 +237,7 @@ internal class JsonClient
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();  
 
-        // LATER: remove debug errors dialogs and insted proccess them in mainview
+        // LATER: remove debug errors dialogs and instead proccess them in mainviewmodel
 
         if (ok == false && r_method != null && r_error != null) {
             string method = r_method;
@@ -352,6 +345,7 @@ internal class JsonClient
                 WeakReferenceMessenger.Default.Send(new Msg_ChangeMessageStatus { chat = chatId ?? 0, Id = messageId ?? 0, status = MessageStatus.Delivered});
                 break;
         }
+        // parse events
         switch (r_event)
         {
             case "new_message":
