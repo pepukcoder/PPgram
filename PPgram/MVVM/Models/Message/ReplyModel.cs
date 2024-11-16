@@ -1,8 +1,13 @@
-﻿namespace PPgram.MVVM.Models.Message;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-internal class ReplyModel
+namespace PPgram.MVVM.Models.Message;
+
+partial class ReplyModel : ObservableObject
 {
-    public string Name { get; set; } = string.Empty;
-    public string Text { get; set; } = string.Empty;
-    public int Color { get; set; }
+    [ObservableProperty]
+    private string name = string.Empty;
+    [ObservableProperty]
+    private string text = string.Empty;
+    [ObservableProperty]
+    private int color;
 }

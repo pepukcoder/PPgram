@@ -42,12 +42,17 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private string _searchInput = string.Empty;
     [ObservableProperty]
+    private ReplyModel reply = new();
+    [ObservableProperty]
     private bool _rightGridVisible;
+    [ObservableProperty]
+    private bool inReply;
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
     private readonly DispatcherTimer _timer;
     private readonly MessageChainManager chainManager = new();
     private bool inSearch;
+    
     public ChatViewModel()
     {
         RightGridVisible = false;
@@ -139,9 +144,21 @@ partial class ChatViewModel : ViewModelBase
     [RelayCommand]
     private void SendMessage()
     {
+        // move chat from search to chats
+        if (inSearch && SearchListSelected != null)
+        {
+            ChatList.Add(SearchListSelected);
+            ChatListSelected = SearchListSelected;
+            ClearSearch();
+            inSearch = false;
+        }
+        // check if selected sender is valid
+        if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
+
         // create message
         MessageModel message = new()
         {
+            Chat = ChatListSelected.Id,
             Content = new TextContentModel()
             {
                 Text = MessageInput.Trim(),
@@ -153,16 +170,14 @@ partial class ChatViewModel : ViewModelBase
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
             Status = MessageStatus.Sending
         };
-        // move chat from search to chats
-        if (inSearch && SearchListSelected != null)
+        // add reply if set
+        if (InReply && MessageListSelected is MessageModel selectedMessage)
         {
-            ChatList.Add(SearchListSelected);
-            ChatListSelected = SearchListSelected;
-            ClearSearch();
-            inSearch = false;
+            message.ReplyTo = selectedMessage.Id;
+            message.Reply = Reply;
+            InReply = false;
+            MessageListSelected = null;
         }
-        // check if selected sender is valid
-        if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
         var messages = ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages;
         if (messages == null) return;
         messages.Add(message);
@@ -194,4 +209,21 @@ partial class ChatViewModel : ViewModelBase
             });
         }    
     }
+    [RelayCommand]
+    private void AddReply()
+    {
+        if (MessageListSelected != null && MessageListSelected is MessageModel message)
+        {
+            InReply = true;
+            if (message.SenderId == ProfileState.UserId) Reply.Name = ProfileState.Name;
+            else Reply.Name = ChatListSelected?.Profile.Name ?? string.Empty;
+            
+            if (message.Content is TextContentModel textcontent) Reply.Text = textcontent.Text;
+
+            Debug.WriteLine(Reply.Name);
+            Debug.WriteLine(Reply.Text);
+        }
+    }
+    [RelayCommand]
+    private void RemoveReply() => InReply = false;
 }

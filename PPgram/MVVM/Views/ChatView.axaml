@@ -123,19 +123,19 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 					ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,0,-6,0"
 					ItemsSource="{Binding MessageList, Mode=OneWay}"
-				    SelectedItem="{Binding MessageListSelected, Mode=OneWayToSource}"
+				    SelectedItem="{Binding MessageListSelected, Mode=TwoWay}"
 					SelectionMode="Toggle">
 				<Interaction.Behaviors>
 					<bh:ScrollToEndBehavior />
 				</Interaction.Behaviors>
 				<ListBox.ContextMenu>
 					<ContextMenu>
-						<MenuItem Header="Reply" Command="{Binding DeleteMessageCommand}">
+						<MenuItem Header="Reply" Command="{Binding AddReplyCommand}">
 							<MenuItem.Icon>
 								<icons:MaterialIcon Kind="ArrowLeftTopBold" />
 							</MenuItem.Icon>
 						</MenuItem>
-						<MenuItem Header="Edit" Command="{Binding DeleteMessageCommand}" >
+						<MenuItem Header="Edit" Command="">
 							<MenuItem.Icon>
 								<icons:MaterialIcon Kind="Edit" />
 							</MenuItem.Icon>
@@ -180,6 +180,17 @@
 					Padding="5" Grid.Row="2"
 					BorderThickness="1" BorderBrush="{StaticResource Panel}">			
 				<DockPanel>
+					<Border CornerRadius="15" DockPanel.Dock="Top" Background="{StaticResource SurfaceLight}" Padding="5"
+							IsVisible="{Binding InReply}" Margin="0,0,0,5">
+						<DockPanel>
+							<icons:MaterialIcon Kind="ArrowLeftTop" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left"/>
+							<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding RemoveReplyCommand}">
+								<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
+							</Button>
+							<TextBlock Text="{Binding Reply.Name}" Foreground="{StaticResource SecondaryText}" FontSize="13" FontWeight="Medium" DockPanel.Dock="Top"/>
+							<TextBlock Text="{Binding Reply.Text}" FontSize="13" DockPanel.Dock="Right"/>
+						</DockPanel>
+					</Border>
 					<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" 
 							VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,6">
 						<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24"/>

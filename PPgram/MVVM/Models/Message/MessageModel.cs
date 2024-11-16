@@ -22,7 +22,7 @@ partial class MessageModel : ChatItem
     public bool Edited { get; set; }
     public long Time { get; set; }
     [ObservableProperty]
-    public MessageRole role;
+    private MessageRole role;
     [ObservableProperty]
-    public MessageStatus status;
+    private MessageStatus status;
 }
