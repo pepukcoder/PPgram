@@ -35,7 +35,7 @@
 		<Setter Property="Foreground" Value="White"/>
 		<Setter Property="Padding" Value="8"/>
 		<Setter Property="BorderThickness" Value="0"/>
-		<Setter Property="FontFamily" Value="{StaticResource Montserrat}"/>
+		<Setter Property="FontFamily" Value="{StaticResource Roboto}"/>
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
@@ -71,7 +71,7 @@
 		<Setter Property="FontSize" Value="14"/>
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Border CornerRadius="5" Background="Transparent" Cursor="Hand">
+				<Border CornerRadius="5" Background="{TemplateBinding Background}" Cursor="Hand">
 					<ContentPresenter Content="{TemplateBinding Content}"/>
 				</Border>
 			</ControlTemplate>
@@ -118,5 +118,18 @@
 				</Border>
 			</ControlTemplate>
 		</Setter>
+	</ControlTheme>
+	<ControlTheme x:Key="ButtonMenu" TargetType="Button">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border CornerRadius="7" Padding="5" Background="{TemplateBinding Background}" Cursor="Hand">
+					<ContentPresenter Content="{TemplateBinding Content}"/>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+		<Style Selector="^:pointerover">
+			<Setter Property="Background" Value="{StaticResource SurfaceLight}"/>
+		</Style>
 	</ControlTheme>
 </ResourceDictionary>

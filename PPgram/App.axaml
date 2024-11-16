@@ -27,7 +27,7 @@
 				<ResourceInclude Source="/Styles/File.axaml"/>
 				<ResourceInclude Source="/Styles/Media.axaml"/>
 				<ResourceInclude Source="/Styles/SearchEntry.axaml"/>
-				<ResourceInclude Source="/Styles/TextBoxFlyout.axaml"/>
+				<ResourceInclude Source="/Styles/Flyout.axaml"/>
 				<ResourceInclude Source="/Styles/ScrollBar.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
@@ -35,6 +35,7 @@
 	
     <Application.Styles>
 		<StyleInclude Source="/Styles/ListThemes.axaml"/>
+		<StyleInclude Source="/Styles/Menu.axaml"/>
 		<SimpleTheme/>
 		<materialIcons:MaterialIconStyles/>
 	</Application.Styles>

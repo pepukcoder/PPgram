@@ -42,3 +42,8 @@ class Msg_ChangeMessageStatus
     public required int Id;
     public required MessageStatus status;
 }
+class Msg_DeleteMessage
+{
+    public required int chat;
+    public required int Id;
+}

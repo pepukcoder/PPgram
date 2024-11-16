@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -7,7 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 
-namespace PPgram.Behaviors;
+namespace PPgram.Behaviours;
 
 /// <summary>
 /// This behaviour is used to make message history listbox align and stick to bottom when scrolling and resizing

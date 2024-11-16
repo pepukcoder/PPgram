@@ -1,0 +1,16 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Style Selector="ContextMenu">
+		<Setter Property="BorderBrush" Value="{StaticResource Panel}"/>
+		<Setter Property="Background" Value="{StaticResource Surface}"/>
+		<Setter Property="CornerRadius" Value="10"/>
+		<Setter Property="Padding" Value="3"/>
+	</Style>
+	<Style Selector="MenuItem" x:DataType="MenuItem">
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="CornerRadius" Value="7"/>
+		<Style Selector="^:selected Border">
+			<Setter Property="Background" Value="{StaticResource SurfaceLight}"/>
+		</Style>
+	</Style>
+</Styles>

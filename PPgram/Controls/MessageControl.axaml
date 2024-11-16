@@ -12,8 +12,7 @@
 			 x:DataType="m:MessageModel"
 			 FontFamily="{StaticResource Roboto}"
 			 FontSize="13"
-			 FontWeight="Light"
-			 Margin="0,0,0,2">
+			 FontWeight="Light">
 	<ContentControl.Resources>
 		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 		<helpers:DateTimeConverter x:Key="DTConvert"/>
@@ -21,6 +20,7 @@
 	</ContentControl.Resources>
 	<ContentControl.Styles>
 		<Style Selector="c|MessageControl">
+			<Setter Property="Margin" Value="0,1,0,1"/>
 			<Setter Property="Tag" Value="{Binding Role}"/>
 			<Setter Property="Template">
 				<ControlTemplate>
@@ -30,7 +30,7 @@
 								<ImageBrush Source="{Binding Avatar}"/>
 							</Ellipse.Fill>
 						</Ellipse>
-						<Border x:Name="PART_Back" Grid.Column="1" CornerRadius="5 15 15 5" Background="{StaticResource Surface}" Padding="10,10,0,0" >
+						<Border x:Name="PART_Back" Grid.Column="1" CornerRadius="5 15 15 5" Background="{StaticResource Surface}" Padding="10,10,0,0">
 							<StackPanel Orientation="Vertical">
 								<Button x:Name="PART_Sender" Theme="{StaticResource ButtonText}" IsVisible="False" Foreground="{Binding Color, Converter={StaticResource UCConvert}}" Margin="0,0,10,3">
 									<TextBlock Text="{Binding Sender}" FontWeight="Medium"/>
@@ -67,7 +67,7 @@
 			</Setter>
 		</Style>
 		<Style Selector="c|MessageControl[Tag=UserFirst]">
-			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Setter Property="Margin" Value="0,5,0,1"/>
 			<Style Selector="^ /template/ Border#PART_Back">
 				<Setter Property="CornerRadius" Value="15 15 15 5"/>
 			</Style>
@@ -83,7 +83,7 @@
 			</Style>
 		</Style>
 		<Style Selector="c|MessageControl[Tag=OwnFirst]">
-			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Setter Property="Margin" Value="0,5,0,1"/>
 			<Setter Property="HorizontalAlignment" Value="Right"/>
 			<Style Selector="^ /template/ Border#PART_Back">
 				<Setter Property="Background" Value="{StaticResource Panel}"/>
@@ -99,7 +99,7 @@
 			</Style>
 		</Style>
 		<Style Selector="c|MessageControl[Tag=GroupSingle]">
-			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Setter Property="Margin" Value="0,5,0,1"/>
 			<Style Selector="^ /template/ Button#PART_Sender">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>
@@ -111,7 +111,7 @@
 			</Style>
 		</Style>
 		<Style Selector="c|MessageControl[Tag=GroupFirst]">
-			<Setter Property="Margin" Value="0,5,0,2"/>
+			<Setter Property="Margin" Value="0,5,0,1"/>
 			<Style Selector="^ /template/ Border#PART_Back">
 				<Setter Property="Margin" Value="45,0,0,0"/>
 				<Setter Property="CornerRadius" Value="15 15 15 5"/>

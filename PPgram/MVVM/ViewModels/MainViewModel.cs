@@ -43,16 +43,13 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => { jsonClient.SearchChats(e.searchQuery); });
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) => { jsonClient.SendMessage(e.message, e.to); });
-        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => { jsonClient.FetchMessages(e.chatId, e.range); });
-        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => { jsonClient.AuthLogin(e.username, e.password); });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => jsonClient.SearchChats(e.searchQuery));
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) => jsonClient.SendMessage(e.message, e.to));
+        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
+        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
+        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
         WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) =>
-            reg_vm.ShowUsernameStatus(e.available 
-            ? "Username is available"
-            : "Username is already taken",
-            e.available)
-        );
+            reg_vm.ShowUsernameStatus(e.available ? "Username is available" : "Username is already taken",e.available));
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
         {
             if (e.check) jsonClient.CheckUsername(e.username);
@@ -127,6 +124,7 @@ partial class MainViewModel : ViewModelBase
             if (e.message == null) return;
             chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
+        
         // connection
         CurrentPage = login_vm;
         ConnectToServer();   

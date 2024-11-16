@@ -224,6 +224,17 @@ internal class JsonClient
         };
         Send(data);
     }
+    public void DeleteMessage(int chatId, int id)
+    {
+        var data = new
+        {
+            ok = true,
+            method = "delete",
+            chat_id = chatId,
+            message_id = id,
+        };
+        Send(data);
+    }
     private void HandleResponse(string response)
     {
         JsonNode? rootNode = JsonNode.Parse(response);

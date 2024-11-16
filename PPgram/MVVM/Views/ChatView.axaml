@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels;assembly=PPgram"
-			 xmlns:bh="clr-namespace:PPgram.Behaviors;assembly=PPgram"
+			 xmlns:bh="clr-namespace:PPgram.Behaviours;assembly=PPgram"
 			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
 			 xmlns:mchat="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
 			 xmlns:mitem="clr-namespace:PPgram.MVVM.Models.Item;assembly=PPgram"
@@ -80,8 +80,8 @@
 						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right">
 							<icons:MaterialIcon Kind="DotsVertical" Height="24" Width="24" />
 						</Button>
-						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Margin="5,0,0,0">
-							<icons:MaterialIcon Kind="ChatPlus" Height="24" Width="24" />
+						<Button x:Name="Button_NewChat" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Margin="5,0,0,0">
+							<icons:MaterialIcon Kind="ChatPlus" Height="24" Width="24"/>
 						</Button>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 							<TextBlock Text="{Binding ProfileState.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
@@ -122,10 +122,31 @@
 					Background="Transparent" Padding="0" BorderThickness="0" 
 					ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 					ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,0,-6,0"
-					ItemsSource="{Binding MessageList, Mode=OneWay}">
+					ItemsSource="{Binding MessageList, Mode=OneWay}"
+				    SelectedItem="{Binding MessageListSelected, Mode=OneWayToSource}"
+					SelectionMode="Toggle">
 				<Interaction.Behaviors>
 					<bh:ScrollToEndBehavior />
 				</Interaction.Behaviors>
+				<ListBox.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Reply" Command="{Binding DeleteMessageCommand}">
+							<MenuItem.Icon>
+								<icons:MaterialIcon Kind="ArrowLeftTopBold" />
+							</MenuItem.Icon>
+						</MenuItem>
+						<MenuItem Header="Edit" Command="{Binding DeleteMessageCommand}" >
+							<MenuItem.Icon>
+								<icons:MaterialIcon Kind="Edit" />
+							</MenuItem.Icon>
+						</MenuItem>
+						<MenuItem Header="Delete" Command="{Binding DeleteMessageCommand}" HotKey="Ctrl+D">
+							<MenuItem.Icon>
+								<icons:MaterialIcon Kind="Delete"/>
+							</MenuItem.Icon>
+						</MenuItem>
+					</ContextMenu>
+				</ListBox.ContextMenu>	
 				<ListBox.ItemsPanel>
 					<ItemsPanelTemplate>
 						<StackPanel VerticalAlignment="Bottom"/>
@@ -139,6 +160,21 @@
 						<c:DateBadgeControl/>
 					</DataTemplate>
 				</ListBox.DataTemplates>
+				<ListBox.Styles>
+					<Style Selector="ListBoxItem">
+						<Setter Property="Padding" Value="0"/>
+					</Style>
+					<Style Selector="ListBoxItem:pointerover">
+						<Style Selector="^ /template/ ContentPresenter">
+							<Setter Property="Background" Value="Transparent" />
+						</Style>
+					</Style>
+					<Style Selector="ListBoxItem:selected">
+						<Style Selector="^ /template/ ContentPresenter">
+							<Setter Property="Background" Value="{StaticResource SelectionList}"/>
+						</Style>
+					</Style>
+				</ListBox.Styles>
 			</ListBox>
 			<Border Background="{StaticResource Surface}"  CornerRadius="20" Margin="0,5,0,0"
 					Padding="5" Grid.Row="2"

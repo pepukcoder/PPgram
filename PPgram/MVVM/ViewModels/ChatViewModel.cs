@@ -8,13 +8,11 @@ using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
-using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -30,6 +28,8 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<ChatModel> searchList = [];
 
+    [ObservableProperty]
+    private ChatItem? messageListSelected = null;
     [ObservableProperty]
     private ChatModel? chatListSelected = new UserModel();
     [ObservableProperty]
@@ -62,6 +62,7 @@ partial class ChatViewModel : ViewModelBase
         if (String.IsNullOrEmpty(SearchInput)) return;
         if (ChatList.Any(c => c.Id == value?.Id))
         {
+            inSearch = false;
             ChatListSelected = ChatList.FirstOrDefault(c => c.Id == value?.Id) ?? ChatList[0];
             ClearSearch();
         }
@@ -179,5 +180,18 @@ partial class ChatViewModel : ViewModelBase
     {
         SearchInput = string.Empty;
         inSearch = false;
+    }
+    [RelayCommand]
+    private void DeleteMessage()
+    {
+        if (MessageListSelected != null && MessageListSelected is MessageModel message)
+        {
+            MessageList.Remove(MessageListSelected);
+            WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
+            {
+                chat = message.Chat,
+                Id = message.Id
+            });
+        }    
     }
 }
