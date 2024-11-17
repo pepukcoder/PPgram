@@ -34,23 +34,43 @@ partial class ChatViewModel : ViewModelBase
     private ChatModel? chatListSelected = new UserModel();
     [ObservableProperty]
     private ChatModel? searchListSelected = new UserModel();
-    [ObservableProperty]
-    private ProfileModel currentProfile = new();
 
     [ObservableProperty]
-    private string _messageInput = string.Empty;
+    private ProfileModel currentProfile = new();
     [ObservableProperty]
-    private string _searchInput = string.Empty;
+    private ProfileState profileState = ProfileState.Instance;
+
     [ObservableProperty]
-    private ReplyModel reply = new();
+    private string messageInput = string.Empty;
     [ObservableProperty]
-    private bool _rightGridVisible;
+    private string searchInput = string.Empty;
+
     [ObservableProperty]
     private bool inReply;
     [ObservableProperty]
-    private ProfileState profileState = ProfileState.Instance;
+    private bool inEdit;
+    [ObservableProperty]
+    private string secondaryInputHeader = string.Empty;
+    [ObservableProperty]
+    private string secondaryInputText = string.Empty;
+
+    [ObservableProperty]
+    private bool secondaryInputVisible;
+    [ObservableProperty]
+    private bool rightGridVisible;
+
+    [ObservableProperty]
+    private bool contextVisible;
+    [ObservableProperty]
+    private bool canReply;
+    [ObservableProperty]
+    private bool canEdit;
+    [ObservableProperty]
+    private bool canDelete;
+
     private readonly DispatcherTimer _timer;
     private readonly MessageChainManager chainManager = new();
+    private readonly ReplyModel reply = new();
     private bool inSearch;
     
     public ChatViewModel()
@@ -60,7 +80,20 @@ partial class ChatViewModel : ViewModelBase
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
 
-        WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => { ChangeMessageStatus(e.chat, e.Id, e.status); });
+        WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => ChangeMessageStatus(e.chat, e.Id, e.status));
+    }
+    partial void OnMessageListSelectedChanged(ChatItem? value)
+    {
+        if (value is MessageModel message)
+        {
+            ContextVisible = true;
+            CanEdit = message.SenderId == ProfileState.UserId;
+        }
+        else
+        {
+            ContextVisible = false;
+            Dispatcher.UIThread.Post(() => MessageListSelected = null);
+        }
     }
     partial void OnSearchListSelectedChanged(ChatModel? value)
     {
@@ -165,7 +198,7 @@ partial class ChatViewModel : ViewModelBase
             },
             Role = MessageRole.OwnFirst,
             Sender = ProfileState.Name,
-            Color = 3,
+            Color = ProfileState.Color,
             SenderId = ProfileState.UserId,
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
             Status = MessageStatus.Sending
@@ -174,15 +207,31 @@ partial class ChatViewModel : ViewModelBase
         if (InReply && MessageListSelected is MessageModel selectedMessage)
         {
             message.ReplyTo = selectedMessage.Id;
-            message.Reply = Reply;
-            InReply = false;
-            MessageListSelected = null;
+            message.Reply = reply;
+            CloseSecondaryInput();
         }
+        // send edit request if editing
+        if (InEdit && MessageListSelected is MessageModel editMessage)
+        {
+            // TODO: add editing to media messages too
+            TextContentModel editedContent = new() { Text = MessageInput };
+            editMessage.Content = editedContent;
+            editMessage.Edited = true;
+            WeakReferenceMessenger.Default.Send(new Msg_EditMessage
+            {
+                chat = editMessage.Chat,
+                Id = editMessage.Id,
+                newContent = editedContent 
+            });
+            CloseSecondaryInput();
+            return;
+        }
+        // add message to ui
         var messages = ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages;
         if (messages == null) return;
         messages.Add(message);
         chainManager.AddChain(messages);
-
+        // send message
         WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
         {
             message = message,
@@ -190,12 +239,7 @@ partial class ChatViewModel : ViewModelBase
         });
         MessageInput = "";
     }
-    [RelayCommand]
-    private void ClearSearch()
-    {
-        SearchInput = string.Empty;
-        inSearch = false;
-    }
+    
     [RelayCommand]
     private void DeleteMessage()
     {
@@ -210,20 +254,50 @@ partial class ChatViewModel : ViewModelBase
         }    
     }
     [RelayCommand]
+    private void StartEdit()
+    {
+        if (MessageListSelected != null && MessageListSelected is MessageModel message)
+        {
+            SecondaryInputVisible = true;
+            InReply = false;
+            InEdit = true;
+            SecondaryInputHeader = "Editing message";
+            if (message.Content is TextContentModel textcontent) MessageInput = SecondaryInputText = textcontent.Text;
+        }
+    }
+    [RelayCommand]
     private void AddReply()
     {
         if (MessageListSelected != null && MessageListSelected is MessageModel message)
         {
+            SecondaryInputVisible = true;
+            InEdit = false;
             InReply = true;
-            if (message.SenderId == ProfileState.UserId) Reply.Name = ProfileState.Name;
-            else Reply.Name = ChatListSelected?.Profile.Name ?? string.Empty;
+            if (message.SenderId == ProfileState.UserId) reply.Name = ProfileState.Name;
+            else reply.Name = ChatListSelected?.Profile.Name ?? string.Empty;
             
-            if (message.Content is TextContentModel textcontent) Reply.Text = textcontent.Text;
+            if (message.Content is TextContentModel textcontent) reply.Text = textcontent.Text;
 
-            Debug.WriteLine(Reply.Name);
-            Debug.WriteLine(Reply.Text);
+            SecondaryInputHeader = $"Reply to {reply.Name}";
+            SecondaryInputText = reply.Text;
         }
     }
     [RelayCommand]
-    private void RemoveReply() => InReply = false;
+    private void CloseSecondaryInput()
+    {
+        if (InEdit)
+        {
+            MessageInput = "";
+            InEdit = false;
+        }
+        InReply = false;
+        SecondaryInputVisible = false;
+        MessageListSelected = null;
+    }
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchInput = string.Empty;
+        inSearch = false;
+    }
 }

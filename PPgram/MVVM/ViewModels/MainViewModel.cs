@@ -48,8 +48,6 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
         WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
-        WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) =>
-            reg_vm.ShowUsernameStatus(e.available ? "Username is available" : "Username is already taken",e.available));
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
         {
             if (e.check) jsonClient.CheckUsername(e.username);
@@ -124,7 +122,6 @@ partial class MainViewModel : ViewModelBase
             if (e.message == null) return;
             chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
-        
         // connection
         CurrentPage = login_vm;
         ConnectToServer();   

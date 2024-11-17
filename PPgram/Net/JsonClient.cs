@@ -218,6 +218,17 @@ internal class JsonClient
         };
         Send(data);
     }
+    public void EditMessage(int chatId, int messageId)
+    {
+        var data = new
+        {
+            method = "edit",
+            what = "message",
+            chat_id = chatId,
+            message_id = messageId,
+        };
+        Send(data);
+    }
     public void DeleteMessage(int chatId, int messageId)
     {
         var data = new

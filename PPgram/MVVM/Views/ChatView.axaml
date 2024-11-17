@@ -129,13 +129,14 @@
 					<bh:ScrollToEndBehavior />
 				</Interaction.Behaviors>
 				<ListBox.ContextMenu>
-					<ContextMenu>
-						<MenuItem Header="Reply" Command="{Binding AddReplyCommand}">
+					<ContextMenu IsVisible="{Binding ContextVisible}">
+						<MenuItem Header="Reply" Command="{Binding AddReplyCommand}" HotKey="Ctrl+R">
 							<MenuItem.Icon>
 								<icons:MaterialIcon Kind="ArrowLeftTopBold" />
 							</MenuItem.Icon>
 						</MenuItem>
-						<MenuItem Header="Edit" Command="">
+						<MenuItem Header="Edit" Command="{Binding StartEditCommand}" HotKey="Ctrl+E"
+								  IsVisible="{Binding CanEdit}">
 							<MenuItem.Icon>
 								<icons:MaterialIcon Kind="Edit" />
 							</MenuItem.Icon>
@@ -181,14 +182,15 @@
 					BorderThickness="1" BorderBrush="{StaticResource Panel}">			
 				<DockPanel>
 					<Border CornerRadius="15" DockPanel.Dock="Top" Background="{StaticResource SurfaceLight}" Padding="5"
-							IsVisible="{Binding InReply}" Margin="0,0,0,5">
+							IsVisible="{Binding SecondaryInputVisible}" Margin="0,0,0,5">
 						<DockPanel>
-							<icons:MaterialIcon Kind="ArrowLeftTop" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left"/>
-							<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding RemoveReplyCommand}">
+							<icons:MaterialIcon Kind="ArrowLeftTop" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left" IsVisible="{Binding InReply}"/>
+							<icons:MaterialIcon Kind="Edit" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left" IsVisible="{Binding InEdit}"/>
+							<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding CloseSecondaryInputCommand}">
 								<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
 							</Button>
-							<TextBlock Text="{Binding Reply.Name}" Foreground="{StaticResource SecondaryText}" FontSize="13" FontWeight="Medium" DockPanel.Dock="Top"/>
-							<TextBlock Text="{Binding Reply.Text}" FontSize="13" DockPanel.Dock="Right"/>
+							<TextBlock Text="{Binding SecondaryInputHeader}" Foreground="{StaticResource SecondaryText}" FontSize="13" FontWeight="Medium" DockPanel.Dock="Top"/>
+							<TextBlock Text="{Binding SecondaryInputText}" FontSize="13" DockPanel.Dock="Right"/>
 						</DockPanel>
 					</Border>
 					<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" 
