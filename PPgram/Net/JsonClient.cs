@@ -11,6 +11,7 @@ using System;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+using PPgram.MVVM.Models.Chat;
 
 namespace PPgram.Net;
 
@@ -341,6 +342,7 @@ internal class JsonClient
                 if (ok != true) return;
                 int? messageId = rootNode?["message_id"]?.GetValue<int>();
                 int? chatId = rootNode?["chat_id"]?.GetValue<int>();
+                if (messageId == null || chatId == null) return;
                 WeakReferenceMessenger.Default.Send(new Msg_ChangeMessageStatus { chat = chatId ?? 0, Id = messageId ?? 0, status = MessageStatus.Delivered});
                 break;
         }
@@ -364,6 +366,12 @@ internal class JsonClient
                 if (messageNode == null) return;
                 messageDTO = messageNode.Deserialize<MessageDTO>();
                 WeakReferenceMessenger.Default.Send(new Msg_EditMessageEvent { message = messageDTO });
+                break;
+            case "delete_message":
+                int? chat = rootNode?["chat_id"]?.GetValue<int>();
+                int? id = rootNode?["message_id"]?.GetValue<int>();
+                if (chat == null || id == null) return;
+                WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? 0, Id = id ?? 0 });
                 break;
         }
     }

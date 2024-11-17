@@ -48,6 +48,11 @@ class Msg_DeleteMessage
     public required int chat;
     public required int Id;
 }
+class Msg_DeleteMessageEvent
+{
+    public required int chat;
+    public required int Id;
+}
 class Msg_NewMessage
 {
     public required MessageDTO? message;

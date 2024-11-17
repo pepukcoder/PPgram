@@ -81,6 +81,16 @@ partial class ChatViewModel : ViewModelBase
         _timer.Tick += SearchChat;
 
         WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => ChangeMessageStatus(e.chat, e.Id, e.status));
+        WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, e) =>
+        {
+            var messages = ChatList.FirstOrDefault(c => c.Id == e.chat)?.Messages;
+            if (messages == null) return;
+            Debug.WriteLine(e.chat);
+            var originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == e.Id);
+            if (originalMessage == null) return;
+            Debug.WriteLine(e.Id);
+            messages.Remove(originalMessage);
+        });
     }
     partial void OnMessageListSelectedChanged(ChatItem? value)
     {
@@ -249,7 +259,6 @@ partial class ChatViewModel : ViewModelBase
         });
         MessageInput = "";
     }
-    
     [RelayCommand]
     private void DeleteMessage()
     {
