@@ -18,9 +18,11 @@ partial class MessageModel : ChatItem
     public int ReplyTo { get; set; }
     public ReplyModel Reply { get; set; } = new();
     public Bitmap Avatar { get; set; } = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
-    public MessageContentModel Content { get; set; } = new TextContentModel();
-    public bool Edited { get; set; }
     public long Time { get; set; }
+    [ObservableProperty]
+    public MessageContentModel content = new TextContentModel();
+    [ObservableProperty]
+    public bool edited;
     [ObservableProperty]
     private MessageRole role;
     [ObservableProperty]
