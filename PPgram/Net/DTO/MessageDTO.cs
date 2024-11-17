@@ -10,14 +10,17 @@ internal class MessageDTO
     public int? ChatId { get; set; }
     [JsonPropertyName("from_id")]
     public int? From { get; set; }
-    [JsonPropertyName("date")]
-    public long? Date { get; set; }
-    [JsonPropertyName("content")]
-    public string? Text { get; set; }
     [JsonPropertyName("reply_to")]
     public int? ReplyTo { get; set; }
+    [JsonPropertyName("date")]
+    public long? Date { get; set; }
+    
     [JsonPropertyName("is_unread")]
     public bool? Unread { get; set; }
+    [JsonPropertyName("is_edited")]
+    public bool? Edited { get; set; }
+    [JsonPropertyName("content")]
+    public string? Text { get; set; }
     [JsonPropertyName("media_hashes")]
     public string[]? MediaHashes { get; set; }
 }

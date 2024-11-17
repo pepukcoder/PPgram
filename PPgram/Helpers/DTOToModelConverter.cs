@@ -40,6 +40,7 @@ internal class DTOToModelConverter
             SenderId = messageDTO.From ?? 0,
             Time = messageDTO.Date ?? 0,
             ReplyTo = messageDTO.ReplyTo ?? 0,
+            Edited = messageDTO.Edited ?? false,
             Content = content,
             Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
         };
