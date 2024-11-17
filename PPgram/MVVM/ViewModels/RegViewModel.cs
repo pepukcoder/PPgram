@@ -28,6 +28,9 @@ partial class RegViewModel : ViewModelBase
         // username check request delay timer
         _timer = new() { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += CheckUsername;
+
+        WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) => 
+        ShowUsernameStatus(e.available ? "Username is available" : "Username is already taken", e.available));
     }
     partial void OnPasswordChanged(string value)
     {
@@ -72,7 +75,7 @@ partial class RegViewModel : ViewModelBase
             check = true
         });
     }
-    public void ShowUsernameStatus(string status = "", bool ok = false)
+    private void ShowUsernameStatus(string status = "", bool ok = false)
     {
         UsernameStatus = status;
         UsernameOk = ok;
