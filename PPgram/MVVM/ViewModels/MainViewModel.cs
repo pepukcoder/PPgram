@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Net.DTO;
@@ -38,22 +39,21 @@ partial class MainViewModel : ViewModelBase
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
     private readonly ProfileState profileState = ProfileState.Instance;
-    public MainViewModel() 
+    public MainViewModel()
     {
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
         WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => jsonClient.SearchChats(e.searchQuery));
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) => jsonClient.SendMessage(e.message, e.to));
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
         WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
-        WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) => 
+        WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) =>
         {
             if (e.check) jsonClient.CheckUsername(e.username);
             else jsonClient.RegisterUser(e.username, e.name, e.password);
         });
-        WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) => 
+        WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) =>
         {
             var data = new AuthCredentialsModel
             {
@@ -61,11 +61,11 @@ partial class MainViewModel : ViewModelBase
                 SessionId = e.sessionId
             };
             var options = new JsonSerializerOptions { WriteIndented = true }; // Pretty print the JSON
-            if(!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
+            if (!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             jsonClient.FetchSelf();
         });
-        WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) => 
+        WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) =>
         {
             profileState.UserId = e.profile?.Id ?? 0;
             profileState.Name = e.profile?.Name ?? string.Empty;
@@ -92,7 +92,7 @@ partial class MainViewModel : ViewModelBase
                 {
                     Type = ChatType.Chat,
                     Id = chat.Id ?? 0,
-                    Profile = new() 
+                    Profile = new()
                     {
                         Name = chat.Name ?? "",
                         Username = chat.Username ?? "",
@@ -121,6 +121,25 @@ partial class MainViewModel : ViewModelBase
         {
             if (e.message == null) return;
             chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
+        });
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
+        {
+            string text;
+            if (e.message.Content is ITextContent textContent) text = textContent.Text;
+            else text = "";
+            jsonClient.SendMessage(e.to, e.message.ReplyTo, text);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, (r, e) =>
+        {
+            string text;
+            if (e.newContent is ITextContent textContent) text = textContent.Text;
+            else text = "";
+            jsonClient.EditMessage(e.chat,e.Id, text);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, e) =>
+        {
+            if (e.message == null) return;
+            chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
         // connection
         CurrentPage = login_vm;

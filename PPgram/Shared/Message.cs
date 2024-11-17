@@ -39,6 +39,10 @@ class Msg_EditMessage
     public required int Id;
     public required MessageContentModel newContent;
 }
+class Msg_EditMessageEvent
+{
+    public required MessageDTO? message;
+}
 class Msg_DeleteMessage
 {
     public required int chat;

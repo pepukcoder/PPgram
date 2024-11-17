@@ -3,3 +3,7 @@
 internal abstract class MessageContentModel
 {
 }
+public interface ITextContent
+{
+    string Text { get; }
+}

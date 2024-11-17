@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 
 namespace PPgram.MVVM.Models.MessageContent;
 
-internal class FileContentModel : MessageContentModel
+internal class FileContentModel : MessageContentModel, ITextContent
 {
     public ObservableCollection<FileModel> Files { get; set; } = [];
     public bool Media { get; set; }

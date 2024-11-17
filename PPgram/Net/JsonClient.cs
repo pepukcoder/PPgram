@@ -190,27 +190,14 @@ internal class JsonClient
         };
         Send(data);
     }
-    public void SendMessage(MessageModel message, int chatId)
+    public void SendMessage(int chatId, int? replyTo, string text)
     {
-        string text;
-        if (message.Content is TextContentModel textContent)
-        {
-            text = textContent.Text;
-        }
-        else if (message.Content is FileContentModel fileContent)
-        {
-            text = fileContent.Text;
-        }
-        else
-        {
-            text = "";
-        }
         var data = new
         {
             method = "send_message",
             to = chatId,
-            has_reply = !String.IsNullOrEmpty(message.Reply.Text),
-            reply_to = 0,
+            has_reply = replyTo != null,
+            reply_to = replyTo,
             content = new
             {
                 text = text
@@ -218,7 +205,7 @@ internal class JsonClient
         };
         Send(data);
     }
-    public void EditMessage(int chatId, int messageId)
+    public void EditMessage(int chatId, int messageId, string new_text)
     {
         var data = new
         {
@@ -226,6 +213,7 @@ internal class JsonClient
             what = "message",
             chat_id = chatId,
             message_id = messageId,
+            content = new_text
         };
         Send(data);
     }
@@ -370,6 +358,12 @@ internal class JsonClient
                 if (chatNode == null) return;
                 ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
                 WeakReferenceMessenger.Default.Send(new Msg_NewChat { chat = chatDTO });
+                break;
+            case "edit_message":
+                messageNode = messageNode = rootNode?["new_message"];
+                if (messageNode == null) return;
+                messageDTO = messageNode.Deserialize<MessageDTO>();
+                WeakReferenceMessenger.Default.Send(new Msg_EditMessageEvent { message = messageDTO });
                 break;
         }
     }

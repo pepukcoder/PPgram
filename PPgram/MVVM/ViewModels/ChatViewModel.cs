@@ -174,6 +174,15 @@ partial class ChatViewModel : ViewModelBase
             message.Status = status;
         }
     }
+    public void EditMessage(MessageModel newMessage)
+    {
+        var messages = ChatList.FirstOrDefault(c => c.Id == newMessage.Chat)?.Messages;
+        if (messages == null) return;
+        var originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == newMessage.Id);
+        if (originalMessage == null) return;
+        originalMessage.Edited = true;
+        originalMessage.Content = newMessage.Content;
+    }
     [RelayCommand]
     private void SendMessage()
     {
@@ -196,6 +205,7 @@ partial class ChatViewModel : ViewModelBase
             {
                 Text = MessageInput.Trim(),
             },
+            ReplyTo = null,
             Role = MessageRole.OwnFirst,
             Sender = ProfileState.Name,
             Color = ProfileState.Color,
