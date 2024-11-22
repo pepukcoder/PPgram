@@ -193,7 +193,7 @@
 							<TextBlock Text="{Binding SecondaryInputText}" FontSize="13" DockPanel.Dock="Right"/>
 						</DockPanel>
 					</Border>
-					<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" 
+					<Button x:Name="AttachButton" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" 
 							VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,6">
 						<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24"/>
 					</Button>
