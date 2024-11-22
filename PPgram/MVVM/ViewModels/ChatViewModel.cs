@@ -85,11 +85,9 @@ partial class ChatViewModel : ViewModelBase
         {
             var messages = ChatList.FirstOrDefault(c => c.Id == e.chat)?.Messages;
             if (messages == null) return;
-            Debug.WriteLine(e.chat);
             var originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == e.Id);
             if (originalMessage == null) return;
-            Debug.WriteLine(e.Id);
-            messages.Remove(originalMessage);
+            chainManager.DeleteChain(originalMessage, messages);
         });
     }
     partial void OnMessageListSelectedChanged(ChatItem? value)
@@ -217,7 +215,6 @@ partial class ChatViewModel : ViewModelBase
             },
             ReplyTo = null,
             Role = MessageRole.OwnFirst,
-            Sender = ProfileState.Name,
             Color = ProfileState.Color,
             SenderId = ProfileState.UserId,
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),
@@ -264,7 +261,7 @@ partial class ChatViewModel : ViewModelBase
     {
         if (MessageListSelected != null && MessageListSelected is MessageModel message)
         {
-            MessageList.Remove(MessageListSelected);
+            chainManager.DeleteChain(message, MessageList);
             WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
             {
                 chat = message.Chat,

@@ -44,6 +44,38 @@ internal class MessageChainManager
         SetRole(message, chat);
         SetReply(message, chat);
     }
+    public void DeleteChain(MessageModel message, ObservableCollection<ChatItem> chat)
+    {
+        // possible improvements here
+
+        int currentIndex = chat.IndexOf(message);
+        ChatItem prev = chat[currentIndex - 1];
+
+        if (currentIndex != chat.Count - 1)
+        {
+            ChatItem next = chat[currentIndex + 1];
+            if (next is MessageModel msg)
+            {
+                Debug.WriteLine(msg.Id);
+                chat.Remove(message);
+                SetRole(msg, chat);
+            }
+            else if (prev is DateBadgeModel && next is DateBadgeModel)
+            {
+                chat.Remove(prev);
+                chat.Remove(message);
+            }
+        }
+        else if (prev is DateBadgeModel)
+        {
+            chat.Remove(prev);
+            chat.Remove(message);
+        }
+        else
+        {
+            chat.Remove(message);
+        }
+    }
     private void SetRole(MessageModel message, ObservableCollection<ChatItem> chat)
     {
         int currentIndex = chat.IndexOf(message);
