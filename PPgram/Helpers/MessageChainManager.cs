@@ -1,6 +1,7 @@
 ﻿using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
 using System;
 using System.Collections.ObjectModel;
@@ -27,7 +28,11 @@ internal class MessageChainManager
         foreach (ChatItem item in chain)
         {
             if (item is DateBadgeModel) continue;
-            else if (item is MessageModel message) SetRole(message, chain);
+            else if (item is MessageModel message)
+            {
+                SetRole(message, chain);
+                SetReply(message, chain);
+            }
         }
         return chain;
     }
@@ -36,7 +41,8 @@ internal class MessageChainManager
         var message = chat.OfType<MessageModel>().LastOrDefault();
         if (message == null) return;
         SetBadge(message, chat);
-        SetRole(message, chat); 
+        SetRole(message, chat);
+        SetReply(message, chat);
     }
     private void SetRole(MessageModel message, ObservableCollection<ChatItem> chat)
     {
@@ -81,5 +87,22 @@ internal class MessageChainManager
                 && DateTimeOffset.FromUnixTimeSeconds(message.Time).Date == DateTimeOffset.FromUnixTimeSeconds(prevm.Time).Date) return;
         }
         chat.Insert(currentIndex, new DateBadgeModel() { Date = message.Time });
+    }
+    private void SetReply(MessageModel message, ObservableCollection<ChatItem> chat)
+    {
+        if (message.ReplyTo == 0) return;
+        var replied = chat.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.ReplyTo);
+        if (replied == null) return;
+
+        string text;
+        if (replied.Content is ITextContent content) text = content.Text;
+        else if (replied.Content is FileContentModel) text = "Files";
+        else text = string.Empty;
+
+        message.Reply = new()
+        {
+            Name = replied.Sender.Name,
+            Text = text
+        };
     }
 }
