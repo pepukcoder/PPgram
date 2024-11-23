@@ -1,7 +1,10 @@
+using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
@@ -19,7 +22,12 @@ partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
     private ViewModelBase _currentPage;
-
+    [ObservableProperty]
+    private Dialog? dialog;
+    [ObservableProperty]
+    private bool dialogPanelVisible = false;
+    [ObservableProperty]
+    private VerticalAlignment dialogPosition = VerticalAlignment.Center;
     #region pages
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
@@ -41,9 +49,10 @@ partial class MainViewModel : ViewModelBase
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
+        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, e) => ShowDialog(e.dialog)); 
+        WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, e) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
-        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, options) => ShowDialog(options));
         WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => jsonClient.SearchChats(e.searchQuery));
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
         WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
@@ -183,5 +192,19 @@ partial class MainViewModel : ViewModelBase
         {
             File.Delete(sessionFilePath);
         } 
+    }
+    [RelayCommand]
+    private void ShowDialog(Dialog dialog)
+    {
+        Dialog = dialog;
+        DialogPanelVisible = dialog.backpanel;
+        DialogPosition = dialog.Position;
+    }
+    [RelayCommand]
+    private void CloseDialog()
+    {
+        if (!Dialog?.canSkip == true) return;
+        Dialog = null;
+        DialogPanelVisible = false;
     }
 }

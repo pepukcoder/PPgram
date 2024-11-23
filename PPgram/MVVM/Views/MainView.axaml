@@ -4,7 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
+             xmlns:c="clr-namespace:PPgram.Controls.DialogContent;assembly=PPgram"
+			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
+			 xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
              x:Class="PPgram.MVVM.Views.MainView"
              x:DataType="vm:MainViewModel"
@@ -18,47 +20,25 @@
 	</UserControl.Resources>
 	<Grid x:Name="ContentGrid" Margin="0,0,0,0">
 		<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}" ZIndex="0"/>
-		<Border Background="#000000" Opacity="0.4" ZIndex="1" IsVisible="{Binding DialogText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+		<Border Background="#000000" Opacity="0.4" ZIndex="1" IsVisible="{Binding DialogPanelVisible}">
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="PointerReleased">
 					<InvokeCommandAction Command="{Binding CloseDialogCommand}" CommandParameter="TapClosed"/>
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Border>
-		<Viewbox Stretch="Uniform" StretchDirection="DownOnly" ZIndex="2"
-				 IsVisible="{Binding DialogText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-			<Border Background="{StaticResource Surface}" VerticalAlignment="Center" ZIndex="1"
-					BoxShadow="0 0 10 0 #0c0c0c" Padding="10" CornerRadius="10" HorizontalAlignment="Stretch"
+		<Viewbox Stretch="Uniform" StretchDirection="DownOnly" ZIndex="2" IsVisible="{Binding Dialog,Converter={x:Static ObjectConverters.IsNotNull}}"
+				 VerticalAlignment="{Binding DialogPosition}">
+			<Border Background="{StaticResource Surface}" VerticalAlignment="Center" ZIndex="2"
+					BoxShadow="0 0 10 0 #0c0c0c" Padding="10" CornerRadius="10" HorizontalAlignment="Center"
 					BorderThickness="1" BorderBrush="{StaticResource Panel}" Margin="30">
-
-				<StackPanel Orientation="Vertical">
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,20"
-								IsVisible="{Binding DialogHeader, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-						<icons:MaterialIcon Kind="AlertCircle" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-											IsVisible="{Binding DialogIcon, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"/>
-						<icons:MaterialIcon Kind="CheckCircle" Foreground="LightGreen"	  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-											IsVisible="{Binding DialogIcon, Converter={StaticResource EnumConvert}, ConverterParameter=Check}"/>
-						<icons:MaterialIcon Kind="InfoCircle"  Foreground="SkyBlue"		  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
-											IsVisible="{Binding DialogIcon, Converter={StaticResource EnumConvert}, ConverterParameter=Info}"/>
-
-						<TextBlock Text="{Binding DialogHeader}" MaxWidth="270" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
-								   FontWeight="Bold" FontSize="16"/>
-					</StackPanel>
-					<TextBlock FontSize="14" Text="{Binding DialogText}" HorizontalAlignment="Left"
-							   TextWrapping="Wrap" Width="300"/>
-					<StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Right">
-						<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Right"
-								IsVisible="{Binding DialogDecline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-								Command="{Binding CloseDialogCommand}" CommandParameter="Declined">
-							<TextBlock Text="{Binding DialogDecline}" FontWeight="Medium" HorizontalAlignment="Center"/>
-						</Button>
-						<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Left" Margin="10,0,0,0"
-								IsVisible="{Binding DialogAccept, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-								Command="{Binding CloseDialogCommand}" CommandParameter="Accepted">
-							<TextBlock Text="{Binding DialogAccept}" FontWeight="Medium" HorizontalAlignment="Center"/>
-						</Button>
-					</StackPanel>
-				</StackPanel>
+				<ContentControl x:Name="PART_ContentControl" Content="{Binding Dialog}">
+					<ContentControl.DataTemplates>
+						<DataTemplate DataType="md:AttachFileDialog">
+							<c:AttachFileDialogControl/>
+						</DataTemplate>
+					</ContentControl.DataTemplates>
+				</ContentControl>
 			</Border>
 		</Viewbox>
 	</Grid>

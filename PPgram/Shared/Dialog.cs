@@ -1,27 +1,11 @@
+using Avalonia.Layout;
+using PPgram.MVVM.Models.Dialog;
+
 namespace PPgram.Shared;
 
+class Msg_OpenAttachFiles;
+class Msg_CloseDialog;
 class Msg_ShowDialog
 {
-    public required string text;
-    public string header = string.Empty;
-    public DialogIcons icon;
-    public string accept = "Ok";
-    public string decline = "Cancel";
-}
-class Msg_DialogResult
-{
-    public DialogAction action = DialogAction.Declined;
-}
-public enum DialogAction
-{
-    Declined,
-    Accepted,
-    TapClosed
-}
-public enum DialogIcons
-{
-    None,
-    Error,
-    Check,
-    Info
+    public required Dialog dialog;
 }
