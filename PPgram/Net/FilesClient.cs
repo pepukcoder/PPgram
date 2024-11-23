@@ -29,7 +29,11 @@ internal class FilesClient
             if (!client.ConnectAsync(host, port).Wait(5000)) throw new Exception();
             stream = client.GetStream();
         }
-        catch { Disconnected(); }
+        catch
+        {
+            // DIALOGFIX
+            // notify files client connection failed
+        }
     }
 
     public string? UploadFile(string filePath)
@@ -130,22 +134,6 @@ internal class FilesClient
             }
         }
     }
-    private void Disconnected()
-    {
-        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        {
-            icon = DialogIcons.Error,
-            header = "Connection error",
-            text = "Unable to connect to the server",
-            accept = "Retry",
-            decline = ""
-        });
-        WeakReferenceMessenger.Default.Register<Msg_DialogResult>(this, (r, e) =>
-        {
-            WeakReferenceMessenger.Default.Unregister<Msg_DialogResult>(this);
-            if (e.action == DialogAction.Accepted) Connect(host, port);
-        });
-    }
     private void HandleJsonResponse(string response)
     {
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -157,6 +145,7 @@ internal class FilesClient
         if (ok == false && r_method != null && r_error != null)
         {
             string result = $"Error: {r_error}";
+            /* DIALOGFIX
             WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
             {
                 icon = DialogIcons.Error,
@@ -164,6 +153,7 @@ internal class FilesClient
                 text = result,
                 decline = ""
             });
+            */
             return;
         }
 
@@ -172,13 +162,7 @@ internal class FilesClient
             string? sha256_hash = rootNode?["sha256_hash"]?.GetValue<string>();
             if (sha256_hash != null)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-                {
-                    icon = DialogIcons.Info,
-                    header = "Hash Result!",
-                    text = sha256_hash,
-                    decline = ""
-                });
+
             }
         }
     }

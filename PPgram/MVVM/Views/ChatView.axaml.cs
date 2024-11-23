@@ -1,11 +1,12 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Avalonia.Xaml.Interactions.Custom;
+using CommunityToolkit.Mvvm.Messaging;
+using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.ViewModels;
-using System.Diagnostics;
+using PPgram.Shared;
+using System.Collections.Generic;
 using System.IO;
 
 namespace PPgram.MVVM.Views;
@@ -17,6 +18,7 @@ public partial class ChatView : UserControl
         InitializeComponent();
         MessageHistory.AddHandler(PointerPressedEvent, ShowFlyout, RoutingStrategies.Tunnel);
         AttachButton.AddHandler(PointerPressedEvent, OpenFileDialog, RoutingStrategies.Tunnel);
+        WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog(this, new()));
     }
     private void ShowFlyout(object? sender, PointerPressedEventArgs e)
     {
@@ -33,7 +35,17 @@ public partial class ChatView : UserControl
         });
         if (files.Count >= 1 && this.DataContext is ChatViewModel chatViewModel)
         {
-            // send opened file paths to viewmodel
+            List<FileModel> fileModels = [];
+            foreach (var file in files)
+            {
+                fileModels.Add(new FileModel
+                {
+                    Name = file.Name,
+                    Path = file.Path.AbsolutePath,
+                    Size = new FileInfo(file.Path.AbsolutePath).Length
+                });
+            }
+            chatViewModel.AttachFiles(fileModels);
         }
     }
 }

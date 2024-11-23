@@ -128,6 +128,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Controls\DialogContent\AttachFileDialogControl.axaml.cs">
+      <DependentUpon>AttachFileDialogControl.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Controls\UserEntryControl.axaml.cs">
       <DependentUpon>UserEntryControl.axaml</DependentUpon>
     </Compile>

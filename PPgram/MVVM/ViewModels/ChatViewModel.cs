@@ -1,15 +1,18 @@
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
 using PPgram.Shared;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -19,14 +22,13 @@ namespace PPgram.MVVM.ViewModels;
 partial class ChatViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string chatStatus = "last seen 12:34";
-
-    [ObservableProperty]
     private ObservableCollection<ChatItem> messageList = [];
     [ObservableProperty]
     private ObservableCollection<ChatModel> chatList = [];
     [ObservableProperty]
     private ObservableCollection<ChatModel> searchList = [];
+    [ObservableProperty]
+    private ObservableCollection<FileModel> files = [];
 
     [ObservableProperty]
     private ChatItem? messageListSelected = null;
@@ -37,6 +39,8 @@ partial class ChatViewModel : ViewModelBase
 
     [ObservableProperty]
     private ProfileModel currentProfile = new();
+    [ObservableProperty]
+    private string chatStatus = "last seen 12:34";
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
 
@@ -190,6 +194,21 @@ partial class ChatViewModel : ViewModelBase
         if (originalMessage == null) return;
         originalMessage.Edited = true;
         originalMessage.Content = newMessage.Content;
+    }
+    public void AttachFiles(List<FileModel> files)
+    {
+        //if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
+        if (Files.Count == 0)
+        {
+            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+            {
+                dialog = new AttachFileDialog { Files = Files, canSkip = false }
+            });
+        }
+        foreach (var file in files)
+        {
+            Files.Add(file);
+        }
     }
     [RelayCommand]
     private void SendMessage()

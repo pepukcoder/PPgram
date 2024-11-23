@@ -80,7 +80,7 @@ internal class JsonClient
     }
     private void Disconnect()
     {
-        // show disconnected dialog
+        /* DIALOGFIX
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
         {
             icon = DialogIcons.Error,
@@ -89,6 +89,7 @@ internal class JsonClient
             accept = "Retry",
             decline = ""
         });
+        
         Stop();
         // listen for retry action
         WeakReferenceMessenger.Default.Register<Msg_DialogResult>(this, (r, e) =>
@@ -96,6 +97,7 @@ internal class JsonClient
             WeakReferenceMessenger.Default.Unregister<Msg_DialogResult>(this);
             if (e.action == DialogAction.Accepted) Connect(host, port);
         });
+        */
     }
     private void Stop()
     {
@@ -249,6 +251,7 @@ internal class JsonClient
             #else
                 result = $"Error: {error}";
             #endif
+            /* DIALOGFIX
             WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
             {
                 icon = DialogIcons.Error,
@@ -256,6 +259,7 @@ internal class JsonClient
                 text = result,
                 decline = ""
             });
+            */
             return;
         }
 
