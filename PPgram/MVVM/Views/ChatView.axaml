@@ -198,7 +198,7 @@
 						<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24"/>
 					</Button>
 					<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-							Command="{Binding SendMessageCommand}" Margin="0,0,0,6">
+							Command="{Binding BuildMessageCommand}" Margin="0,0,0,6">
 						<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24" />
 					</Button>
 					<Border Padding="5" Background="{StaticResource Panel}"
@@ -211,7 +211,7 @@
 								TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 								Watermark="Message..." MaxLines="10">
 							<TextBox.KeyBindings>
-								<KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
+								<KeyBinding Gesture="Enter" Command="{Binding BuildMessageCommand}"/>
 							</TextBox.KeyBindings>
 						</TextBox>
 					</Border>

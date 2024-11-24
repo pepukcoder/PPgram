@@ -1,11 +1,13 @@
-﻿using PPgram.MVVM.Models.Message;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using PPgram.MVVM.Models.Message;
 using System.Collections.ObjectModel;
 
 namespace PPgram.MVVM.Models.MessageContent;
 
-internal class FileContentModel : MessageContentModel, ITextContent
+internal partial class FileContentModel : MessageContentModel, ITextContent
 {
     public ObservableCollection<FileModel> Files { get; set; } = [];
     public bool Media { get; set; }
-    public string Text { get; set; } = string.Empty;
+    [ObservableProperty]
+    public string text = string.Empty;
 }

@@ -1,4 +1,3 @@
-using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,7 +13,6 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.MVVM.ViewModels;
@@ -93,6 +91,11 @@ partial class ChatViewModel : ViewModelBase
             if (originalMessage == null) return;
             chainManager.DeleteChain(originalMessage, messages);
         });
+        WeakReferenceMessenger.Default.Register<Msg_SendAttachFiles>(this, (r, e) => 
+        {
+            MessageInput = e.description;
+            BuildMessage();
+        });
     }
     partial void OnMessageListSelectedChanged(ChatItem? value)
     {
@@ -158,6 +161,31 @@ partial class ChatViewModel : ViewModelBase
         _timer.Stop();
         WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
     }
+    private void SendMessage(MessageModel message)
+    {
+        // check if selected sender is valid
+        if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
+        // send message
+        WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
+        {
+            message = message,
+            to = ChatListSelected.Id
+        });
+    }
+    private void SendEditMessage(MessageModel message, MessageContentModel editedContent)
+    {
+        WeakReferenceMessenger.Default.Send(new Msg_EditMessage
+        {
+            chat = message.Chat,
+            Id = message.Id,
+            newContent = editedContent
+        });
+        CloseSecondaryInput();
+    }
+    private void SendAttachmentMessage(MessageModel message)
+    {
+
+    }
     public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
         SearchList = resultList;
@@ -197,7 +225,7 @@ partial class ChatViewModel : ViewModelBase
     }
     public void AttachFiles(List<FileModel> files)
     {
-        //if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
+        if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
         if (Files.Count == 0)
         {
             WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
@@ -211,7 +239,7 @@ partial class ChatViewModel : ViewModelBase
         }
     }
     [RelayCommand]
-    private void SendMessage()
+    private void BuildMessage()
     {
         // move chat from search to chats
         if (inSearch && SearchListSelected != null)
@@ -228,10 +256,6 @@ partial class ChatViewModel : ViewModelBase
         MessageModel message = new()
         {
             Chat = ChatListSelected.Id,
-            Content = new TextContentModel()
-            {
-                Text = MessageInput.Trim(),
-            },
             ReplyTo = null,
             Role = MessageRole.OwnFirst,
             Color = ProfileState.Color,
@@ -246,20 +270,31 @@ partial class ChatViewModel : ViewModelBase
             message.Reply = reply;
             CloseSecondaryInput();
         }
+        // add content
+        if (Files.Count != 0)
+        {
+            message.Content = new FileContentModel { Files = new(Files), Text = MessageInput.Trim() };
+            Files.Clear();
+        }
+        else if (!String.IsNullOrEmpty(MessageInput))
+        {
+            message.Content = new TextContentModel { Text = MessageInput.Trim() };
+        }
+        else return;
         // send edit request if editing
         if (InEdit && MessageListSelected is MessageModel editMessage)
         {
-            // TODO: add editing to media messages too
-            TextContentModel editedContent = new() { Text = MessageInput };
-            editMessage.Content = editedContent;
-            editMessage.Edited = true;
-            WeakReferenceMessenger.Default.Send(new Msg_EditMessage
+            if (editMessage.Content is ITextContent tc)
             {
-                chat = editMessage.Chat,
-                Id = editMessage.Id,
-                newContent = editedContent 
-            });
-            CloseSecondaryInput();
+                if (tc.Text == MessageInput.Trim())
+                {
+                    CloseSecondaryInput();
+                    return;
+                }
+                tc.Text = MessageInput.Trim();
+            }
+            editMessage.Edited = true;
+            SendEditMessage(editMessage, editMessage.Content);
             return;
         }
         // add message to ui
@@ -267,12 +302,6 @@ partial class ChatViewModel : ViewModelBase
         if (messages == null) return;
         messages.Add(message);
         chainManager.AddChain(messages);
-        // send message
-        WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
-        {
-            message = message,
-            to = ChatListSelected.Id
-        });
         MessageInput = "";
     }
     [RelayCommand]
@@ -297,7 +326,7 @@ partial class ChatViewModel : ViewModelBase
             InReply = false;
             InEdit = true;
             SecondaryInputHeader = "Editing message";
-            if (message.Content is TextContentModel textcontent) MessageInput = SecondaryInputText = textcontent.Text;
+            if (message.Content is ITextContent tc) MessageInput = SecondaryInputText = tc.Text;
         }
     }
     [RelayCommand]

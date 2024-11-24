@@ -1,6 +1,9 @@
-﻿namespace PPgram.MVVM.Models.MessageContent;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-internal class TextContentModel : MessageContentModel, ITextContent
+namespace PPgram.MVVM.Models.MessageContent;
+
+internal partial class TextContentModel : MessageContentModel, ITextContent
 {
-    public string Text { get; set; } = string.Empty;
+    [ObservableProperty]
+    public string text = string.Empty;
 }

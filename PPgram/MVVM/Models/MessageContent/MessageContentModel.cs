@@ -1,9 +1,11 @@
-﻿namespace PPgram.MVVM.Models.MessageContent;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-internal abstract class MessageContentModel
+namespace PPgram.MVVM.Models.MessageContent;
+
+internal abstract class MessageContentModel : ObservableObject
 {
 }
 public interface ITextContent
 {
-    string Text { get; }
+    string Text { get; set; }
 }

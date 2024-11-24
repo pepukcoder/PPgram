@@ -46,7 +46,11 @@
 				ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
 				TextWrapping="Wrap" Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-				MaxLines="10" Margin="0,4"/>
+				MaxLines="10" Margin="0,4">
+			<TextBox.KeyBindings>
+				<KeyBinding Gesture="Enter" Command="{Binding SendFilesCommand}"/>
+			</TextBox.KeyBindings>
+		</TextBox>
 		<Border Height="2" Background="{StaticResource PanelLight}"  HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
 		<DockPanel LastChildFill="False">
 			<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" Margin="0,0,10,0" DockPanel.Dock="Left"
