@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="PPgram.Controls.DialogContent.RegularDialogControl"
+			 x:DataType="md:RegularDialog">
+	<UserControl.Resources>
+		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
+	</UserControl.Resources>
+	<StackPanel Orientation="Vertical">
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,20"
+					IsVisible="{Binding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+			<icons:MaterialIcon Kind="AlertCircle" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+								IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"/>
+			<icons:MaterialIcon Kind="CheckCircle" Foreground="LightGreen"	  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+								IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Check}"/>
+			<icons:MaterialIcon Kind="InfoCircle"  Foreground="SkyBlue"		  Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+								IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Info}"/>
+			<icons:MaterialIcon Kind="BellCircle"  Foreground="PaleGoldenrod" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"
+								IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Notify}"/>
+			<TextBlock Text="{Binding Header}" MaxWidth="270" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+					   FontWeight="Bold" FontSize="16"/>
+		</StackPanel>
+		<TextBlock FontSize="14" Text="{Binding Text}" HorizontalAlignment="Left"
+				   TextWrapping="Wrap" Width="300"/>
+		<StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Right">
+			<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" HorizontalAlignment="Right"
+					Command="{Binding CloseDialogCommand}" CommandParameter="Declined">
+				<TextBlock Text="Decline" FontWeight="Medium" HorizontalAlignment="Center"/>
+			</Button>
+			<Button Theme="{StaticResource ButtonRegular}" HorizontalAlignment="Left" Margin="10,0,0,0"
+					Command="{Binding CloseDialogCommand}" CommandParameter="Accepted">
+				<TextBlock Text="Accept" FontWeight="Medium" HorizontalAlignment="Center"/>
+			</Button>
+		</StackPanel>
+	</StackPanel>
+</UserControl>
