@@ -18,6 +18,6 @@
 		</ListBox>
 		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}"
 				 BorderThickness="0" ItemContainerTheme="{StaticResource File}" IsVisible="{Binding !Media}"/>
-		<TextBlock Text="{Binding Text}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+		<TextBlock Text="{Binding Text}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Margin="0,0,10,0" TextWrapping="Wrap"/>
 	</StackPanel>
 </UserControl>
