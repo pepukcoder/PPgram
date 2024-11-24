@@ -7,7 +7,7 @@
              x:Class="PPgram.MVVM.Views.LoginView"
 			 x:DataType="vm:LoginViewModel"
 			 Background="{StaticResource BackgroundWindow}"
-			 FontFamily="{StaticResource Montserrat}"
+			 FontFamily="{StaticResource Roboto}"
 			 FontWeight="Regular"
 			 FontSize="14"
 			 Foreground="{StaticResource PrimaryText}">
@@ -25,7 +25,7 @@
 					BoxShadow="0 8 10 0 #0c0c0c" Padding="20" 
 					BorderThickness="1" BorderBrush="{StaticResource Panel}">
 					<StackPanel Orientation="Vertical">
-						<TextBlock Text="Username" FontWeight="SemiBold" Margin="0,0,0,5"/>
+						<TextBlock Text="Username" FontWeight="Medium" Margin="0,0,0,5"/>
 						<Border Padding="8" Background="{StaticResource Panel}"
 						CornerRadius="10" Margin="0,0,0,10">
 							<DockPanel>
@@ -38,7 +38,7 @@
 										ContextFlyout="{StaticResource RegularFlyout}"/>
 							</DockPanel>
 						</Border>
-						<TextBlock Text="Password" FontWeight="SemiBold" Margin="0,0,0,5"/>
+						<TextBlock Text="Password" FontWeight="Medium" Margin="0,0,0,5"/>
 						<Border Padding="8" Background="{StaticResource Panel}"
 						CornerRadius="10">
 							<DockPanel>
@@ -54,7 +54,7 @@
 							</DockPanel>
 				</Border>
 						<Button Theme="{StaticResource ButtonRegular}" Command="{Binding TryLoginCommand}" Margin="0,20,0,10">
-							<TextBlock Text="Login" FontWeight="SemiBold"
+							<TextBlock Text="Login" FontWeight="Medium"
 										HorizontalAlignment="Center"/>
 						</Button>
 						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding ToRegPageCommand}" HorizontalAlignment="Center" >
