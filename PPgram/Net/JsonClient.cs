@@ -193,7 +193,7 @@ internal class JsonClient
         };
         Send(data);
     }
-    public void SendMessage(int chatId, int? replyTo, string text)
+    public void SendMessage(int chatId, int? replyTo, string text, List<string> hashes)
     {
         var data = new
         {
@@ -201,6 +201,7 @@ internal class JsonClient
             to = chatId,
             has_reply = replyTo != null,
             reply_to = replyTo,
+            media_hashes = hashes.ToArray(),
             content = new
             {
                 text = text

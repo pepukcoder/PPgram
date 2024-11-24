@@ -182,10 +182,6 @@ partial class ChatViewModel : ViewModelBase
         });
         CloseSecondaryInput();
     }
-    private void SendAttachmentMessage(MessageModel message)
-    {
-
-    }
     public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
         SearchList = resultList;
@@ -252,6 +248,23 @@ partial class ChatViewModel : ViewModelBase
         // check if selected sender is valid
         if (ChatListSelected?.Id == 0 || ChatListSelected == null) return;
 
+        // send edit request if editing
+        if (InEdit && MessageListSelected is MessageModel editMessage)
+        {
+            if (editMessage.Content is ITextContent tc)
+            {
+                if (tc.Text == MessageInput.Trim())
+                {
+                    CloseSecondaryInput();
+                    return;
+                }
+                tc.Text = MessageInput.Trim();
+            }
+            editMessage.Edited = true;
+            SendEditMessage(editMessage, editMessage.Content);
+            return;
+        }
+
         // create message
         MessageModel message = new()
         {
@@ -270,33 +283,25 @@ partial class ChatViewModel : ViewModelBase
             message.Reply = reply;
             CloseSecondaryInput();
         }
-        // add content
+        // add content & send
         if (Files.Count != 0)
         {
-            message.Content = new FileContentModel { Files = new(Files), Text = MessageInput.Trim() };
+            var content = new FileContentModel { Files = new(Files), Text = MessageInput.Trim() };
+            message.Content = content;
             Files.Clear();
+            WeakReferenceMessenger.Default.Send(new Msg_UploadFiles { files = content.Files });
+            WeakReferenceMessenger.Default.Register<Msg_UploadFilesResult>(this, (r, e) =>
+            {
+                if (e.ok) SendMessage(message);
+                else message.Status = MessageStatus.Error;
+            });
         }
         else if (!String.IsNullOrEmpty(MessageInput))
         {
             message.Content = new TextContentModel { Text = MessageInput.Trim() };
+            SendMessage(message);
         }
         else return;
-        // send edit request if editing
-        if (InEdit && MessageListSelected is MessageModel editMessage)
-        {
-            if (editMessage.Content is ITextContent tc)
-            {
-                if (tc.Text == MessageInput.Trim())
-                {
-                    CloseSecondaryInput();
-                    return;
-                }
-                tc.Text = MessageInput.Trim();
-            }
-            editMessage.Edited = true;
-            SendEditMessage(editMessage, editMessage.Content);
-            return;
-        }
         // add message to ui
         var messages = ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages;
         if (messages == null) return;

@@ -12,9 +12,13 @@ using PPgram.Net;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -57,6 +61,11 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
         WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
+        WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
+        {
+            Thread thread = new(() => UploadFiles(e.files)) { IsBackground = true };
+            thread.Start();
+        });
         WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) =>
         {
             if (e.check) jsonClient.CheckUsername(e.username);
@@ -134,9 +143,18 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
         {
             string text;
-            if (e.message.Content is ITextContent textContent) text = textContent.Text;
+            List<string> hashes = [];
+            if (e.message.Content is ITextContent tc) text = tc.Text;
             else text = "";
-            jsonClient.SendMessage(e.to, e.message.ReplyTo, text);
+
+            if (e.message.Content is FileContentModel fc)
+            {
+                foreach (FileModel file in fc.Files)
+                {
+                    if (file.Hash != null) hashes.Add(file.Hash);
+                }
+            }
+            jsonClient.SendMessage(e.to, e.message.ReplyTo, text, hashes);
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, (r, e) =>
         {
@@ -192,6 +210,22 @@ partial class MainViewModel : ViewModelBase
         {
             File.Delete(sessionFilePath);
         } 
+    }
+    private void UploadFiles(ObservableCollection<FileModel> files)
+    {
+        try
+        {
+            foreach (FileModel file in files)
+            {
+                file.Hash = filesClient.UploadFile(file.Path);
+            }
+            WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
+        }
+        catch 
+        {
+            WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
+        }
+
     }
     [RelayCommand]
     private void ShowDialog(Dialog dialog)

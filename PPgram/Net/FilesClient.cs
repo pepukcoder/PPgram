@@ -160,10 +160,8 @@ internal class FilesClient
         if (r_method == "upload_file")
         {
             string? sha256_hash = rootNode?["sha256_hash"]?.GetValue<string>();
-            if (sha256_hash != null)
-            {
-
-            }
+            if (sha256_hash == null) return;
+            Debug.WriteLine(sha256_hash);
         }
     }
 }
