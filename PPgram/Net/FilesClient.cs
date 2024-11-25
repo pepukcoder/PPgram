@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.Messaging;
+using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
 using PPgram.Net;
 using PPgram.Shared;
@@ -13,7 +14,7 @@ internal class FilesClient
 {
     private string host = string.Empty;
     private int port;
-    private readonly TcpClient client = new();
+    private TcpClient? client;
     private NetworkStream? stream;
 
     // Controls suspension and resumption of the Listen method
@@ -26,16 +27,26 @@ internal class FilesClient
         port = remotePort;
         try
         {
-            if (!client.ConnectAsync(host, port).Wait(5000)) throw new Exception();
+            if (client != null) return;
+            client = new();
+            if (!client.ConnectAsync(host, port).Wait(5000)) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
         }
-        catch
-        {
-            // DIALOGFIX
-            // notify files client connection failed
-        }
+        catch { Disconnect(); }
     }
-
+    private void Disconnect()
+    {
+        client?.Client.Disconnect(false);
+        client = null;
+        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
+        { 
+            dialog = new ConnectionDialog
+            {
+                Position = Avalonia.Layout.VerticalAlignment.Bottom,
+                canSkip = false
+            }
+        });
+    }
     public string? UploadFile(string filePath)
     {
         uint fileBytesSent = 0;
@@ -156,7 +167,6 @@ internal class FilesClient
             */
             return;
         }
-
         if (r_method == "upload_file")
         {
             string? sha256_hash = rootNode?["sha256_hash"]?.GetValue<string>();

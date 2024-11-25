@@ -40,6 +40,9 @@
 						<DataTemplate DataType="md:RegularDialog">
 							<c:RegularDialogControl/>
 						</DataTemplate>
+						<DataTemplate DataType="md:ConnectionDialog">
+							<c:ConnectionDialogControl/>
+						</DataTemplate>
 					</ContentControl.DataTemplates>
 				</ContentControl>
 			</Border>

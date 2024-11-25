@@ -12,6 +12,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Text;
 using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Dialog;
+using System.Net.Http;
 
 namespace PPgram.Net;
 
@@ -19,7 +21,7 @@ internal class JsonClient
 {
     private string host = string.Empty;
     private int port;
-    private readonly TcpClient client = new();
+    private TcpClient? client;
     private NetworkStream? stream;
     public void Connect(string remoteHost, int remotePort)
     {
@@ -27,6 +29,8 @@ internal class JsonClient
         port = remotePort;
         try
         {
+            if (client != null) return;
+            client = new();
             if (!client.ConnectAsync(host, port).Wait(5000)) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
 
@@ -41,7 +45,7 @@ internal class JsonClient
         List<byte> response_chunks = [];
         int expected_size = 0;
         bool isFirst = true;
-        while (true)
+        while (client != null)
         {
             try
             {
@@ -78,31 +82,18 @@ internal class JsonClient
             catch { Disconnect(); }
         }
     }
-    private void Disconnect()
+    public void Disconnect()
     {
-        /* DIALOGFIX
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        {
-            icon = DialogIcons.Error,
-            header = "Connection error",
-            text = "Unable to connect to the server",
-            accept = "Retry",
-            decline = ""
+        { 
+            dialog = new ConnectionDialog
+            {
+                Position = Avalonia.Layout.VerticalAlignment.Bottom,
+                canSkip = false
+            }
         });
-        
-        Stop();
-        // listen for retry action
-        WeakReferenceMessenger.Default.Register<Msg_DialogResult>(this, (r, e) =>
-        {
-            WeakReferenceMessenger.Default.Unregister<Msg_DialogResult>(this);
-            if (e.action == DialogAction.Accepted) Connect(host, port);
-        });
-        */
-    }
-    private void Stop()
-    {
-        stream?.Dispose();
-        client.Close();
+        client?.Client.Disconnect(false);
+        client = null;
     }
     private void Send(object data)
     {

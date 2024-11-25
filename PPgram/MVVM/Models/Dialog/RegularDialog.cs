@@ -22,7 +22,7 @@ internal partial class RegularDialog : Dialog
     private void CloseDialog()
     {
         WeakReferenceMessenger.Default.Send(new Msg_CloseDialog());
-        WeakReferenceMessenger.Default.Send(new Msg_RegularDialogResult { action = "cancel" });
+        WeakReferenceMessenger.Default.Send(new Msg_RegularDialogResult { action = "" });
     }
 }
 public enum DialogIcons

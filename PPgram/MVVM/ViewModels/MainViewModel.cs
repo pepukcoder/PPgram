@@ -57,6 +57,7 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, e) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
+        WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, (r,e) => ConnectToServer());
         WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => jsonClient.SearchChats(e.searchQuery));
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
         WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
@@ -168,9 +169,10 @@ partial class MainViewModel : ViewModelBase
             if (e.message == null) return;
             chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
+        
         // connection
         CurrentPage = login_vm;
-        ConnectToServer();   
+        ConnectToServer();
     }
     private static void CreateFile(string path, string data)
     {
