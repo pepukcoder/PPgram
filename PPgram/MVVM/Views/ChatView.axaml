@@ -7,6 +7,7 @@
 			 xmlns:bh="clr-namespace:PPgram.Behaviours;assembly=PPgram"
 			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
 			 xmlns:mchat="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
+			 xmlns:mmed="clr-namespace:PPgram.MVVM.Models.Media;assembly=PPgram"
 			 xmlns:mitem="clr-namespace:PPgram.MVVM.Models.Item;assembly=PPgram"
 			 xmlns:mmsg="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -250,5 +251,13 @@
 				</StackPanel>
 			</Border>
 		</Grid>
+		<ContentControl Grid.ColumnSpan="5" Content="{Binding MediaPreviewer}" ZIndex="2"
+						IsVisible="{Binding MediaPreviewer.Visible}">
+			<ContentControl.DataTemplates>
+				<DataTemplate DataType="mmed:MediaPreviewer">
+					<c:MediaPreviewerControl/>
+				</DataTemplate>
+			</ContentControl.DataTemplates>
+		</ContentControl>
 	</Grid>
 </UserControl>

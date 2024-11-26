@@ -6,6 +6,7 @@ using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Item;
+using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
@@ -70,6 +71,9 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private bool canDelete;
 
+    [ObservableProperty]
+    private MediaPreviewer mediaPreviewer = new();
+
     private readonly DispatcherTimer _timer;
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
@@ -78,6 +82,7 @@ partial class ChatViewModel : ViewModelBase
     public ChatViewModel()
     {
         RightGridVisible = false;
+        MediaPreviewer.Visible = true;
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
