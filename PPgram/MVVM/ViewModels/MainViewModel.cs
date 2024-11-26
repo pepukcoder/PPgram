@@ -36,6 +36,7 @@ partial class MainViewModel : ViewModelBase
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
     private readonly ChatViewModel chat_vm = new();
+    private readonly ProfileViewModel profile_vm = new();
     #endregion
     #region path
     // folders

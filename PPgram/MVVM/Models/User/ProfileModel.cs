@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
 namespace PPgram.MVVM.Models.User;
@@ -7,10 +8,14 @@ namespace PPgram.MVVM.Models.User;
 /// <summary>
 /// Repsenets properties of any profile that can be shown in UI
 /// </summary>
-internal class ProfileModel
+internal partial class ProfileModel : ObservableObject
 {
-    public string Name { get; set; } = string.Empty;
-    public string Username { get; set; } = string.Empty;
-    public Bitmap Avatar { get; set; } = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
-    public int Color { get; set; }
+    [ObservableProperty]
+    private string name = string.Empty;
+    [ObservableProperty]
+    private string username= string.Empty;
+    [ObservableProperty]
+    private Bitmap avatar = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
+    [ObservableProperty]
+    private int color;
 }

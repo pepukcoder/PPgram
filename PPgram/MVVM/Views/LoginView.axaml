@@ -22,7 +22,7 @@
 						FontSize="24" FontWeight="Bold" 
 						HorizontalAlignment="Center" Margin="0,10,0,20"/>
 				<Border Background="{StaticResource Surface}"  CornerRadius="20"
-					BoxShadow="0 8 10 0 #0c0c0c" Padding="20" 
+					BoxShadow="0 6 10 0 #0c0c0c" Padding="20" 
 					BorderThickness="1" BorderBrush="{StaticResource Panel}">
 					<StackPanel Orientation="Vertical">
 						<TextBlock Text="Username" FontWeight="Medium" Margin="0,0,0,5"/>

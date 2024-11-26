@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using PPgram.MVVM.Models.User;
 
 namespace PPgram.MVVM.ViewModels;
 
-partial class ProfileViewModel : ViewModelBase
+internal partial class ProfileViewModel : ViewModelBase
 {
-
+    [ObservableProperty]
+    private ProfileState profile = ProfileState.Instance;
+    public ProfileViewModel()
+    {
+        profile.Color = 4;
+    }
 }

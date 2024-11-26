@@ -11,7 +11,14 @@
 	<Design.DataContext>
 		<vm:ProfileViewModel/>
 	</Design.DataContext>
-	<Grid>
-		<TextBlock Text="Profile view" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+	<UserControl.Resources>
+		<helpers:UserColorConverter x:Key="ColorC"/>
+	</UserControl.Resources>
+	<Grid Background="{Binding Profile.Color, Converter={StaticResource ColorC}}">
+		<Border Background="{StaticResource Surface}" BorderThickness="1" BorderBrush="{StaticResource Panel}"
+				CornerRadius="20" Padding="10" VerticalAlignment="Center" HorizontalAlignment="Center"
+				BoxShadow="0 6 10 0 #1c1c1c">
+			<TextBlock Text="Profile Page" Margin="20"/>
+		</Border>
 	</Grid>
 </UserControl>
