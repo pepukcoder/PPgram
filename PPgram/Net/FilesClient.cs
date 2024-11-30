@@ -36,7 +36,7 @@ internal class FilesClient
     }
     private void Disconnect()
     {
-        client?.Client.Disconnect(false);
+        if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
         { 

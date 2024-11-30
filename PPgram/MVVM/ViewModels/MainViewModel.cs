@@ -172,7 +172,7 @@ partial class MainViewModel : ViewModelBase
         });
         
         // connection
-        CurrentPage = login_vm;
+        CurrentPage = chat_vm;
         ConnectToServer();
     }
     private static void CreateFile(string path, string data)

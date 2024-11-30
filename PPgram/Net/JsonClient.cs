@@ -92,7 +92,7 @@ internal class JsonClient
                 canSkip = false
             }
         });
-        client?.Client.Disconnect(false);
+        if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
     }
     private void Send(object data)
