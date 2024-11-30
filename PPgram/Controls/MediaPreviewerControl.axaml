@@ -4,12 +4,68 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:md="clr-namespace:PPgram.MVVM.Models.Media;assembly=PPgram"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="PPgram.Controls.MediaPreviewerControl"
              x:DataType="md:MediaPreviewer">
-    <Grid RowDefinitions="*,Auto" Background="Black">
-        <Viewbox Stretch="Uniform">
-            
-        </Viewbox>
-    </Grid>
+	<Panel Background="{StaticResource Surface}">
+		<paz:ZoomBorder x:Name="Zoom" Stretch="None" EnableGestureTranslation="True" EnableGestureZoom="True" PanButton="Left"
+						MinZoomX="0.2" MinZoomY="0.2">
+			<Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+				<Image Source="/Assets/image_broken.png"/>
+			</Viewbox>
+		</paz:ZoomBorder>
+		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+				Command="{Binding CloseCommand}" IsVisible="{Binding !Fullscreen}">
+				<icons:MaterialIcon Kind="Close" Height="24" Width="24"/>
+			</Button>
+		<StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsVisible="{Binding !Fullscreen}">
+			<TextBlock Text="File 1 of 1000" FontWeight="Medium"/>
+			<TextBlock Text="Pepuk at 22:13" FontWeight="Light"/>
+		</StackPanel>
+		<StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="10" Width="400">
+			<Border Background="{StaticResource BackgroundSemi}"  Padding="10" CornerRadius="10" HorizontalAlignment="Center">
+				<TextBlock Text="" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxLines="5"/>
+			</Border>
+			<Border Background="{StaticResource BackgroundSemi}"  Padding="10" CornerRadius="10" Margin="0,10,0,0" IsVisible="{Binding VideoControlVisible}">
+				<DockPanel>
+					<Grid ColumnDefinitions="*, *, *" DockPanel.Dock="Top" Margin="0,0,0,5">
+						<DockPanel>
+							<icons:MaterialIcon Kind="VolumeHigh" Foreground="{StaticResource ButtonIdle}" Width="18" Height="18"/>
+							<Border CornerRadius="3" Height="6" ClipToBounds="True" Margin="5,0,0,0">
+								<Panel>
+									<ProgressBar Theme="{StaticResource Progress}" Value="{Binding #VolumeSlider.Value}" Minimum="0" Maximum="100"/>
+									<Slider x:Name="VolumeSlider" Theme="{StaticResource Slider}" Value="{Binding Volume, Mode=TwoWay}" Orientation="Horizontal" Cursor="Hand"/>
+								</Panel>
+							</Border>
+						</DockPanel>
+						<ToggleButton x:Name="Pause" Grid.Column="1" Theme="{StaticResource ButtonToggle}" HorizontalAlignment="Center"
+									  IsChecked="{Binding Paused}">
+							<StackPanel>
+								<icons:MaterialIcon Kind="Pause" Width="24" Height="24" IsVisible="{Binding !#Pause.IsChecked}"/>
+								<icons:MaterialIcon Kind="Play" Width="24" Height="24" IsVisible="{Binding #Pause.IsChecked}"/>
+							</StackPanel>
+						</ToggleButton>
+						<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+							<ToggleButton x:Name="Fullscreen" Grid.Column="1" Theme="{StaticResource ButtonToggle}" HorizontalAlignment="Center"
+										  IsChecked="{Binding Fullscreen}">
+								<StackPanel>
+									<icons:MaterialIcon Kind="Fullscreen" Width="24" Height="24" IsVisible="{Binding !#Fullscreen.IsChecked}"/>
+									<icons:MaterialIcon Kind="FullscreenExit" Width="24" Height="24" IsVisible="{Binding #Fullscreen.IsChecked}"/>
+								</StackPanel>
+							</ToggleButton>
+						</StackPanel>
+					</Grid>
+					<TextBlock Text="00:00" DockPanel.Dock="Left" FontFamily="{StaticResource Mono}"/>
+					<TextBlock Text="10:10" DockPanel.Dock="Right" FontFamily="{StaticResource Mono}"/>
+					<Border CornerRadius="3" Height="6" ClipToBounds="True" Margin="5,0">
+						<Panel>
+							<ProgressBar Theme="{StaticResource Progress}" Value="{Binding #TimeSlider.Value}"/>
+							<Slider x:Name="TimeSlider" Theme="{StaticResource Slider}" Orientation="Horizontal" Cursor="Hand"/>
+						</Panel>
+					</Border>				
+				</DockPanel>
+			</Border>
+		</StackPanel>
+    </Panel>  
 </UserControl>

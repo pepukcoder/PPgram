@@ -29,6 +29,7 @@
 				<ResourceInclude Source="/Styles/SearchEntry.axaml"/>
 				<ResourceInclude Source="/Styles/Flyout.axaml"/>
 				<ResourceInclude Source="/Styles/ScrollBar.axaml"/>
+				<ResourceInclude Source="/Styles/Slider.axaml"/>
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>

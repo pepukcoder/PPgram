@@ -1,0 +1,154 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:converters="using:Avalonia.Controls.Converters">
+	<Design.PreviewWith>
+		<Border Padding="20">
+			<Border Height="6" CornerRadius="3" ClipToBounds="True">
+				<Panel>
+					<ProgressBar Theme="{StaticResource Progress}" Width="100" Height="6" Value="{Binding #SSlider.Value}"/>
+					<Slider x:Name="SSlider" Theme="{StaticResource Slider}" Width="100" Height="6" Value="100"/>
+				</Panel>
+			</Border>
+		</Border>
+	</Design.PreviewWith>
+	<ControlTheme x:Key="Slider"
+				  TargetType="Slider">
+		<Style Selector="^:horizontal">
+			<Setter Property="MinWidth" Value="10"/>
+			<Setter Property="MinHeight" Value="10"/>
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Grid Name="grid">
+						<Track Name="PART_Track"
+							   IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+							   Orientation="Horizontal">
+							<Track.DecreaseButton>
+								<RepeatButton Name="PART_DecreaseButton"
+											  Theme="{StaticResource SliderRepeatTrackTheme}" />
+							</Track.DecreaseButton>
+							<Track.IncreaseButton>
+								<RepeatButton Name="PART_IncreaseButton"
+											  Theme="{StaticResource SliderRepeatTrackTheme}" />
+							</Track.IncreaseButton>
+							<Thumb Name="thumb"/>
+						</Track>
+					</Grid>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+		<Style Selector="^:vertical">
+			<Setter Property="MinHeight" Value="10" />
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto"
+											  MinWidth="26" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<Border Name="TrackBackground"
+								Grid.Column="1"
+								Width="4"
+								HorizontalAlignment="Center" />
+						<Track Name="PART_Track"
+							   Grid.Column="1"
+							   IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+							   Orientation="Vertical">
+							<Track.DecreaseButton>
+								<RepeatButton Name="PART_DecreaseButton"
+											  Theme="{StaticResource SliderRepeatTrackTheme}" />
+							</Track.DecreaseButton>
+							<Track.IncreaseButton>
+								<RepeatButton Name="PART_IncreaseButton"
+											  Theme="{StaticResource SliderRepeatTrackTheme}" />
+							</Track.IncreaseButton>
+							<Thumb Name="thumb"/>
+						</Track>
+					</Grid>
+				</ControlTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector="^ /template/ Track#PART_Track">
+			<Setter Property="Minimum" Value="{TemplateBinding Minimum}" />
+			<Setter Property="Maximum" Value="{TemplateBinding Maximum}" />
+			<Setter Property="Value" Value="{TemplateBinding Value, Mode=TwoWay}" />
+		</Style>
+		<Style Selector="^ /template/ Border#TrackBackground">
+			<Setter Property="BorderThickness" Value="2" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
+		</Style>
+		<Style Selector="^ /template/ TickBar">
+			<Setter Property="Ticks" Value="{TemplateBinding Ticks}" />
+		</Style>
+		<Style Selector="^:disabled /template/ Grid#grid">
+			<Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}" />
+		</Style>
+	</ControlTheme>
+
+	<ControlTheme x:Key="Progress"
+					TargetType="ProgressBar">
+		<Setter Property="Background" Value="{StaticResource SurfaceLight}" />
+		<Setter Property="Foreground" Value="{StaticResource PPgramAccent}" />
+		<Setter Property="Template">
+			<ControlTemplate TargetType="ProgressBar">
+				<Grid>
+					<Border Background="{TemplateBinding Background}"
+							BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="{TemplateBinding BorderThickness}"
+							CornerRadius="{TemplateBinding CornerRadius}">
+						<Panel>
+							<Border Name="PART_Indicator"
+									Background="{TemplateBinding Foreground}"
+									IsVisible="{Binding !IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}" />
+							<Border Name="PART_IndeterminateIndicator"
+									Background="{TemplateBinding Foreground}"
+									IsVisible="{Binding IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}" />
+						</Panel>
+					</Border>
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+
+		<Style Selector="^:horizontal /template/ Border#PART_Indicator">
+			<Setter Property="HorizontalAlignment" Value="Left" />
+			<Setter Property="VerticalAlignment" Value="Stretch" />
+		</Style>
+		<Style Selector="^:vertical /template/ Border#PART_Indicator">
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="VerticalAlignment" Value="Bottom" />
+		</Style>
+
+		<Style Selector="^:horizontal:indeterminate /template/ Border#PART_IndeterminateIndicator">
+			<Style.Animations>
+				<Animation Easing="LinearEasing"
+							IterationCount="Infinite"
+							Duration="0:0:3">
+					<KeyFrame Cue="0%">
+						<Setter Property="TranslateTransform.X" Value="{Binding $parent[ProgressBar].TemplateSettings.IndeterminateStartingOffset}" />
+					</KeyFrame>
+					<KeyFrame Cue="100%">
+						<Setter Property="TranslateTransform.X" Value="{Binding $parent[ProgressBar].TemplateSettings.IndeterminateEndingOffset}" />
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+			<Setter Property="Width" Value="{Binding TemplateSettings.ContainerWidth, RelativeSource={RelativeSource TemplatedParent}}" />
+		</Style>
+		<Style Selector="^:vertical:indeterminate /template/ Border#PART_IndeterminateIndicator">
+			<Style.Animations>
+				<Animation Easing="LinearEasing"
+							IterationCount="Infinite"
+							Duration="0:0:3">
+					<KeyFrame Cue="0%">
+						<Setter Property="TranslateTransform.Y" Value="{Binding $parent[ProgressBar].TemplateSettings.IndeterminateStartingOffset}" />
+					</KeyFrame>
+					<KeyFrame Cue="100%">
+						<Setter Property="TranslateTransform.Y" Value="{Binding $parent[ProgressBar].TemplateSettings.IndeterminateEndingOffset}" />
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+			<Setter Property="Height" Value="{Binding TemplateSettings.ContainerWidth, RelativeSource={RelativeSource TemplatedParent}}" />
+		</Style>
+	</ControlTheme>
+</ResourceDictionary>

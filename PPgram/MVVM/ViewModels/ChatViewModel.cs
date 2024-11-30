@@ -83,6 +83,7 @@ partial class ChatViewModel : ViewModelBase
     {
         RightGridVisible = false;
         MediaPreviewer.Visible = true;
+        MediaPreviewer.VideoControlVisible = true;
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
