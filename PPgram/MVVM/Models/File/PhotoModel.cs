@@ -7,4 +7,6 @@ internal partial class PhotoModel : FileModel
 {
     [ObservableProperty]
     private Bitmap? preview;
+    [ObservableProperty]
+    private bool compress;
 }

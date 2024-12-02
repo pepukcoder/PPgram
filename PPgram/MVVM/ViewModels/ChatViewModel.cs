@@ -303,6 +303,7 @@ partial class ChatViewModel : ViewModelBase
             WeakReferenceMessenger.Default.Send(new Msg_UploadFiles { files = content.Files });
             WeakReferenceMessenger.Default.Register<Msg_UploadFilesResult>(this, (r, e) =>
             {
+                WeakReferenceMessenger.Default.Unregister<Msg_UploadFilesResult>(this);
                 if (e.ok) SendMessage(message);
                 else message.Status = MessageStatus.Error;
             });

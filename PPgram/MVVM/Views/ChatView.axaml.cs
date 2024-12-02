@@ -1,12 +1,16 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.MVVM.Models.File;
 using PPgram.MVVM.ViewModels;
 using PPgram.Shared;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace PPgram.MVVM.Views;
@@ -38,13 +42,42 @@ public partial class ChatView : UserControl
             List<FileModel> fileModels = [];
             foreach (IStorageFile file in files)
             {
-                // TODO: Add format check to assign proper models
-                fileModels.Add(new FileModel
+                string[] parts = file.Name.Split('.');
+                // check extension
+                switch (parts[^1].ToLower().Trim())
                 {
-                    Name = file.Name,
-                    Path = file.Path.AbsolutePath,
-                    Size = new FileInfo(file.Path.AbsolutePath).Length
-                });
+                    // TODO: Add more supported extensions
+                    case "mp4":
+                        fileModels.Add(new VideoModel
+                        {
+                            Name = file.Name,
+                            Path = file.Path.AbsolutePath,
+                            Size = new FileInfo(file.Path.AbsolutePath).Length,
+                            Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/image_broken.png", UriKind.Absolute)))
+                        });
+                        break;
+                    case "jpeg":
+                    case "jpg":
+                    case "png":
+                        // handle photos
+                        fileModels.Add(new PhotoModel
+                        {
+                            Name = file.Name,
+                            Path = file.Path.AbsolutePath,
+                            Size = new FileInfo(file.Path.AbsolutePath).Length,
+                            Preview = new Bitmap(file.Path.AbsolutePath).CreateScaledBitmap(new(45,45), BitmapInterpolationMode.LowQuality)
+                        });
+                        break;
+                    default:
+                        // handle files
+                        fileModels.Add(new FileModel
+                        {
+                            Name = file.Name,
+                            Path = file.Path.AbsolutePath,
+                            Size = new FileInfo(file.Path.AbsolutePath).Length
+                        });
+                        break;
+                }
             }
             chatViewModel.AttachFiles(fileModels);
         }

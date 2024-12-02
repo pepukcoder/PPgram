@@ -15,15 +15,11 @@
 	<StackPanel Orientation="Vertical" MinWidth="300">
 		<TextBlock Text="Send files" FontSize="16" FontWeight="Medium"/>
 		<ListBox BorderThickness="0" Padding="0" Background="Transparent" Margin="0,10,0,10" ItemsSource="{Binding Files}">
-			<ListBox.ItemTemplate>
-				<DataTemplate DataType="m:FileModel">
+			<ListBox.DataTemplates>
+				<DataTemplate DataType="m:PhotoModel">
 					<DockPanel Margin="0,2">
-						<Panel Margin="0,0,10,0" DockPanel.Dock="Left">
-							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
-							<icons:MaterialIcon Kind="File" Height="25" Width="25"/>
-						</Panel>
 						<Border Margin="0,0,10,0" CornerRadius="5" ClipToBounds="True" DockPanel.Dock="Left">
-							<Image Width="45" Height="45"/>
+							<Image Width="45" Height="45" Source="{Binding Preview}"/>
 						</Border>
 						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
 								Command="{Binding $parent[ListBox].((md:AttachFileDialog)DataContext).RemoveFileCommand}"
@@ -36,7 +32,24 @@
 						</StackPanel>
 					</DockPanel>
 				</DataTemplate>
-			</ListBox.ItemTemplate>
+				<DataTemplate DataType="m:FileModel">
+					<DockPanel Margin="0,2">
+						<Panel Margin="0,0,10,0" DockPanel.Dock="Left">
+							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
+							<icons:MaterialIcon Kind="File" Height="25" Width="25"/>
+						</Panel>
+						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
+								Command="{Binding $parent[ListBox].((md:AttachFileDialog)DataContext).RemoveFileCommand}"
+								CommandParameter="{Binding .}">
+							<icons:MaterialIcon Kind="Delete" Height="20" Width="20"/>
+						</Button>
+						<StackPanel VerticalAlignment="Center">
+							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
+							<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}"/>
+						</StackPanel>
+					</DockPanel>
+				</DataTemplate>
+			</ListBox.DataTemplates>
 		</ListBox>
 		<TextBlock Text="Description" Foreground="{StaticResource SecondaryText}"/>
 		<Border CornerRadius="10" Padding="5" Background="{StaticResource Panel}"  HorizontalAlignment="Stretch" Margin="0,5,0,10">
