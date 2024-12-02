@@ -16,9 +16,17 @@
 			</Viewbox>
 		</paz:ZoomBorder>
 		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
-				Command="{Binding CloseCommand}" IsVisible="{Binding !Fullscreen}">
-				<icons:MaterialIcon Kind="Close" Height="24" Width="24"/>
-			</Button>
+				Command="{Binding CloseCommand}" HotKey="13" IsVisible="{Binding !Fullscreen}">
+			<icons:MaterialIcon Kind="Close" Height="24" Width="24"/>
+		</Button>
+		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10"
+				Command="{Binding MovePreviousCommand}" HotKey="23" IsVisible="{Binding !Fullscreen}">
+			<icons:MaterialIcon Kind="ArrowLeft" Height="24" Width="24"/>
+		</Button>		
+		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
+				Command="{Binding MoveNextCommand}" HotKey="25" IsVisible="{Binding !Fullscreen}">
+			<icons:MaterialIcon Kind="ArrowRight" Height="24" Width="24"/>
+		</Button>
 		<StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsVisible="{Binding !Fullscreen}">
 			<TextBlock Text="File 1 of 1000" FontWeight="Medium"/>
 			<TextBlock Text="Pepuk at 22:13" FontWeight="Light"/>
@@ -67,5 +75,6 @@
 				</DockPanel>
 			</Border>
 		</StackPanel>
-    </Panel>  
+    </Panel>
+	
 </UserControl>
