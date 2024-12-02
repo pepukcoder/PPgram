@@ -24,8 +24,15 @@
 						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
 								Command="{Binding $parent[ListBox].((md:AttachFileDialog)DataContext).RemoveFileCommand}"
 								CommandParameter="{Binding .}">
-							<icons:MaterialIcon Kind="Delete" Height="20" Width="20"/>
+							<icons:MaterialIcon Kind="Delete" Height="24" Width="24"/>
 						</Button>
+						<ToggleButton x:Name="Compress" Theme="{StaticResource ButtonToggle}" Margin="0,0,10,0" HorizontalAlignment="Right" DockPanel.Dock="Right"
+									  IsChecked="{Binding Compress}">
+							<Panel>
+								<icons:MaterialIcon Kind="ImageSizeSelectActual" Height="24" Width="24" IsVisible="{Binding !#Compress.IsChecked}"/>
+								<icons:MaterialIcon Kind="ImageSizeSelectLarge" Height="24" Width="24" IsVisible="{Binding #Compress.IsChecked}"/>
+							</Panel>
+						</ToggleButton>
 						<StackPanel VerticalAlignment="Center">
 							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
 							<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}"/>
@@ -36,12 +43,12 @@
 					<DockPanel Margin="0,2">
 						<Panel Margin="0,0,10,0" DockPanel.Dock="Left">
 							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
-							<icons:MaterialIcon Kind="File" Height="25" Width="25"/>
+							<icons:MaterialIcon Kind="Note" Height="25" Width="25"/>
 						</Panel>
 						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
 								Command="{Binding $parent[ListBox].((md:AttachFileDialog)DataContext).RemoveFileCommand}"
 								CommandParameter="{Binding .}">
-							<icons:MaterialIcon Kind="Delete" Height="20" Width="20"/>
+							<icons:MaterialIcon Kind="Delete" Height="24" Width="24"/>
 						</Button>
 						<StackPanel VerticalAlignment="Center">
 							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>

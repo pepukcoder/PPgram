@@ -49,10 +49,10 @@
 						</DockPanel>
 						<ToggleButton x:Name="Pause" Grid.Column="1" Theme="{StaticResource ButtonToggle}" HorizontalAlignment="Center"
 									  IsChecked="{Binding Paused}">
-							<StackPanel>
+							<Panel>
 								<icons:MaterialIcon Kind="Pause" Width="24" Height="24" IsVisible="{Binding !#Pause.IsChecked}"/>
 								<icons:MaterialIcon Kind="Play" Width="24" Height="24" IsVisible="{Binding #Pause.IsChecked}"/>
-							</StackPanel>
+							</Panel>
 						</ToggleButton>
 						<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
 							<ToggleButton x:Name="Fullscreen" Grid.Column="1" Theme="{StaticResource ButtonToggle}" HorizontalAlignment="Center"

@@ -2,34 +2,6 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 					xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
-	<Design.PreviewWith>
-		<Border Padding="20" Background="#000000">
-			<StackPanel Orientation="Vertical">
-				<Button Theme="{StaticResource ButtonRegular}">
-					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-						<TextBlock Text="Login" FontWeight="SemiBold"/>
-						<icons:MaterialIcon Kind="Login" Width="20" Height="20" Margin="5,0,0,0"/>
-					</StackPanel>
-				</Button>
-				<Button Classes="secondary" Theme="{StaticResource ButtonRegular}">
-					<StackPanel Orientation="Horizontal">
-						<TextBlock Text="Register" FontWeight="SemiBold"/>
-						<icons:MaterialIcon Kind="Register" Width="20" Height="20" Margin="5,0,0,0"/>
-					</StackPanel>
-				</Button>				
-				<Button Margin="0,5" Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Center">
-					<icons:MaterialIcon Kind="Cog" Width="20" Height="20"/>
-				</Button>
-				<ToggleButton x:Name="Toggle" Margin="0,5" Theme="{StaticResource ButtonToggle}" HorizontalAlignment="Center">
-					<StackPanel>
-						<icons:MaterialIcon Kind="EyeOff" Width="20" Height="20" IsVisible="{Binding #Toggle.IsChecked}"/>
-						<icons:MaterialIcon Kind="Eye" Width="20" Height="20" IsVisible="{Binding !#Toggle.IsChecked}"/>
-					</StackPanel>
-				</ToggleButton>
-			</StackPanel>
-		</Border>
-	</Design.PreviewWith>
-
 	<ControlTheme x:Key="ButtonRegular" TargetType="Button">
 		<Setter Property="Background" Value="{StaticResource PPgramAccent}"/>
 		<Setter Property="Foreground" Value="White"/>

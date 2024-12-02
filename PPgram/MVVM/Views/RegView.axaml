@@ -68,10 +68,10 @@
 									<icons:MaterialIcon Kind="AlertCircle" IsVisible="{Binding !PassOk}" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24"/>
 								</Grid>
 								<ToggleButton x:Name="ShowPassword" Theme="{StaticResource ButtonToggle}" DockPanel.Dock="Right" VerticalAlignment="Center">
-									<StackPanel>
+									<Panel>
 										<icons:MaterialIcon Kind="EyeOff" Width="24" Height="24" IsVisible="{Binding #ShowPassword.IsChecked}"/>
 										<icons:MaterialIcon Kind="Eye" Width="24" Height="24" IsVisible="{Binding !#ShowPassword.IsChecked}"/>
-									</StackPanel>
+									</Panel>
 								</ToggleButton>
 								<TextBox Background="Transparent" BorderThickness="0"
 										 CaretBrush="White" SelectionBrush="{StaticResource Selection}"

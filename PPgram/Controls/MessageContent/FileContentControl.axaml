@@ -18,7 +18,7 @@
 					<StackPanel Orientation="Horizontal" Margin="0,2">
 						<Panel Margin="0,0,10,0">
 							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
-							<icons:MaterialIcon Kind="File" Height="25" Width="25"/>
+							<icons:MaterialIcon Kind="Note" Height="25" Width="25"/>
 						</Panel>
 						<StackPanel VerticalAlignment="Center">
 							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
