@@ -58,7 +58,7 @@ internal class FilesClient
             is_media = false,
             compress = false
         };
-        var metadata = JsonSerializer.Serialize(data);
+        string metadata = JsonSerializer.Serialize(data);
 
         FileInfo fileInfo = new(filePath);
         if (!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
@@ -112,7 +112,7 @@ internal class FilesClient
             method = "download_file",
             sha256_hash = sha256Hash
         };
-        var request = JsonSerializer.Serialize(download_request);
+        string request = JsonSerializer.Serialize(download_request);
         stream?.Write(RequestBuilder.BuildJsonRequest(request));
 
         JsonMessageParser parser = new();

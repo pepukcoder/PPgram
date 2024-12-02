@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
+using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
@@ -91,9 +92,9 @@ partial class ChatViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => ChangeMessageStatus(e.chat, e.Id, e.status));
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, e) =>
         {
-            var messages = ChatList.FirstOrDefault(c => c.Id == e.chat)?.Messages;
+            ObservableCollection<ChatItem>? messages = ChatList.FirstOrDefault(c => c.Id == e.chat)?.Messages;
             if (messages == null) return;
-            var originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == e.Id);
+            MessageModel? originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == e.Id);
             if (originalMessage == null) return;
             chainManager.DeleteChain(originalMessage, messages);
         });
@@ -188,6 +189,10 @@ partial class ChatViewModel : ViewModelBase
         });
         CloseSecondaryInput();
     }
+    private void OpenInPreviewer()
+    {
+
+    }
     public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
         SearchList = resultList;
@@ -202,7 +207,7 @@ partial class ChatViewModel : ViewModelBase
     public void AddChat(ChatModel chat) => ChatList.Add(chat);
     public void AddMessage(MessageModel message)
     {
-        var messages = ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages;
+        ObservableCollection<ChatItem>? messages = ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages;
         if (messages == null) return;
         messages.Add(message);
         chainManager.AddChain(messages);
@@ -218,9 +223,9 @@ partial class ChatViewModel : ViewModelBase
     }
     public void EditMessage(MessageModel newMessage)
     {
-        var messages = ChatList.FirstOrDefault(c => c.Id == newMessage.Chat)?.Messages;
+        ObservableCollection<ChatItem>? messages = ChatList.FirstOrDefault(c => c.Id == newMessage.Chat)?.Messages;
         if (messages == null) return;
-        var originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == newMessage.Id);
+        MessageModel? originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == newMessage.Id);
         if (originalMessage == null) return;
         originalMessage.Edited = true;
         originalMessage.Content = newMessage.Content;
@@ -235,7 +240,7 @@ partial class ChatViewModel : ViewModelBase
                 dialog = new AttachFileDialog { Files = Files, canSkip = false }
             });
         }
-        foreach (var file in files)
+        foreach (FileModel file in files)
         {
             Files.Add(file);
         }
@@ -292,7 +297,7 @@ partial class ChatViewModel : ViewModelBase
         // add content & send
         if (Files.Count != 0)
         {
-            var content = new FileContentModel { Files = new(Files), Text = MessageInput.Trim() };
+            FileContentModel content = new FileContentModel { Files = new(Files), Text = MessageInput.Trim() };
             message.Content = content;
             Files.Clear();
             WeakReferenceMessenger.Default.Send(new Msg_UploadFiles { files = content.Files });
@@ -309,7 +314,7 @@ partial class ChatViewModel : ViewModelBase
         }
         else return;
         // add message to ui
-        var messages = ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages;
+        ObservableCollection<ChatItem>? messages = ChatList.FirstOrDefault(c => c.Id == ChatListSelected.Id)?.Messages;
         if (messages == null) return;
         messages.Add(message);
         chainManager.AddChain(messages);

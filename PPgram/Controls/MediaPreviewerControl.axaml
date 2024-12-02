@@ -43,7 +43,7 @@
 							<Border CornerRadius="3" Height="6" ClipToBounds="True" Margin="5,0,0,0">
 								<Panel>
 									<ProgressBar Theme="{StaticResource Progress}" Value="{Binding #VolumeSlider.Value}" Minimum="0" Maximum="100"/>
-									<Slider x:Name="VolumeSlider" Theme="{StaticResource Slider}" Value="{Binding Volume, Mode=TwoWay}" Orientation="Horizontal" Cursor="Hand"/>
+									<Slider x:Name="VolumeSlider" Theme="{StaticResource Slider}" Value="{Binding Volume, Mode=TwoWay}" Minimum="0" Maximum="100" Orientation="Horizontal" Cursor="Hand"/>
 								</Panel>
 							</Border>
 						</DockPanel>

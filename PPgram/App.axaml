@@ -24,8 +24,6 @@
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceInclude Source="/Styles/ThemeColors.axaml"/>
 				<ResourceInclude Source="/Styles/Button.axaml"/>
-				<ResourceInclude Source="/Styles/File.axaml"/>
-				<ResourceInclude Source="/Styles/Media.axaml"/>
 				<ResourceInclude Source="/Styles/SearchEntry.axaml"/>
 				<ResourceInclude Source="/Styles/Flyout.axaml"/>
 				<ResourceInclude Source="/Styles/ScrollBar.axaml"/>

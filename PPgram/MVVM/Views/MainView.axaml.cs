@@ -1,10 +1,9 @@
 using System;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Platform;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Platform.Storage;
 
 namespace PPgram.MVVM.Views;
 
@@ -19,14 +18,14 @@ public partial class MainView : UserControl
     {
         if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() )
         {
-            var im = TopLevel.GetTopLevel(this)?.InsetsManager;
+            IInsetsManager? im = TopLevel.GetTopLevel(this)?.InsetsManager;
             if (im != null)
             {
                 im.SystemBarColor = Color.FromArgb(255, 18, 18, 18);
                 im.DisplayEdgeToEdge = true;
             }
-            var ip = TopLevel.GetTopLevel(this)?.InputPane;
-            var fm = TopLevel.GetTopLevel(this)?.FocusManager;
+            IInputPane? ip = TopLevel.GetTopLevel(this)?.InputPane;
+            IFocusManager? fm = TopLevel.GetTopLevel(this)?.FocusManager;
             if (ip != null)
             {
                 ip.StateChanged += (sender, e) => 

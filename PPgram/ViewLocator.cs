@@ -16,7 +16,7 @@ public class ViewLocator : IDataTemplate
             if (name.Contains("Chat"))
                 name = data.GetType().FullName!.Replace("ViewModel", "MobileView", StringComparison.Ordinal);
         }
-        var type = Type.GetType(name);
+        Type? type = Type.GetType(name);
         if (type != null) return (Control)Activator.CreateInstance(type)!;
         return new TextBlock { Text = "Not Found: " + name };
     }

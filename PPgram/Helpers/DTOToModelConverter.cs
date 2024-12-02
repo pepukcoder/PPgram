@@ -1,4 +1,5 @@
 ﻿using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;

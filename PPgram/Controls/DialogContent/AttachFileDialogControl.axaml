@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
-			 xmlns:m="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
+			 xmlns:m="clr-namespace:PPgram.MVVM.Models.File;assembly=PPgram"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="PPgram.Controls.DialogContent.AttachFileDialogControl"
@@ -18,13 +18,12 @@
 			<ListBox.ItemTemplate>
 				<DataTemplate DataType="m:FileModel">
 					<DockPanel Margin="0,2">
-						<Panel Margin="0,0,10,0" DockPanel.Dock="Left" IsVisible="{Binding Preview, Converter={x:Static ObjectConverters.IsNull}}">
+						<Panel Margin="0,0,10,0" DockPanel.Dock="Left">
 							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
 							<icons:MaterialIcon Kind="File" Height="25" Width="25"/>
 						</Panel>
-						<Border Margin="0,0,10,0" CornerRadius="5" ClipToBounds="True" DockPanel.Dock="Left"
-								IsVisible="{Binding Preview, Converter={x:Static ObjectConverters.IsNotNull}}">
-							<Image Width="45" Height="45" Source="{Binding Preview}"/>
+						<Border Margin="0,0,10,0" CornerRadius="5" ClipToBounds="True" DockPanel.Dock="Left">
+							<Image Width="45" Height="45"/>
 						</Border>
 						<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
 								Command="{Binding $parent[ListBox].((md:AttachFileDialog)DataContext).RemoveFileCommand}"

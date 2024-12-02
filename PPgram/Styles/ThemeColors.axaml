@@ -32,8 +32,10 @@
 	<SolidColorBrush x:Key="PanelLight">#494a4b</SolidColorBrush>
 	<SolidColorBrush x:Key="PanelAccent">#808080</SolidColorBrush>
 
-	<SolidColorBrush x:Key="SelectionList" Opacity="0.1" Color="#353637"></SolidColorBrush>
-	<SolidColorBrush x:Key="BackgroundSemi" Opacity="0.8" Color="#121212"></SolidColorBrush>
+	<SolidColorBrush x:Key="SelectionList" Opacity="0.1" Color="#353637"/>
+
+	<SolidColorBrush x:Key="BackgroundSemi" Opacity="0.8" Color="#121212"/>
+	<SolidColorBrush x:Key="SurfaceSemi" Opacity="0.5" Color="#1e2021"/>
 
 	<SolidColorBrush x:Key="PPgramAccent">#3f86e7</SolidColorBrush>
 	<SolidColorBrush x:Key="PPgramAccentLight">#5292e9</SolidColorBrush>

@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
+using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
@@ -15,10 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -75,12 +74,12 @@ partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) =>
         {
-            var data = new AuthCredentialsModel
+            AuthCredentialsModel data = new()
             {
                 UserId = e.userId,
                 SessionId = e.sessionId
             };
-            var options = new JsonSerializerOptions { WriteIndented = true }; // Pretty print the JSON
+            JsonSerializerOptions options = new() { WriteIndented = true }; // Pretty print the JSON
             if (!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             jsonClient.FetchSelf();
@@ -172,13 +171,13 @@ partial class MainViewModel : ViewModelBase
         });
         
         // connection
-        CurrentPage = chat_vm;
+        CurrentPage = login_vm;
         ConnectToServer();
     }
     private static void CreateFile(string path, string data)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
-        using var writer = new StreamWriter(File.OpenWrite(path));
+        using StreamWriter writer = new(File.OpenWrite(path));
         writer.Write(data);
     }
     private void ConnectToServer()

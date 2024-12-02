@@ -38,7 +38,7 @@ internal class MessageChainManager
     }
     public void AddChain(ObservableCollection<ChatItem> chat)
     {
-        var message = chat.OfType<MessageModel>().LastOrDefault();
+        MessageModel? message = chat.OfType<MessageModel>().LastOrDefault();
         if (message == null) return;
         SetBadge(message, chat);
         SetRole(message, chat);
@@ -123,7 +123,7 @@ internal class MessageChainManager
     private void SetReply(MessageModel message, ObservableCollection<ChatItem> chat)
     {
         if (message.ReplyTo == 0) return;
-        var replied = chat.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.ReplyTo);
+        MessageModel? replied = chat.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.ReplyTo);
         if (replied == null) return;
 
         string text;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -40,7 +39,7 @@ public class ScrollToEndBehavior : Behavior<ListBox>
     }
     private void AssociatedObjectOnTemplateApplied(object? sender, TemplateAppliedEventArgs e)
     {
-        var sw = e.NameScope.Get<ScrollViewer>("PART_ScrollViewer");
+        ScrollViewer sw = e.NameScope.Get<ScrollViewer>("PART_ScrollViewer");
         sw.ScrollChanged += SwOnScrollChanged;
         AssociatedObject?.ScrollIntoView(AssociatedObject.Items.Count - 1);
     }

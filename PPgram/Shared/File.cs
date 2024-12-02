@@ -1,4 +1,4 @@
-﻿using PPgram.MVVM.Models.Message;
+﻿using PPgram.MVVM.Models.File;
 using System.Collections.ObjectModel;
 
 namespace PPgram.Shared;

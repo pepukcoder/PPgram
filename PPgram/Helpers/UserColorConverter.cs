@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Styling;
 using Avalonia.Data.Converters;
 using System.Globalization;
 using System;
