@@ -85,7 +85,7 @@ internal class JsonClient
     public void Disconnect()
     {
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        { 
+        {
             dialog = new ConnectionDialog
             {
                 Position = Avalonia.Layout.VerticalAlignment.Bottom,
@@ -105,7 +105,7 @@ internal class JsonClient
         catch { Disconnect(); }
     }
     public void AuthSessionId(string sessionId, int userId)
-    { 
+    {
         var data = new
         {
             method = "auth",
@@ -190,12 +190,11 @@ internal class JsonClient
         {
             method = "send_message",
             to = chatId,
-            has_reply = replyTo != null,
-            reply_to = replyTo,
-            media_hashes = hashes.ToArray(),
+            reply_to = replyTo != null ? replyTo : null,
             content = new
             {
-                text = text
+                text = text,
+                sha256_hashes = hashes.ToArray(),
             }
         };
         Send(data);
@@ -229,7 +228,7 @@ internal class JsonClient
         string? r_method = rootNode?["method"]?.GetValue<string>();
         string? r_event = rootNode?["event"]?.GetValue<string>();
         string? r_error = rootNode?["error"]?.GetValue<string>();
-        bool? ok = rootNode?["ok"]?.GetValue<bool>();  
+        bool? ok = rootNode?["ok"]?.GetValue<bool>();
 
         // LATER: remove debug errors dialogs and instead proccess them in mainviewmodel
 
@@ -282,12 +281,12 @@ internal class JsonClient
                 break;
             case "check_username":
                 if (ok == true) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = false });
-                else if (ok == false) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = true });   
+                else if (ok == false) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = true });
                 break;
             case "fetch_self":
                 if (ok != true) return;
                 WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
-                {  
+                {
                     profile = rootNode?.Deserialize<ProfileDTO>()
                 });
                 break;
@@ -311,12 +310,12 @@ internal class JsonClient
                 {
                     foreach (JsonNode? userNode in usersJson)
                     {
-                        ChatDTO? user = userNode?.Deserialize<ChatDTO>();  
+                        ChatDTO? user = userNode?.Deserialize<ChatDTO>();
                         if (user != null)
                         {
                             user.Id = userNode?["user_id"]?.GetValue<int>() ?? 0;
                             userList.Add(user);
-                        } 
+                        }
                     }
                 };
                 WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult { users = userList });
