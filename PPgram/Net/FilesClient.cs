@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
+using PPgram.App;
 using PPgram.Net;
 using PPgram.Shared;
 
@@ -19,7 +20,7 @@ internal class FilesClient
 
     // Controls suspension and resumption of the Listen method
     private const int chunkSize = 64 * 1024 * 1024; // 64 MiB
-    const int MESSAGE_ALLOCATION_SIZE = 4 * 1024 * 1024;
+    const int MESSAGE_ALLOCATION_SIZE = 4 * 1024 * 1024; // 4 MiB
 
     public void Connect(string remoteHost, int remotePort)
     {
@@ -39,7 +40,7 @@ internal class FilesClient
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        { 
+        {
             dialog = new ConnectionDialog
             {
                 Position = Avalonia.Layout.VerticalAlignment.Bottom,
@@ -67,7 +68,7 @@ internal class FilesClient
         byte[] buffer = new byte[chunkSize];
         int bytesRead;
 
-        stream?.Write(RequestBuilder.BuildJsonRequest(metadata));
+        stream?.Write(JsonConnection.BuildJsonRequest(metadata));
 
         byte[] lengthBytes = BitConverter.GetBytes(fileInfo.Length);
         if (BitConverter.IsLittleEndian) Array.Reverse(lengthBytes);
@@ -80,13 +81,10 @@ internal class FilesClient
         }
 
         // Read the response
-        JsonMessageParser parser = new();
-        while (!parser.IsReady())
-        {
-            parser.ReadStream(stream);
-        }
+        JsonConnection jsonConnection = new();
+        while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
+        string response = jsonConnection.GetResponseAsString();
 
-        string response = parser.GetResponseAsString();
         HandleJsonResponse(response);
 
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -104,21 +102,27 @@ internal class FilesClient
             totalBytesRead += bytesRead;
         }
     }
-    // TODO: Save files to the FS
-    public void DownloadFiles(string sha256Hash)
+
+    // Saves hash if not exists in fs
+    private void SaveHash(string sha256_hash, byte[] binary) {
+
+    }
+
+    public void DownloadFiles(string sha256Hash, bool previewsOnly = false)
     {
         var download_request = new
         {
             method = "download_file",
-            sha256_hash = sha256Hash
+            sha256_hash = sha256Hash,
+            previews_only = previewsOnly
         };
         string request = JsonSerializer.Serialize(download_request);
-        stream?.Write(RequestBuilder.BuildJsonRequest(request));
+        stream?.Write(JsonConnection.BuildJsonRequest(request));
 
-        JsonMessageParser parser = new();
-        while (!parser.IsReady()) parser.ReadStream(stream);
+        JsonConnection jsonConnection = new();
+        while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
 
-        DownloadFileResponseModel? metadatas = parser.GetResponseAsJson<DownloadFileResponseModel>();
+        DownloadFileResponseModel? metadatas = jsonConnection.GetResponseAsJson<DownloadFileResponseModel>();
         if (metadatas == null) { return; }
 
         string current_file_name = metadatas.Metadatas[0].FileName;
@@ -126,11 +130,13 @@ internal class FilesClient
 
         while (metadatas.Metadatas.Count != 0)
         {
-            byte[] buffer = new byte[current_file_size];
-            ReadUntilFilled(buffer, 0, current_file_size);
+            byte[] binary = new byte[current_file_size];
+            ReadUntilFilled(binary, 0, current_file_size);
 
             // print recieved file size
-            Debug.Print(buffer.Length.ToString());
+            Debug.Print(binary.Length.ToString());
+
+            FSManager.SaveBinary(sha256Hash, binary, metadatas.Metadatas[0].FileName, false);
 
             metadatas.Metadatas.RemoveAt(0);
 
@@ -149,7 +155,6 @@ internal class FilesClient
     {
         JsonNode? rootNode = JsonNode.Parse(response);
         string? r_method = rootNode?["method"]?.GetValue<string>();
-        string? r_event = rootNode?["event"]?.GetValue<string>();
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
 

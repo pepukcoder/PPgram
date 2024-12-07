@@ -7,7 +7,7 @@ using PPgram.MVVM.Views;
 
 namespace PPgram;
 
-public partial class App : Application
+public partial class PPApp : Application
 {
     public override void Initialize()
     {

@@ -1,19 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using PPgram.MVVM.Models.Dialog;
 using PPgram.Net.DTO;
 using PPgram.Shared;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Diagnostics;
-using PPgram.MVVM.Models.Message;
-using PPgram.MVVM.Models.MessageContent;
-using System;
-using System.Net.Sockets;
 using System.Threading;
-using System.Text;
-using PPgram.MVVM.Models.Chat;
-using PPgram.MVVM.Models.Dialog;
-using System.Net.Http;
 
 namespace PPgram.Net;
 
@@ -100,7 +96,7 @@ internal class JsonClient
         try
         {
             string request = JsonSerializer.Serialize(data);
-            stream?.Write(RequestBuilder.BuildJsonRequest(request));
+            stream?.Write(JsonConnection.BuildJsonRequest(request));
         }
         catch { Disconnect(); }
     }

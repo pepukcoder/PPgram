@@ -2,6 +2,7 @@ using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
@@ -53,7 +54,7 @@ partial class MainViewModel : ViewModelBase
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
-        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, e) => ShowDialog(e.dialog)); 
+        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, e) => ShowDialog(e.dialog));
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, e) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
@@ -80,7 +81,7 @@ partial class MainViewModel : ViewModelBase
                 SessionId = e.sessionId
             };
             JsonSerializerOptions options = new() { WriteIndented = true }; // Pretty print the JSON
-            if (!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
+            if (!e.auto) FSManager.CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             jsonClient.FetchSelf();
         });
@@ -169,17 +170,12 @@ partial class MainViewModel : ViewModelBase
             if (e.message == null) return;
             chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
-        
+
         // connection
         CurrentPage = login_vm;
         ConnectToServer();
     }
-    private static void CreateFile(string path, string data)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
-        using StreamWriter writer = new(File.OpenWrite(path));
-        writer.Write(data);
-    }
+    
     private void ConnectToServer()
     {
         ConnectionOptions connectionOptions = new()
@@ -188,7 +184,7 @@ partial class MainViewModel : ViewModelBase
             JsonPort = 3000,
             FilesPort = 8080
         };
-        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
+        if(!File.Exists(connectionFilePath)) FSManager.CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
         try
         {
             string data = File.ReadAllText(connectionFilePath);
@@ -211,7 +207,7 @@ partial class MainViewModel : ViewModelBase
         catch
         {
             File.Delete(sessionFilePath);
-        } 
+        }
     }
     private void UploadFiles(ObservableCollection<FileModel> files)
     {
@@ -223,7 +219,7 @@ partial class MainViewModel : ViewModelBase
             }
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
         }
-        catch 
+        catch
         {
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
         }

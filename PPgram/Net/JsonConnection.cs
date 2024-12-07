@@ -1,26 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 
-internal class JsonMessageParser {
-    private bool isFirst;
-    private int expected_size;
-    private List<byte> response_chunks;
-    private bool is_ready;
+namespace PPgram.Net;
 
-    public JsonMessageParser() {
-        isFirst = true;
-        expected_size = 0;
-        response_chunks = [];
-        is_ready = false;
-    }
-
-    public bool IsReady() {
-        return is_ready;
-    }
+internal class JsonConnection {
+    private bool isFirst = true;
+    private int expected_size = 0;
+    private readonly List<byte> response_chunks = [];
+    private bool is_ready = false;
+    public bool IsReady { get => is_ready; }
 
     public T? GetResponseAsJson<T>() where T : class {
         if (!is_ready)
@@ -28,10 +19,7 @@ internal class JsonMessageParser {
 
         // Convert the accumulated bytes to a JSON string and deserialize it into the specified type
         byte[] responseData = [.. response_chunks];
-        response_chunks.Clear();
-        expected_size = 0;
-        isFirst = true;
-        is_ready = false;
+        Reset();
         return JsonSerializer.Deserialize<T>(responseData);
     }
 
@@ -41,15 +29,12 @@ internal class JsonMessageParser {
 
         // Convert the accumulated bytes to a JSON string and deserialize it into the specified type
         byte[] responseData = [.. response_chunks];
-        response_chunks.Clear();
-        expected_size = 0;
-        isFirst = true;
-        is_ready = false;
+        Reset();
         return Encoding.UTF8.GetString(responseData);
     }
 
     public void ReadStream(NetworkStream? stream) {
-        if (stream == null) {return;}
+        if (stream == null) { return; }
         int read_count;
         // get server response length if chunk is first
         if (isFirst)
@@ -76,5 +61,25 @@ internal class JsonMessageParser {
         {
             is_ready = true;
         }
+    }
+    private void Reset()
+    {
+        response_chunks.Clear();
+        expected_size = 0;
+        isFirst = true;
+        is_ready = false;
+    }
+    public static byte[] BuildJsonRequest(string message)
+    {
+        // Get request bytes from text
+        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+        // Get size of request bytes
+        byte[] lengthBytes = BitConverter.GetBytes(messageBytes.Length);
+        if (BitConverter.IsLittleEndian) Array.Reverse(lengthBytes);
+        // Combine size and request into one array
+        byte[] request_bytes = new byte[4 + messageBytes.Length];
+        Array.Copy(lengthBytes, 0, request_bytes, 0, 4);
+        Array.Copy(messageBytes, 0, request_bytes, 4, messageBytes.Length);
+        return request_bytes;
     }
 }
