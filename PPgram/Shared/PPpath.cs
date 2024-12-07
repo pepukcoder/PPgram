@@ -8,7 +8,7 @@ internal record PPpath
     // folders
     public static readonly string LocalAppFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
     public static readonly string UserFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-    public static readonly string DesktopDownloadsFolder = Path.Combine(UserFolder, "Downloads");
+    public static readonly string DesktopDownloadsFolder = Path.Combine(UserFolder, "Downloads", "PPgram");
     /// <summary> ...local/PPgram/ </summary>
     public static readonly string BaseFolder = Path.Combine(LocalAppFolder, "PPgram");
     /// <summary> ...local/PPgram/cache </summary>

@@ -134,7 +134,7 @@ internal class FilesClient
             ReadUntilFilled(binary, 0, current_file_size);
 
             // print recieved file size
-            Debug.Print(binary.Length.ToString());
+            Debug.WriteLine(binary.Length.ToString());
 
             FSManager.SaveBinary(sha256Hash, binary, metadatas.Metadatas[0].FileName, false);
 

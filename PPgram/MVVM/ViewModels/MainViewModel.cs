@@ -223,7 +223,6 @@ partial class MainViewModel : ViewModelBase
         {
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
         }
-
     }
     [RelayCommand]
     private void ShowDialog(Dialog dialog)
