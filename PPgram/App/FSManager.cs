@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Text;
 using PPgram.Shared;
 
 namespace PPgram.App;
@@ -14,23 +14,15 @@ internal class FSManager
         {
             // DIALOGFIX if unable to get downloads folder
             if (appState.DownloadsFolder == null) return;
-        
-            string hashFolder = Path.Combine(PPpath.FileCacheFolder, sha256_hash);
-            // save regular files to downloads and previews to cache
+
             string filePath;
-            if (isPreview) filePath = Path.Combine(hashFolder, fileName);
-            else filePath = Path.Combine(appState.DownloadsFolder, fileName);
-
-            // skip if file is already downloaded
-            if (File.Exists(filePath)) return;
-
-            CreateFile(filePath, binary);
-
-            if (!isPreview)
+            if (isPreview) filePath = Path.Combine(PPpath.FileCacheFolder, sha256_hash + ".preview");
+            else
             {
-                RestoreDirs(Path.Combine(hashFolder, fileName));
-                File.CreateSymbolicLink(Path.Combine(hashFolder, fileName), filePath);
+                filePath = Path.Combine(appState.DownloadsFolder, fileName);
+                CreateFile(Path.Combine(PPpath.FileCacheFolder, sha256_hash + ".link"), filePath);
             }
+            CreateFile(filePath, binary);
         }
         catch (Exception ex)
         {
@@ -38,11 +30,12 @@ internal class FSManager
             Console.WriteLine("An error occurred: " + ex.Message);
         } 
     }
-    public static void CreateFile(string path, object data)
+    public static void CreateFile(string path, byte[] data)
     {
         RestoreDirs(path);
-        using StreamWriter writer = new(File.OpenWrite(path));
+        using BinaryWriter writer = new(File.OpenWrite(path));
         writer.Write(data);
     }
+    public static void CreateFile(string path, string data) => CreateFile(path, Encoding.UTF8.GetBytes(data));
     private static void RestoreDirs(string path) => Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
 }
