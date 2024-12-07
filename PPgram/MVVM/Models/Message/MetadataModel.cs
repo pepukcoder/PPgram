@@ -19,7 +19,7 @@ internal class MetadataModel
     public required long FileSize { get; set; }
 }
 
-internal class DownloadFileResponseModel
+internal class DownloadMetadataResponseModel
 {
     [JsonPropertyName("ok")]
     public required bool Ok { get; set; }

@@ -104,8 +104,25 @@ internal class FilesClient
     }
 
     // Saves hash if not exists in fs
-    private void SaveHash(string sha256_hash, byte[] binary) {
+    private void SaveHash(string sha256_hash, byte[] binary)
+    {
 
+    }
+
+    public DownloadMetadataResponseModel? DownloadMetadata(string sha256Hash)
+    {
+        var download_request = new
+        {
+            method = "download_metadata",
+            sha256_hash = sha256Hash
+        };
+        string request = JsonSerializer.Serialize(download_request);
+        stream?.Write(JsonConnection.BuildJsonRequest(request));
+
+        JsonConnection jsonConnection = new();
+        while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
+
+        return jsonConnection.GetResponseAsJson<DownloadMetadataResponseModel>();
     }
 
     public void DownloadFiles(string sha256Hash, bool previewsOnly = false)
@@ -122,7 +139,7 @@ internal class FilesClient
         JsonConnection jsonConnection = new();
         while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
 
-        DownloadFileResponseModel? metadatas = jsonConnection.GetResponseAsJson<DownloadFileResponseModel>();
+        DownloadMetadataResponseModel? metadatas = jsonConnection.GetResponseAsJson<DownloadMetadataResponseModel>();
         if (metadatas == null) { return; }
 
         string current_file_name = metadatas.Metadatas[0].FileName;

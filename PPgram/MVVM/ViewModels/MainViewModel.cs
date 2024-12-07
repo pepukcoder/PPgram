@@ -16,6 +16,7 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -164,7 +165,7 @@ partial class MainViewModel : ViewModelBase
         CurrentPage = login_vm;
         ConnectToServer();
     }
-    
+
     private void ConnectToServer()
     {
         ConnectionOptions connectionOptions = new()
@@ -185,6 +186,11 @@ partial class MainViewModel : ViewModelBase
         }
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
+
+        //var result = filesClient.DownloadMetadata("79b0a1593dadc46180526250836f3e53688a9a5fb42a0e5859eb72316dc4d53e");
+        //if (result != null) {
+        //    Debug.Print(result.Metadatas.ToString());
+        //}
 
         if (!File.Exists(PPpath.SessionFile)) return;
         try
