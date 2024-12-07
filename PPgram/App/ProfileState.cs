@@ -1,6 +1,7 @@
 ﻿using System;
+using PPgram.MVVM.Models.User;
 
-namespace PPgram.MVVM.Models.User;
+namespace PPgram.App;
 
 /// <summary>
 /// Singleton profile to keep current user data synchronized across the app

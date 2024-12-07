@@ -5,24 +5,22 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.Messaging;
-using PPgram.Helpers;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
+using PPgram.App;
 using PPgram.Net;
 using PPgram.Shared;
 
 internal class FilesClient
 {
-
     private string host = string.Empty;
     private int port;
     private TcpClient? client;
     private NetworkStream? stream;
-    private FilesSaver filesSaver = new();
 
     // Controls suspension and resumption of the Listen method
     private const int chunkSize = 64 * 1024 * 1024; // 64 MiB
-    const int MESSAGE_ALLOCATION_SIZE = 4 * 1024 * 1024;
+    const int MESSAGE_ALLOCATION_SIZE = 4 * 1024 * 1024; // 4 MiB
 
     public void Connect(string remoteHost, int remotePort)
     {
@@ -70,7 +68,7 @@ internal class FilesClient
         byte[] buffer = new byte[chunkSize];
         int bytesRead;
 
-        stream?.Write(RequestBuilder.BuildJsonRequest(metadata));
+        stream?.Write(JsonConnection.BuildJsonRequest(metadata));
 
         byte[] lengthBytes = BitConverter.GetBytes(fileInfo.Length);
         if (BitConverter.IsLittleEndian) Array.Reverse(lengthBytes);
@@ -83,13 +81,10 @@ internal class FilesClient
         }
 
         // Read the response
-        JsonMessageParser parser = new();
-        while (!parser.IsReady())
-        {
-            parser.ReadStream(stream);
-        }
+        JsonConnection jsonConnection = new();
+        while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
+        string response = jsonConnection.GetResponseAsString();
 
-        string response = parser.GetResponseAsString();
         HandleJsonResponse(response);
 
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -122,12 +117,12 @@ internal class FilesClient
             previews_only = previewsOnly
         };
         string request = JsonSerializer.Serialize(download_request);
-        stream?.Write(RequestBuilder.BuildJsonRequest(request));
+        stream?.Write(JsonConnection.BuildJsonRequest(request));
 
-        JsonMessageParser parser = new();
-        while (!parser.IsReady()) parser.ReadStream(stream);
+        JsonConnection jsonConnection = new();
+        while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
 
-        DownloadFileResponseModel? metadatas = parser.GetResponseAsJson<DownloadFileResponseModel>();
+        DownloadFileResponseModel? metadatas = jsonConnection.GetResponseAsJson<DownloadFileResponseModel>();
         if (metadatas == null) { return; }
 
         string current_file_name = metadatas.Metadatas[0].FileName;
@@ -141,7 +136,7 @@ internal class FilesClient
             // print recieved file size
             Debug.Print(binary.Length.ToString());
 
-            filesSaver.SaveBinary(sha256Hash, binary, metadatas.Metadatas[0].FileName, false);
+            FSManager.SaveBinary(sha256Hash, binary, metadatas.Metadatas[0].FileName, false);
 
             metadatas.Metadatas.RemoveAt(0);
 
@@ -160,7 +155,6 @@ internal class FilesClient
     {
         JsonNode? rootNode = JsonNode.Parse(response);
         string? r_method = rootNode?["method"]?.GetValue<string>();
-        string? r_event = rootNode?["event"]?.GetValue<string>();
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
 

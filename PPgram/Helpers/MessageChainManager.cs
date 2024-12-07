@@ -1,8 +1,8 @@
-﻿using PPgram.MVVM.Models.Chat;
+﻿using PPgram.App;
+using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
-using PPgram.MVVM.Models.User;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;

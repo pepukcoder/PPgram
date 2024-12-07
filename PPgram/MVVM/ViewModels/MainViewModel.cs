@@ -2,6 +2,7 @@ using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
@@ -80,7 +81,7 @@ partial class MainViewModel : ViewModelBase
                 SessionId = e.sessionId
             };
             JsonSerializerOptions options = new() { WriteIndented = true }; // Pretty print the JSON
-            if (!e.auto) CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
+            if (!e.auto) FSManager.CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             jsonClient.FetchSelf();
         });
@@ -174,12 +175,7 @@ partial class MainViewModel : ViewModelBase
         CurrentPage = login_vm;
         ConnectToServer();
     }
-    private static void CreateFile(string path, string data)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
-        using StreamWriter writer = new(File.OpenWrite(path));
-        writer.Write(data);
-    }
+    
     private void ConnectToServer()
     {
         ConnectionOptions connectionOptions = new()
@@ -188,7 +184,7 @@ partial class MainViewModel : ViewModelBase
             JsonPort = 3000,
             FilesPort = 8080
         };
-        if(!File.Exists(connectionFilePath)) CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
+        if(!File.Exists(connectionFilePath)) FSManager.CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
         try
         {
             string data = File.ReadAllText(connectionFilePath);
@@ -200,8 +196,6 @@ partial class MainViewModel : ViewModelBase
         }
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
-
-        filesClient.DownloadFiles("79b0a1593dadc46180526250836f3e53688a9a5fb42a0e5859eb72316dc4d53e");
 
         if (!File.Exists(sessionFilePath)) return;
         try

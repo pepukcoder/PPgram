@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:local="using:PPgram"
-             x:Class="PPgram.App"
+             x:Class="PPgram.PPApp"
              RequestedThemeVariant="Dark">     
     <Application.DataTemplates>
         <local:ViewLocator/>

@@ -1,5 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using PPgram.MVVM.Models.User;
+﻿using PPgram.App;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace PPgram.MVVM.ViewModels;
 
