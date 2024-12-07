@@ -11,12 +11,12 @@ internal record PPpath
     public static readonly string DesktopDownloadsFolder = Path.Combine(UserFolder, "Downloads", "PPgram");
     /// <summary> ...local/PPgram/ </summary>
     public static readonly string BaseFolder = Path.Combine(LocalAppFolder, "PPgram");
+    /// <summary> ...local/PPgram/settings </summary>
+    public static readonly string SettingsFolder = Path.Combine(BaseFolder, "settings");
     /// <summary> ...local/PPgram/cache </summary>
     public static readonly string CacheFolder = Path.Combine(BaseFolder, "cache");
     /// <summary> ...local/PPgram/cache/files </summary>
     public static readonly string FileCacheFolder = Path.Combine(CacheFolder, "files");
-    /// <summary> ...local/PPgram/settings </summary>
-    public static readonly string SettingsFolder = Path.Combine(FileCacheFolder, "settings");
 
     // files
     /// <summary> ...local/PPgram/session.sesf </summary>

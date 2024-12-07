@@ -32,23 +32,12 @@ partial class MainViewModel : ViewModelBase
     private bool dialogPanelVisible = false;
     [ObservableProperty]
     private VerticalAlignment dialogPosition = VerticalAlignment.Center;
-    #region pages
+    // pages
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
     private readonly ChatViewModel chat_vm = new();
     private readonly ProfileViewModel profile_vm = new();
-    #endregion
-    #region path
-    // folders
-    private static readonly string localAppPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-    private static readonly string basePath = Path.Combine(localAppPath, "PPgram");
-    private static readonly string cachePath = Path.Combine(basePath, "cache");
-    private static readonly string settingsPath = Path.Combine(basePath, "settings");
-    // files
-    private static readonly string sessionFilePath = Path.Combine(basePath, "session.sesf");
-    private static readonly string connectionFilePath = Path.Combine(settingsPath, "connection.setf");
-    private static readonly string appSettingsFilePath = Path.Combine(settingsPath, "app.setf");
-    #endregion
+
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
     private readonly ProfileState profileState = ProfileState.Instance;
@@ -81,7 +70,7 @@ partial class MainViewModel : ViewModelBase
                 SessionId = e.sessionId
             };
             JsonSerializerOptions options = new() { WriteIndented = true }; // Pretty print the JSON
-            if (!e.auto) FSManager.CreateFile(sessionFilePath, JsonSerializer.Serialize(data));
+            if (!e.auto) FSManager.CreateFile(PPpath.SessionFile, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             jsonClient.FetchSelf();
         });
@@ -184,29 +173,29 @@ partial class MainViewModel : ViewModelBase
             JsonPort = 3000,
             FilesPort = 8080
         };
-        if(!File.Exists(connectionFilePath)) FSManager.CreateFile(connectionFilePath, JsonSerializer.Serialize(connectionOptions));
+        if(!File.Exists(PPpath.ConnectionFile)) FSManager.CreateFile(PPpath.ConnectionFile, JsonSerializer.Serialize(connectionOptions));
         try
         {
-            string data = File.ReadAllText(connectionFilePath);
+            string data = File.ReadAllText(PPpath.ConnectionFile);
             connectionOptions = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new Exception();
         }
         catch
         {
-            File.Delete(connectionFilePath);
+            File.Delete(PPpath.ConnectionFile);
         }
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
 
-        if (!File.Exists(sessionFilePath)) return;
+        if (!File.Exists(PPpath.SessionFile)) return;
         try
         {
-            string json = File.ReadAllText(sessionFilePath);
+            string json = File.ReadAllText(PPpath.SessionFile);
             AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json) ?? throw new Exception();
             jsonClient.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch
         {
-            File.Delete(sessionFilePath);
+            File.Delete(PPpath.SessionFile);
         }
     }
     private void UploadFiles(ObservableCollection<FileModel> files)
@@ -218,6 +207,8 @@ partial class MainViewModel : ViewModelBase
                 file.Hash = filesClient.UploadFile(file.Path);
             }
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
+            filesClient.DownloadFiles(files[0].Hash);
+            filesClient.DownloadFiles(files[1].Hash);
         }
         catch
         {
