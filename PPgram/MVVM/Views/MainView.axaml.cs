@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls;
@@ -8,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using PPgram.App;
+using PPgram.Shared;
 
 namespace PPgram.MVVM.Views;
 
@@ -17,15 +17,16 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
     }
-    private void UserControl_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void UserControl_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        TopLevel? topLevel = TopLevel.GetTopLevel(this);
-        IStorageProvider? sp = topLevel?.StorageProvider;
+        AppState appState = AppState.Instance;
         if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() )
         {
+            TopLevel? topLevel = TopLevel.GetTopLevel(this);
             IInsetsManager? im = topLevel?.InsetsManager;
             IInputPane? ip = topLevel?.InputPane;
             IFocusManager? fm = topLevel?.FocusManager;
+            IStorageProvider? sp = topLevel?.StorageProvider;
             if (im != null)
             {
                 im.SystemBarColor = Color.FromArgb(255, 18, 18, 18);
@@ -45,18 +46,13 @@ public partial class MainView : UserControl
                     }     
                 };
             }
-            
-        }
-        if (sp != null)
-        {
-            var folder = sp.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads).GetAwaiter().GetResult();
-            var path = folder?.Path.AbsolutePath;
-            if (path != null)
+            if (sp != null)
             {
-                AppState appState = AppState.Instance;
-                appState.DownloadsFolder = Path.Combine(path, "PPgram");
-                Debug.WriteLine(appState.DownloadsFolder);
+                IStorageFolder? folder = await sp.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads);
+                string? path = folder?.Path.AbsolutePath;
+                if (path != null) appState.DownloadsFolder = Path.Combine(path, "PPgram");
             }
         }
+        else appState.DownloadsFolder = PPpath.DesktopDownloadsFolder;
     }
 }
