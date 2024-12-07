@@ -53,7 +53,7 @@ partial class MainViewModel : ViewModelBase
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
-        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, e) => ShowDialog(e.dialog)); 
+        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, e) => ShowDialog(e.dialog));
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, e) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
@@ -169,7 +169,7 @@ partial class MainViewModel : ViewModelBase
             if (e.message == null) return;
             chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
-        
+
         // connection
         CurrentPage = login_vm;
         ConnectToServer();
@@ -201,6 +201,8 @@ partial class MainViewModel : ViewModelBase
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
 
+        filesClient.DownloadFiles("79b0a1593dadc46180526250836f3e53688a9a5fb42a0e5859eb72316dc4d53e");
+
         if (!File.Exists(sessionFilePath)) return;
         try
         {
@@ -211,7 +213,7 @@ partial class MainViewModel : ViewModelBase
         catch
         {
             File.Delete(sessionFilePath);
-        } 
+        }
     }
     private void UploadFiles(ObservableCollection<FileModel> files)
     {
@@ -223,7 +225,7 @@ partial class MainViewModel : ViewModelBase
             }
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
         }
-        catch 
+        catch
         {
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
         }

@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.Messaging;
+using PPgram.Helpers;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
 using PPgram.Net;
@@ -12,10 +13,12 @@ using PPgram.Shared;
 
 internal class FilesClient
 {
+
     private string host = string.Empty;
     private int port;
     private TcpClient? client;
     private NetworkStream? stream;
+    private FilesSaver filesSaver = new();
 
     // Controls suspension and resumption of the Listen method
     private const int chunkSize = 64 * 1024 * 1024; // 64 MiB
@@ -39,7 +42,7 @@ internal class FilesClient
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        { 
+        {
             dialog = new ConnectionDialog
             {
                 Position = Avalonia.Layout.VerticalAlignment.Bottom,
@@ -104,13 +107,19 @@ internal class FilesClient
             totalBytesRead += bytesRead;
         }
     }
-    // TODO: Save files to the FS
-    public void DownloadFiles(string sha256Hash)
+
+    // Saves hash if not exists in fs
+    private void SaveHash(string sha256_hash, byte[] binary) {
+
+    }
+
+    public void DownloadFiles(string sha256Hash, bool previewsOnly = false)
     {
         var download_request = new
         {
             method = "download_file",
-            sha256_hash = sha256Hash
+            sha256_hash = sha256Hash,
+            previews_only = previewsOnly
         };
         string request = JsonSerializer.Serialize(download_request);
         stream?.Write(RequestBuilder.BuildJsonRequest(request));
@@ -126,11 +135,13 @@ internal class FilesClient
 
         while (metadatas.Metadatas.Count != 0)
         {
-            byte[] buffer = new byte[current_file_size];
-            ReadUntilFilled(buffer, 0, current_file_size);
+            byte[] binary = new byte[current_file_size];
+            ReadUntilFilled(binary, 0, current_file_size);
 
             // print recieved file size
-            Debug.Print(buffer.Length.ToString());
+            Debug.Print(binary.Length.ToString());
+
+            filesSaver.SaveBinary(sha256Hash, binary, metadatas.Metadatas[0].FileName, false);
 
             metadatas.Metadatas.RemoveAt(0);
 
