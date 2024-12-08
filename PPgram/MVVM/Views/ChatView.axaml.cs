@@ -42,6 +42,8 @@ public partial class ChatView : UserControl
             List<FileModel> fileModels = [];
             foreach (IStorageFile file in files)
             {
+                var absolutePath = Uri.UnescapeDataString(file.Path.AbsolutePath);
+
                 string[] parts = file.Name.Split('.');
                 // check extension
                 switch (parts[^1].ToLower().Trim())
@@ -51,8 +53,8 @@ public partial class ChatView : UserControl
                         fileModels.Add(new VideoModel
                         {
                             Name = file.Name,
-                            Path = file.Path.AbsolutePath,
-                            Size = new FileInfo(file.Path.AbsolutePath).Length,
+                            Path = absolutePath,
+                            Size = new FileInfo(absolutePath).Length,
                             Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/image_broken.png", UriKind.Absolute)))
                         });
                         break;
@@ -63,9 +65,9 @@ public partial class ChatView : UserControl
                         fileModels.Add(new PhotoModel
                         {
                             Name = file.Name,
-                            Path = file.Path.AbsolutePath,
-                            Size = new FileInfo(file.Path.AbsolutePath).Length,
-                            Preview = new Bitmap(file.Path.AbsolutePath).CreateScaledBitmap(new(45,45), BitmapInterpolationMode.LowQuality)
+                            Path = absolutePath,
+                            Size = new FileInfo(absolutePath).Length,
+                            Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(45, 45), BitmapInterpolationMode.LowQuality)
                         });
                         break;
                     default:
@@ -73,8 +75,8 @@ public partial class ChatView : UserControl
                         fileModels.Add(new FileModel
                         {
                             Name = file.Name,
-                            Path = file.Path.AbsolutePath,
-                            Size = new FileInfo(file.Path.AbsolutePath).Length
+                            Path = absolutePath,
+                            Size = new FileInfo(absolutePath).Length
                         });
                         break;
                 }
