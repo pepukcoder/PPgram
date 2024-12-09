@@ -162,8 +162,8 @@ partial class MainViewModel : ViewModelBase
         });
 
         // connection
-        CurrentPage = chat_vm;
-        //ConnectToServer();
+        CurrentPage = login_vm;
+        ConnectToServer();
     }
 
     private void ConnectToServer()

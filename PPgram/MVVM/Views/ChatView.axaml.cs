@@ -67,7 +67,7 @@ public partial class ChatView : UserControl
                             Name = file.Name,
                             Path = absolutePath,
                             Size = new FileInfo(absolutePath).Length,
-                            Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(45, 45), BitmapInterpolationMode.LowQuality)
+                            Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(150, 150), BitmapInterpolationMode.LowQuality)
                         });
                         break;
                     default:
