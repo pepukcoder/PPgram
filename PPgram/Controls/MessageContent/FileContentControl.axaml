@@ -10,21 +10,36 @@
 			 x:DataType="m:FileContentModel">
 	<UserControl.Resources>
 		<helpers:SizeConverter x:Key="SConvert"/>
+		<helpers:EnumMatchConverter x:Key="EConvert"/>
+		<helpers:DurationConverter x:Key="DConvert"/>
 	</UserControl.Resources>
 	<StackPanel Orientation="Vertical" Margin="0,0,10,0">
-		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" BorderThickness="0">
+		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" BorderThickness="0" Cursor="Hand">
 			<ListBox.DataTemplates>
-				<DataTemplate DataType="mf:FileModel">
-					<StackPanel Orientation="Horizontal" Margin="0,2">
-						<Panel Margin="0,0,10,0">
-							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
-							<icons:MaterialIcon Kind="Note" Height="25" Width="25"/>
+				<DataTemplate DataType="mf:VideoModel">
+					<Border CornerRadius="5" ClipToBounds="True" Margin="2">
+						<Panel>
+							<Image Source="{Binding Preview}"/>
+							<Border CornerRadius="10" Background="{StaticResource SurfaceSemi}" ClipToBounds="True" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5">
+								<StackPanel Orientation="Horizontal" Margin="5,3">
+									<TextBlock Text="{Binding Size, Converter={StaticResource SConvert}}" Margin="0,0,5,0"/>
+									<TextBlock Text="{Binding Length, Converter={StaticResource DConvert}}" />
+								</StackPanel>
+							</Border>
+							<Ellipse Width="45" Height="45" Fill="{StaticResource SurfaceSemi}"/>
+
+							<icons:MaterialIcon Kind="ArrowDown" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=NotLoaded}"/>
+
+							<icons:MaterialIcon Kind="Play" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loaded}"/>
+
+							<icons:MaterialIcon Classes="spinner" Kind="ProgressHelper" Height="45" Width="45" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
+							<icons:MaterialIcon Kind="Close" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
 						</Panel>
-						<StackPanel VerticalAlignment="Center">
-							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
-							<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}"/>
-						</StackPanel>
-					</StackPanel>
+					</Border>
 				</DataTemplate>
 				<DataTemplate DataType="mf:PhotoModel">
 					<Border CornerRadius="5" ClipToBounds="True" Margin="2">
@@ -33,8 +48,38 @@
 							<Border CornerRadius="10" Background="{StaticResource SurfaceSemi}" ClipToBounds="True" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5">
 								<TextBlock Text="{Binding Size, Converter={StaticResource SConvert}}" Margin="5,3"/>
 							</Border>
+							<Ellipse Width="45" Height="45" Fill="{StaticResource SurfaceSemi}"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=NotLoaded}"/>
+							<icons:MaterialIcon Kind="ArrowDown" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=NotLoaded}"/>
+
+							<Ellipse Width="45" Height="45" Fill="{StaticResource SurfaceSemi}"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
+							<icons:MaterialIcon Classes="spinner" Kind="ProgressHelper" Height="45" Width="45" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
+							<icons:MaterialIcon Kind="Close" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
 						</Panel>
 					</Border>
+				</DataTemplate>
+				<DataTemplate DataType="mf:FileModel">
+					<StackPanel Orientation="Horizontal" Margin="0,2">
+						<Panel Margin="0,0,10,0">
+							<Ellipse Width="45" Height="45" Fill="{StaticResource PanelAccent}"/>
+							<icons:MaterialIcon Kind="Note" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loaded}"/>
+							<icons:MaterialIcon Kind="ArrowDown" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=NotLoaded}"/>
+							<icons:MaterialIcon Classes="spinner" Kind="ProgressHelper" Height="45" Width="45" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
+							<icons:MaterialIcon Kind="Close" Height="25" Width="25" Foreground="White"
+							IsVisible="{Binding Status, Converter={StaticResource EConvert}, ConverterParameter=Loading}"/>
+						</Panel>
+						<StackPanel VerticalAlignment="Center">
+							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
+							<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}"/>
+						</StackPanel>
+					</StackPanel>
 				</DataTemplate>
 			</ListBox.DataTemplates>
 		</ListBox>

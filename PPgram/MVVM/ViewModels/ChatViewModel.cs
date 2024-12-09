@@ -1,3 +1,5 @@
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -84,8 +86,6 @@ partial class ChatViewModel : ViewModelBase
     public ChatViewModel()
     {
         RightGridVisible = false;
-        MediaPreviewer.Visible = true;
-        MediaPreviewer.VideoControlVisible = true;
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
@@ -103,6 +103,22 @@ partial class ChatViewModel : ViewModelBase
         {
             MessageInput = e.description;
             BuildMessage();
+        });
+
+        MessageList.Add(new MessageModel
+        {
+            Content = new FileContentModel
+            {
+                Files = [
+                    new VideoModel { Name = "asdasd", Size = 10000, Length = 220, Status = FileStatus.NotLoaded,
+                    Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/image_broken.png", UriKind.Absolute))) },
+                    new VideoModel { Name = "asdasd", Size = 55000, Length = 1200, Status = FileStatus.Loading,
+                    Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/image_broken.png", UriKind.Absolute))) },
+                    new VideoModel { Name = "asdasd", Size = 120000, Length = 4200, Status = FileStatus.Loaded,
+                    Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/image_broken.png", UriKind.Absolute))) },
+                ],
+                Text = "Some files asdasdasd"
+            }
         });
     }
     partial void OnMessageListSelectedChanged(ChatItem? value)

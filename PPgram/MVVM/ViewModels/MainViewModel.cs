@@ -162,8 +162,8 @@ partial class MainViewModel : ViewModelBase
         });
 
         // connection
-        CurrentPage = login_vm;
-        ConnectToServer();
+        CurrentPage = chat_vm;
+        //ConnectToServer();
     }
 
     private void ConnectToServer()
@@ -187,11 +187,6 @@ partial class MainViewModel : ViewModelBase
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
 
-        //var result = filesClient.DownloadMetadata("79b0a1593dadc46180526250836f3e53688a9a5fb42a0e5859eb72316dc4d53e");
-        //if (result != null) {
-        //    Debug.Print(result.Metadatas.ToString());
-        //}
-
         if (!File.Exists(PPpath.SessionFile)) return;
         try
         {
@@ -210,11 +205,10 @@ partial class MainViewModel : ViewModelBase
         {
             foreach (FileModel file in files)
             {
+                Debug.WriteLine(file.Path);
                 file.Hash = filesClient.UploadFile(file.Path);
             }
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
-            filesClient.DownloadFiles(files[0].Hash);
-            filesClient.DownloadFiles(files[1].Hash);
         }
         catch
         {

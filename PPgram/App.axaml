@@ -33,9 +33,10 @@
 	</Application.Resources>
 	
     <Application.Styles>
+		<SimpleTheme/>
 		<StyleInclude Source="/Styles/ListThemes.axaml"/>
 		<StyleInclude Source="/Styles/Menu.axaml"/>
-		<SimpleTheme/>
+		<StyleInclude Source="/Styles/Spinner.axaml"/>
 		<materialIcons:MaterialIconStyles/>
 	</Application.Styles>
 
