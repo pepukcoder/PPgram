@@ -32,7 +32,7 @@ internal class DTOToModelConverter
             foreach (FileModel file in files) 
             { 
                 WeakReferenceMessenger.Default.Send(new Msg_DownloadFile{ file = file, meta = true });
-                if (FSManager.IsHashed(file.Hash)) file.Status = FileStatus.Loaded;
+                if (file.Hash != null && FSManager.IsHashed(file.Hash)) file.Status = FileStatus.Loaded;
             }
         }
         else
