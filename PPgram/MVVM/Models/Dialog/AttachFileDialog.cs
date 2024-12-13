@@ -21,7 +21,7 @@ partial class AttachFileDialog : Dialog
         WeakReferenceMessenger.Default.Send(new Msg_CloseDialog());
     }
     [RelayCommand]
-    private void AddFiles(FileModel file)
+    private void AddFiles()
     {
         WeakReferenceMessenger.Default.Send(new Msg_OpenAttachFiles());
     }

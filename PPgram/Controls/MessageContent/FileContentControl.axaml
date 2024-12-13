@@ -14,7 +14,12 @@
 		<helpers:DurationConverter x:Key="DConvert"/>
 	</UserControl.Resources>
 	<StackPanel Orientation="Vertical" Margin="0,0,10,0">
-		<ListBox Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" BorderThickness="0" Cursor="Hand">
+		<ListBox x:Name="FilesList" Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" BorderThickness="0" Cursor="Hand">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerReleased">
+					<InvokeCommandAction Command="{Binding InteractFileCommand}" CommandParameter="{Binding #FilesList.SelectedItem}"/>
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
 			<ListBox.DataTemplates>
 				<DataTemplate DataType="mf:VideoModel">
 					<Border CornerRadius="5" ClipToBounds="True" Margin="2">

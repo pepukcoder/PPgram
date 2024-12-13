@@ -3,6 +3,11 @@ using System.Collections.ObjectModel;
 
 namespace PPgram.Shared;
 
+class Msg_DownloadFile
+{
+    public bool meta = false;
+    public required FileModel file;
+}
 class Msg_UploadFiles
 {
     public required ObservableCollection<FileModel> files;

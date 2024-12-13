@@ -1,4 +1,5 @@
 using Avalonia.Layout;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -160,6 +161,21 @@ partial class MainViewModel : ViewModelBase
             if (e.message == null) return;
             chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
+        WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, (r, e) =>
+        {
+            if (e.file.Hash == null) return;
+            if (e.meta)
+            {
+                MetadataModel? meta = filesClient.DownloadMetadata(e.file.Hash);
+                e.file.Name = meta?.FileName ?? "???";
+                e.file.Size = meta?.FileSize ?? 0;
+            }
+            else
+            {
+                filesClient.DownloadFiles(e.file.Hash);
+                e.file.Status = FileStatus.Loaded;
+            }
+        });
 
         // connection
         CurrentPage = login_vm;
@@ -207,6 +223,7 @@ partial class MainViewModel : ViewModelBase
             {
                 Debug.WriteLine(file.Path);
                 file.Hash = filesClient.UploadFile(file.Path);
+                // TODO: auto add to cache
             }
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
         }

@@ -8,6 +8,11 @@ namespace PPgram.App;
 internal class FSManager
 {
     private static readonly AppState appState = AppState.Instance;
+    public static bool IsHashed(string hash)
+    {
+        string hashpath = Path.Combine(PPpath.FileCacheFolder, hash + ".link");
+        return File.Exists(hashpath);
+    }
     public static void SaveBinary(string sha256_hash, byte[] binary, string fileName, bool isPreview)
     {
         try

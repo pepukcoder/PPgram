@@ -5,13 +5,14 @@ namespace PPgram.MVVM.Models.File;
 
 internal partial class FileModel : ObservableObject
 {
-    public string Name { get; set; } = string.Empty;
     public string? Hash { get; set; }
     public string Path { get; set; } = string.Empty;
     [ObservableProperty]
-    public long size;
+    private string name = string.Empty;
     [ObservableProperty]
-    public long sizeLoaded;
+    private long size;
     [ObservableProperty]
-    public FileStatus status;
+    private long sizeLoaded;
+    [ObservableProperty]
+    private FileStatus status;
 }

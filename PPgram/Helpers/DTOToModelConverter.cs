@@ -1,4 +1,6 @@
-﻿using PPgram.MVVM.Models.Chat;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using PPgram.App;
+using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
@@ -6,6 +8,7 @@ using PPgram.MVVM.Models.User;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System.Collections.Generic;
+using System.IO;
 
 namespace PPgram.Helpers;
 
@@ -26,6 +29,11 @@ internal class DTOToModelConverter
                 Files = new(files),
                 Text = messageDTO.Text ?? string.Empty
             };
+            foreach (FileModel file in files) 
+            { 
+                WeakReferenceMessenger.Default.Send(new Msg_DownloadFile{ file = file, meta = true });
+                if (FSManager.IsHashed(file.Hash)) file.Status = FileStatus.Loaded;
+            }
         }
         else
         {

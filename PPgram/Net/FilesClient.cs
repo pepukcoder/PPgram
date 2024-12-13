@@ -109,7 +109,7 @@ internal class FilesClient
 
     }
 
-    public DownloadMetadataResponseModel? DownloadMetadata(string sha256Hash)
+    public MetadataModel? DownloadMetadata(string sha256Hash)
     {
         var download_request = new
         {
@@ -122,7 +122,8 @@ internal class FilesClient
         JsonConnection jsonConnection = new();
         while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
 
-        return jsonConnection.GetResponseAsJson<DownloadMetadataResponseModel>();
+        DownloadMetadataResponseModel? metadatas = jsonConnection.GetResponseAsJson<DownloadMetadataResponseModel>();
+        return metadatas?.Metadatas[0];
     }
 
     public void DownloadFiles(string sha256Hash, bool previewsOnly = false)
