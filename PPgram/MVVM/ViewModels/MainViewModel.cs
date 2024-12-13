@@ -221,9 +221,12 @@ partial class MainViewModel : ViewModelBase
         {
             foreach (FileModel file in files)
             {
-                Debug.WriteLine(file.Path);
                 file.Hash = filesClient.UploadFile(file.Path);
-                // TODO: auto add to cache
+                if (file.Hash != null)
+                {
+                    file.Status = FileStatus.Loaded;
+                    FSManager.SaveBinary(file.Hash, File.ReadAllBytes(file.Path), file.Name, false);
+                }
             }
             WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
         }

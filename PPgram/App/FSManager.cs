@@ -8,11 +8,6 @@ namespace PPgram.App;
 internal class FSManager
 {
     private static readonly AppState appState = AppState.Instance;
-    public static bool IsHashed(string hash)
-    {
-        string hashpath = Path.Combine(PPpath.FileCacheFolder, hash + ".link");
-        return File.Exists(hashpath);
-    }
     public static void SaveBinary(string sha256_hash, byte[] binary, string fileName, bool isPreview)
     {
         try
@@ -42,5 +37,6 @@ internal class FSManager
         writer.Write(data);
     }
     public static void CreateFile(string path, string data) => CreateFile(path, Encoding.UTF8.GetBytes(data));
+    public static bool IsHashed(string hash) => File.Exists(Path.Combine(PPpath.FileCacheFolder, hash + ".link"));
     private static void RestoreDirs(string path) => Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
 }
