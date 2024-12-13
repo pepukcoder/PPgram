@@ -102,13 +102,6 @@ internal class FilesClient
             totalBytesRead += bytesRead;
         }
     }
-
-    // Saves hash if not exists in fs
-    private void SaveHash(string sha256_hash, byte[] binary)
-    {
-
-    }
-
     public MetadataModel? DownloadMetadata(string sha256Hash)
     {
         var download_request = new
@@ -178,16 +171,7 @@ internal class FilesClient
 
         if (ok == false && r_method != null && r_error != null)
         {
-            string result = $"Error: {r_error}";
-            /* DIALOGFIX
-            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-            {
-                icon = DialogIcons.Error,
-                header = "Error occurred!",
-                text = result,
-                decline = ""
-            });
-            */
+            Debug.WriteLine($"Error: {r_error}");
             return;
         }
         if (r_method == "upload_file")

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -29,7 +28,6 @@ internal class JsonClient
             client = new();
             if (!client.ConnectAsync(host, port).Wait(5000)) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
-
             Thread listenThread = new(new ThreadStart(Listen)) { IsBackground = true };
             listenThread.Start();
         }
@@ -37,43 +35,13 @@ internal class JsonClient
     }
     private void Listen()
     {
-        if (stream == null) return;
-        List<byte> response_chunks = [];
-        int expected_size = 0;
-        bool isFirst = true;
+        JsonConnection connection = new();
         while (client != null)
         {
             try
             {
-                int read_count;
-                if (isFirst)
-                {
-                    // get response size
-                    byte[] length_bytes = new byte[4];
-                    read_count = stream.Read(length_bytes, 0, 4);
-                    if (read_count == 0) break;
-                    if (BitConverter.IsLittleEndian) Array.Reverse(length_bytes);
-                    int length = BitConverter.ToInt32(length_bytes);
-                    expected_size = length;
-                    isFirst = false;
-                }
-                // get response chunk
-                byte[] responseBytes = new byte[expected_size];
-                read_count = stream.Read(responseBytes, 0, expected_size);
-                // cut chunk by actual read count
-                ArraySegment<byte> segment = new(responseBytes, 0, read_count);
-                responseBytes = [.. segment];
-                response_chunks.AddRange(responseBytes);
-
-                if (response_chunks.Count >= expected_size)
-                {
-                    string response = Encoding.UTF8.GetString(response_chunks.ToArray());
-                    response_chunks.Clear();
-                    expected_size = 0;
-                    isFirst = true;
-
-                    HandleResponse(response);
-                }
+                connection.ReadStream(stream);
+                if (connection.IsReady) HandleResponse(connection.GetResponseAsString());
             }
             catch { Disconnect(); }
         }
