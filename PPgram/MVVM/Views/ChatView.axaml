@@ -7,7 +7,6 @@
 			 xmlns:bh="clr-namespace:PPgram.Behaviours;assembly=PPgram"
 			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
 			 xmlns:mchat="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
-			 xmlns:mmed="clr-namespace:PPgram.MVVM.Models.Media;assembly=PPgram"
 			 xmlns:mitem="clr-namespace:PPgram.MVVM.Models.Item;assembly=PPgram"
 			 xmlns:mmsg="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -19,17 +18,39 @@
 	<Design.DataContext>
 		<vm:ChatViewModel/>
 	</Design.DataContext>
-	<Grid>
+	<Grid Margin="5,10,0,10">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="260" MinWidth="125"/>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="*" MinWidth="314"/>
-			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="74"/>
+			<ColumnDefinition Width="240"/>
+			<ColumnDefinition Width="3"/>
+			<ColumnDefinition Width="*" MinWidth="400"/>
+			<ColumnDefinition Width="3"/>
 			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
-		<Border Grid.Column="0" Background="{StaticResource Surface}" Margin="10,10,0,10" CornerRadius="20" 
-				Padding="0" Grid.Row="0"
-				BorderThickness="1" BorderBrush="{StaticResource Panel}">
+		<!--Navigation dock-->
+		<DockPanel VerticalAlignment="Stretch" Margin="0,10" IsVisible="{Binding FoldersVisible}">
+			<Button Theme="{StaticResource ButtonNav}" DockPanel.Dock="Bottom">
+				<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+					<icons:MaterialIcon Kind="Cog" HorizontalAlignment="Center" Width="28" Height="28" />
+					<TextBlock Text="Settings" HorizontalAlignment="Center" FontWeight="Medium" FontSize="13" TextTrimming="CharacterEllipsis"/>
+				</StackPanel>
+			</Button>			
+			<Button x:Name="newchat" Theme="{StaticResource ButtonNav}" DockPanel.Dock="Bottom">
+				<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+					<icons:MaterialIcon Kind="AccountMultiplePlus" HorizontalAlignment="Center" Width="28" Height="28" />
+					<TextBlock Text="New group" TextAlignment="Center" TextWrapping="Wrap" HorizontalAlignment="Center" FontWeight="Medium" FontSize="13" TextTrimming="CharacterEllipsis"/>
+				</StackPanel>
+			</Button>
+			<Border Height="1" HorizontalAlignment="Stretch" Background="{StaticResource Surface}" DockPanel.Dock="Bottom" Margin="0,2"/>			
+			<Svg Path="/Assets/logo_round.svg" Height="40" Width="40" DockPanel.Dock="Top" Margin="0,0,0,5"/>
+			<ListBox Padding="0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+					 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden"
+					 ItemsSource="{Binding Folders}" ItemContainerTheme="{StaticResource Folder}">
+
+			</ListBox>
+		</DockPanel>
+		<!--Chat list-->
+		<Border Grid.Column="1" BorderThickness="1" CornerRadius="20" Background="{StaticResource Surface}" Margin="5,0,0,0" BorderBrush="{StaticResource Panel}">
 			<Grid RowDefinitions="Auto,*,Auto">
 				<StackPanel Orientation="Vertical" Margin="10">
 					<Border Background="{StaticResource Panel}" CornerRadius="15" Padding="5">
@@ -38,7 +59,7 @@
 												IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
 							<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right"
 									IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-									Command="{Binding ClearSearchCommand}">
+									>
 								<icons:MaterialIcon Kind="Close" Height="24" Width="24" DockPanel.Dock="Left"/>
 							</Button>
 							<TextBox Background="Transparent" BorderThickness="0" FontFamily="{StaticResource Mono}" DockPanel.Dock="Right"
@@ -49,11 +70,11 @@
 					</Border>
 				</StackPanel>
 				<ListBox x:Name="ChatListBox" Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
-              			  IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-						  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-						  ScrollViewer.VerticalScrollBarVisibility="Hidden"
-						  SelectedItem="{Binding ChatListSelected, Mode=TwoWay}"
-						  ItemsSource="{Binding ChatList}">
+              				IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+							ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+							ScrollViewer.VerticalScrollBarVisibility="Hidden"
+							SelectedItem="{Binding SelectedChat, Mode=TwoWay}"
+							ItemsSource="{Binding Chats}">
 					<ListBox.DataTemplates>
 						<DataTemplate DataType="mchat:UserModel">
 							<c:UserEntryControl/>
@@ -62,186 +83,67 @@
 							<c:GroupEntryControl/>
 						</DataTemplate>
 					</ListBox.DataTemplates>
+					<ListBox.KeyBindings>
+						<KeyBinding Command="{Binding CloseChatCommand}" Gesture="13"/>
+					</ListBox.KeyBindings>
 				</ListBox>
         		<ListBox Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
-              			 IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-						 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-					     ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                         ItemContainerTheme="{StaticResource SearchEntry}"
-						 SelectedItem="{Binding SearchListSelected, Mode=TwoWay}"
-					     ItemsSource="{Binding SearchList}">
+              			IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+						ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+						ScrollViewer.VerticalScrollBarVisibility="Hidden"
+						ItemContainerTheme="{StaticResource SearchEntry}"
+						SelectedItem="{Binding, Mode=TwoWay}"
+						ItemsSource="{Binding SearchResults}">
 				</ListBox>
-        		<Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Panel}" Padding="5">
-					<DockPanel>
+				<Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Panel}">
+					<DockPanel Margin="5">
 						<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
 							<Ellipse.Fill>
 								<ImageBrush Source="{Binding ProfileState.Avatar}"/>
 							</Ellipse.Fill>
 						</Ellipse>
-						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right">
-							<icons:MaterialIcon Kind="DotsVertical" Height="24" Width="24" />
-						</Button>
-						<Button x:Name="Button_NewChat" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Margin="5,0,0,0">
-							<icons:MaterialIcon Kind="ChatPlus" Height="24" Width="24"/>
+						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding LogoutCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
+							<icons:MaterialIcon Kind="AccountArrowRight" Height="24" Width="24"/>
 						</Button>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 							<TextBlock Text="{Binding ProfileState.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
 							<TextBlock Text="{Binding ProfileState.Username}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
-						</StackPanel>	
+						</StackPanel>
 					</DockPanel>
-        		</Border>
+				</Border>
 			</Grid>
 		</Border>
 		
-		<GridSplitter Grid.Column="1" Width="3" ResizeDirection="Columns" Background="Transparent"/>
-		
-		<Grid RowDefinitions="Auto,*,Auto" Grid.Column="2" Margin="7,10,7,10">
-			<Border Background="{StaticResource Surface}"  CornerRadius="20"
-					Padding="5" Grid.Row="0" Margin="0,0,0,5"
-					BorderThickness="1" BorderBrush="{StaticResource Panel}">
-				<DockPanel>
-					<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-						<Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
-							<Ellipse.Fill>
-								<ImageBrush Source="{Binding CurrentProfile.Avatar}"/>
-							</Ellipse.Fill>
-						</Ellipse>
-						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-							<TextBlock Text="{Binding CurrentProfile.Name}" FontWeight="Medium" FontSize="16"/>
-							<TextBlock Text="{Binding ChatListSelected.Id}" Foreground="{StaticResource SecondaryText}"/>
-						</StackPanel>
-					</StackPanel>
-					<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">
-						<icons:MaterialIcon Kind="DotsVertical" Height="24" Width="24" />
-					</Button>
-					<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">
-						<icons:MaterialIcon Kind="Search" Height="24" Width="24" />
-					</Button>
-				</DockPanel>
-			</Border>
-			<ListBox x:Name="MessageHistory" Grid.Row="1"
-					Background="Transparent" Padding="0" BorderThickness="0" 
-					ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-					ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,0,-6,0"
-					ItemsSource="{Binding MessageList, Mode=OneWay}"
-				    SelectedItem="{Binding MessageListSelected, Mode=TwoWay}"
-					SelectionMode="Toggle">
-				<Interaction.Behaviors>
-					<bh:ScrollToEndBehavior />
-				</Interaction.Behaviors>
-				<ListBox.ContextMenu>
-					<ContextMenu IsVisible="{Binding ContextVisible}">
-						<MenuItem Header="Reply" Command="{Binding AddReplyCommand}" HotKey="Ctrl+R">
-							<MenuItem.Icon>
-								<icons:MaterialIcon Kind="ArrowLeftTopBold" />
-							</MenuItem.Icon>
-						</MenuItem>
-						<MenuItem Header="Edit" Command="{Binding StartEditCommand}" HotKey="Ctrl+E"
-								  IsVisible="{Binding CanEdit}">
-							<MenuItem.Icon>
-								<icons:MaterialIcon Kind="Edit" />
-							</MenuItem.Icon>
-						</MenuItem>
-						<MenuItem Header="Delete" Command="{Binding DeleteMessageCommand}" HotKey="Ctrl+D">
-							<MenuItem.Icon>
-								<icons:MaterialIcon Kind="Delete"/>
-							</MenuItem.Icon>
-						</MenuItem>
-					</ContextMenu>
-				</ListBox.ContextMenu>	
-				<ListBox.ItemsPanel>
-					<ItemsPanelTemplate>
-						<StackPanel VerticalAlignment="Bottom"/>
-					</ItemsPanelTemplate>
-				</ListBox.ItemsPanel>
-				<ListBox.DataTemplates>
-					<DataTemplate DataType="mmsg:MessageModel">
-						<c:MessageControl/>
-					</DataTemplate>
-					<DataTemplate DataType="mitem:DateBadgeModel">
-						<c:DateBadgeControl/>
-					</DataTemplate>
-				</ListBox.DataTemplates>
-				<ListBox.Styles>
-					<Style Selector="ListBoxItem">
-						<Setter Property="Padding" Value="0"/>
-					</Style>
-					<Style Selector="ListBoxItem:pointerover">
-						<Style Selector="^ /template/ ContentPresenter">
-							<Setter Property="Background" Value="Transparent" />
-						</Style>
-					</Style>
-					<Style Selector="ListBoxItem:selected">
-						<Style Selector="^ /template/ ContentPresenter">
-							<Setter Property="Background" Value="{StaticResource SelectionList}"/>
-						</Style>
-					</Style>
-				</ListBox.Styles>
-			</ListBox>
-			<Border Background="{StaticResource Surface}"  CornerRadius="20" Margin="0,5,0,0"
-					Padding="5" Grid.Row="2"
-					BorderThickness="1" BorderBrush="{StaticResource Panel}">			
-				<DockPanel>
-					<Border CornerRadius="15" DockPanel.Dock="Top" Background="{StaticResource SurfaceLight}" Padding="5"
-							IsVisible="{Binding SecondaryInputVisible}" Margin="0,0,0,5">
-						<DockPanel>
-							<icons:MaterialIcon Kind="ArrowLeftTop" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left" IsVisible="{Binding InReply}"/>
-							<icons:MaterialIcon Kind="Edit" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left" IsVisible="{Binding InEdit}"/>
-							<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding CloseSecondaryInputCommand}">
-								<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
-							</Button>
-							<TextBlock Text="{Binding SecondaryInputHeader}" Foreground="{StaticResource SecondaryText}" FontSize="13" FontWeight="Medium" DockPanel.Dock="Top"/>
-							<TextBlock Text="{Binding SecondaryInputText}" FontSize="13" DockPanel.Dock="Right"/>
-						</DockPanel>
-					</Border>
-					<Button x:Name="AttachButton" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" 
-							VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,6">
-						<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24"/>
-					</Button>
-					<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-							Command="{Binding BuildMessageCommand}" Margin="0,0,0,6">
-						<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24" />
-					</Button>
-					<Border Padding="5" Background="{StaticResource Panel}"
-							CornerRadius="15" Margin="5,0">
-						<TextBox Background="Transparent" BorderThickness="0" AcceptsReturn="True"
-								CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-								ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-						 		ScrollViewer.VerticalScrollBarVisibility="Hidden"
-								FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
-								TextWrapping="Wrap" Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-								Watermark="Message..." MaxLines="10">
-							<TextBox.KeyBindings>
-								<KeyBinding Gesture="Enter" Command="{Binding BuildMessageCommand}"/>
-							</TextBox.KeyBindings>
-						</TextBox>
-					</Border>
-				</DockPanel>
-			</Border>
-		</Grid>
-		
-		<GridSplitter Grid.Column="3" Width="3" ResizeDirection="Columns" Background="Transparent" IsEnabled="{Binding RightGridVisible}"/>
+		<GridSplitter Grid.Column="2" Width="3" ResizeDirection="Columns" Background="Transparent" Margin="0,10"/>
 
-		<Grid Grid.Column="4" RowDefinitions="Auto,Auto,Auto" Margin="0,10,10,10"
-				IsVisible="{Binding RightGridVisible}">
+		<!--Chat control-->
+		<Panel Grid.Column="3" Margin="7,0" IsVisible="{Binding SelectedChat, Converter={x:Static ObjectConverters.IsNotNull}}">
+			<c:ChatControl  DataContext="{Binding SelectedChat}"/>
+		</Panel>
+		
+		<GridSplitter Grid.Column="4" Width="3" ResizeDirection="Columns" Background="Transparent" IsEnabled="{Binding PlatesVisible}"/>
+
+		<!--Panels-->
+		<StackPanel Grid.Column="5" Orientation="Vertical" Spacing="10"
+					IsVisible="{Binding PlatesVisible}" Margin="0,0,10,0">
 			<Border Grid.Row="0" CornerRadius="20" 
-				Background="{StaticResource Surface}" Padding="5" Margin="0,0,0,5"
-				BorderThickness="1" BorderBrush="{StaticResource Panel}">
+					Background="{StaticResource Surface}" Padding="5"
+					BorderBrush="{StaticResource Panel}">
 				<StackPanel Orientation="Vertical">
 					<TextBlock Text="User Info"/>
 				</StackPanel>
 			</Border>
 
 			<Border Grid.Row="1" CornerRadius="20" 
-				Background="{StaticResource Surface}" Padding="5" Margin="0,0,0,5"
-				BorderThickness="1" BorderBrush="{StaticResource Panel}">
+				Background="{StaticResource Surface}" Padding="5"
+				BorderBrush="{StaticResource Panel}">
 				<StackPanel Orientation="Vertical">
 					<TextBlock Text="Group Info" FontSize="16" FontWeight="Medium"/>
 				</StackPanel>
 			</Border>
 
-			<Border Background="{StaticResource Surface}" Grid.Row="2" Margin="0,0,0,5" CornerRadius="20"
-					Padding="5" BorderThickness="1" BorderBrush="{StaticResource Panel}">
+			<Border Background="{StaticResource Surface}" Grid.Row="2" CornerRadius="20"
+					Padding="5" BorderBrush="{StaticResource Panel}">
 				<StackPanel Orientation="Vertical">
 					<TextBlock Text="Members" FontSize="16" FontWeight="Medium"/>
 					<ListBox Background="Transparent" Padding="0" BorderThickness="0"
@@ -250,14 +152,6 @@
 					</ListBox>
 				</StackPanel>
 			</Border>
-		</Grid>
-		<ContentControl Grid.ColumnSpan="5" Content="{Binding MediaPreviewer}" ZIndex="2"
-						IsVisible="{Binding MediaPreviewer.Visible}">
-			<ContentControl.DataTemplates>
-				<DataTemplate DataType="mmed:MediaPreviewer">
-					<c:MediaPreviewerControl/>
-				</DataTemplate>
-			</ContentControl.DataTemplates>
-		</ContentControl>
+		</StackPanel>
 	</Grid>
 </UserControl>

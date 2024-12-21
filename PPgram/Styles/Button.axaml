@@ -104,4 +104,25 @@
 			<Setter Property="Background" Value="{StaticResource SurfaceLight}"/>
 		</Style>
 	</ControlTheme>
+	<ControlTheme x:Key="ButtonNav" TargetType="Button">
+		<Setter Property="Foreground" Value="{StaticResource SecondaryText}"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border x:Name="PART_Back" CornerRadius="10" Padding="10" Background="Transparent">
+					<ContentPresenter Content="{TemplateBinding Content}"/>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+		<Style Selector="^:pointerover">
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="Background" Value="{StaticResource BackgroundLight}"/>
+			</Style>
+		</Style>
+		<Style Selector="^:pressed">
+			<Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+			<Style Selector="^ /template/ Border#PART_Back">
+				<Setter Property="Background" Value="{StaticResource Surface}"/>
+			</Style>
+		</Style>
+	</ControlTheme>
 </ResourceDictionary>

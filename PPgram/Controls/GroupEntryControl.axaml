@@ -8,43 +8,45 @@
              x:Class="PPgram.Controls.GroupEntryControl"
              xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
              x:DataType="m:GroupModel">
-  <UserControl.Resources>
-    <helpers:EnumMatchConverter x:Key="EnumConvert"/>
-    <helpers:DateTimeConverter x:Key="DTConvert"/>
-  </UserControl.Resources>
-  <Border Classes="Back" CornerRadius="15" Padding="5" HorizontalAlignment="Stretch">
-    <Grid ColumnDefinitions="Auto,*,Auto">
-      <Ellipse Grid.Column="0" Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
-        <Ellipse.Fill>
-          <ImageBrush Source="{Binding Profile.Avatar}"/>
-        </Ellipse.Fill>
-      </Ellipse>
-      <DockPanel Grid.Column="1" VerticalAlignment="Center">
-		<StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-	      <icons:MaterialIcon Kind="AccountMultiple" Width="12" Height="12"/>
-		  <TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" DockPanel.Dock="Top"/>
-		</StackPanel>
-        <TextBlock Text="{Binding LastSender}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource PrimaryText}" Margin="0,0,3,0"/>
-        <TextBlock Text="{Binding LastMessage}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
-      </DockPanel>
-      <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,0,0,0">
-        <TextBlock Text="{Binding Date, Converter={StaticResource DTConvert},ConverterParameter=Date}" FontSize="13" Foreground="{StaticResource SecondaryText}" />
-        <Panel HorizontalAlignment="Right">
-          <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
-                    Kind="ClockOutline" Height="18" Width="16" Foreground="{StaticResource SecondaryText}"/>
-          <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
-                    Kind="Check" Height="18" Width="18"/>
-          <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
-                    Kind="CheckMultiple" Height="18" Width="18"/>
-          <icons:MaterialIcon IsVisible="{Binding MessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
-                    Kind="AlertCircleOutline" Height="18" Width="16" Foreground="PaleVioletRed"/>
-        </Panel>
-        <Border Classes="Unread" IsVisible="{Binding UnreadCount}" CornerRadius="10"
-                HorizontalAlignment="Right" Padding="5,0">
-          <TextBlock Text="{Binding UnreadCount}" HorizontalAlignment="Center" FontSize="13"/>
-        </Border>
-      </StackPanel>
-    </Grid>
+    <UserControl.Resources>
+        <helpers:EnumMatchConverter x:Key="EnumConvert"/>
+        <helpers:DateTimeConverter x:Key="DTConvert"/>
+    </UserControl.Resources>
+    <Border Classes="Back" CornerRadius="15" Padding="5" HorizontalAlignment="Stretch">
+        <Grid ColumnDefinitions="Auto,*">
+            <Ellipse Grid.Column="0" Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
+                <Ellipse.Fill>
+                    <ImageBrush Source="{Binding Profile.Avatar}"/>
+                </Ellipse.Fill>
+            </Ellipse>
+			<StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Spacing="4">
+				<DockPanel>
+					<icons:MaterialIcon Kind="AccountMultiple" Width="14" Height="14" DockPanel.Dock="Left"/>
+		            <TextBlock Text="{Binding Date, Converter={StaticResource DTConvert},ConverterParameter=Date}"
+							   FontSize="13" Foreground="{StaticResource SecondaryText}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+					<TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+				</DockPanel>
+				<DockPanel>
+                    <TextBlock Text="{Binding LastSender, StringFormat='{}{0}:'}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource PrimaryText}" Margin="0,0,3,0"
+			                   IsVisible="{Binding LastSender, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" DockPanel.Dock="Left"/>
+                    
+					<Border Classes="Unread" IsVisible="{Binding UnreadCount}" CornerRadius="10" DockPanel.Dock="Right" HorizontalAlignment="Right" Padding="5,0">
+                        <TextBlock Text="{Binding UnreadCount}" HorizontalAlignment="Center"  VerticalAlignment="Center" FontSize="13"/>
+                    </Border>
+					<Panel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                        <icons:MaterialIcon IsVisible="{Binding LastMessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Sending}"
+                                            Kind="ClockOutline"       Height="16" Width="16" Foreground="{StaticResource SecondaryText}"/>
+                        <icons:MaterialIcon IsVisible="{Binding LastMessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"
+                                            Kind="AlertCircleOutline" Height="16" Width="16" Foreground="PaleVioletRed"/>						
+                        <icons:MaterialIcon IsVisible="{Binding LastMessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Delivered}"
+                                            Kind="Check"              Height="16" Width="16"/>
+                        <icons:MaterialIcon IsVisible="{Binding LastMessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
+                                            Kind="CheckMultiple"      Height="16" Width="16"/>
+                    </Panel>
+				    <TextBlock Text="{Binding LastMessage}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
+				</DockPanel>
+			</StackPanel>
+        </Grid>
     </Border>
     <ContentControl.Styles>
         <Style Selector="Border.Back">

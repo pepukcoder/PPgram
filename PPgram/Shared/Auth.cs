@@ -1,12 +1,14 @@
 namespace PPgram.Shared;
 
 class Msg_ToReg;
+class Msg_ToLogin;
+class Msg_Logout;
+
 class Msg_Login
 {
     public required string username;
     public required string password;
 }
-class Msg_ToLogin;
 class Msg_Register
 {
     public string name = string.Empty;

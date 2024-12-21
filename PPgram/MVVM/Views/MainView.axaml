@@ -2,11 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             xmlns:c="clr-namespace:PPgram.Controls.DialogContent;assembly=PPgram"
+             xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
+             xmlns:cd="clr-namespace:PPgram.Controls.DialogContent;assembly=PPgram"
 			 xmlns:vm="clr-namespace:PPgram.MVVM.ViewModels"
 			 xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
+			 xmlns:mmed="clr-namespace:PPgram.MVVM.Models.Media;assembly=PPgram"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
              x:Class="PPgram.MVVM.Views.MainView"
              x:DataType="vm:MainViewModel"
@@ -18,34 +20,45 @@
 	<UserControl.Resources>
 		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 	</UserControl.Resources>
-	<Grid x:Name="ContentGrid" Margin="0,0,0,0">
+	<Grid x:Name="ContentGrid">
+		<!--Page Content-->
 		<ContentControl x:Name="PageFrame" Content="{Binding CurrentPage}" ZIndex="0"/>
-		<Border Background="#000000" Opacity="0.4" ZIndex="1" IsVisible="{Binding DialogPanelVisible}">
+		<!--Overlay controls-->
+		<ContentControl Content="{Binding MediaPreviewer}" ZIndex="1"
+						IsVisible="{Binding MediaPreviewer.Visible}">
+			<ContentControl.DataTemplates>
+				<DataTemplate DataType="mmed:MediaPreviewer">
+					<c:MediaPreviewerControl/>
+				</DataTemplate>
+			</ContentControl.DataTemplates>
+		</ContentControl>
+		<Border Background="#000000" Opacity="0.4" ZIndex="2" IsVisible="{Binding DialogPanelVisible}">
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="PointerReleased">
-					<InvokeCommandAction Command="{Binding CloseDialogCommand}" CommandParameter="TapClosed"/>
+					<InvokeCommandAction Command="{Binding CloseDialogCommand}"/>
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Border>
-		<Viewbox Stretch="Uniform" StretchDirection="DownOnly" ZIndex="2" IsVisible="{Binding Dialog,Converter={x:Static ObjectConverters.IsNotNull}}"
+		<Viewbox Stretch="Uniform" StretchDirection="DownOnly" ZIndex="3" IsVisible="{Binding Dialog,Converter={x:Static ObjectConverters.IsNotNull}}"
 				 VerticalAlignment="{Binding DialogPosition}">
-			<Border Background="{StaticResource Surface}" VerticalAlignment="Center" ZIndex="2"
+			<Border Background="{StaticResource Surface}" VerticalAlignment="Center"
 					BoxShadow="0 0 10 0 #0c0c0c" Padding="10" CornerRadius="10" HorizontalAlignment="Center"
 					BorderThickness="1" BorderBrush="{StaticResource Panel}" Margin="30">
 				<ContentControl x:Name="PART_ContentControl" Content="{Binding Dialog}">
 					<ContentControl.DataTemplates>
 						<DataTemplate DataType="md:AttachFileDialog">
-							<c:AttachFileDialogControl/>
+							<cd:AttachFileDialogControl/>
 						</DataTemplate>
 						<DataTemplate DataType="md:RegularDialog">
-							<c:RegularDialogControl/>
+							<cd:RegularDialogControl/>
 						</DataTemplate>
 						<DataTemplate DataType="md:ConnectionDialog">
-							<c:ConnectionDialogControl/>
+							<cd:ConnectionDialogControl/>
 						</DataTemplate>
 					</ContentControl.DataTemplates>
 				</ContentControl>
 			</Border>
 		</Viewbox>
+		
 	</Grid>
 </UserControl>

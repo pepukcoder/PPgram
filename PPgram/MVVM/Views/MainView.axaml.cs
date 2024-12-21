@@ -37,8 +37,7 @@ public partial class MainView : UserControl
                 ip.StateChanged += (sender, e) => 
                 {
                     int ipheight = (int)Math.Round(ip.OccludedRect.Height, 0);
-                    if (ip.State == InputPaneState.Open)
-                        ContentGrid.Margin = Thickness.Parse("0,0,0," + ipheight);
+                    if (ip.State == InputPaneState.Open) ContentGrid.Margin = Thickness.Parse("0,0,0," + ipheight);
                     else if (fm != null)
                     {
                         fm.ClearFocus();
@@ -53,6 +52,6 @@ public partial class MainView : UserControl
                 if (path != null) appState.DownloadsFolder = Path.Combine(path, "PPgram");
             }
         }
-        else appState.DownloadsFolder = PPpath.DesktopDownloadsFolder;
+        else appState.DownloadsFolder = PPPath.DesktopDownloadsFolder;
     }
 }

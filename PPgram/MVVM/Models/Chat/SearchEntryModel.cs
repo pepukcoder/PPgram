@@ -1,3 +1,9 @@
+using PPgram.MVVM.Models.Message;
+using PPgram.MVVM.Models.MessageContent;
+using PPgram.Shared;
+using System.Collections.Specialized;
+using System.Linq;
+
 namespace PPgram.MVVM.Models.Chat;
 
 /// <summary>
@@ -6,7 +12,11 @@ namespace PPgram.MVVM.Models.Chat;
 /// <remarks>
 /// Possibly useless, but i don't care
 /// </remarks>
-internal class SearchEntryModel : ChatModel
+internal partial class SearchEntryModel : ChatModel
 {
-    
+    protected override void UpdateLastMessage(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        LastMessage = "";
+        LastMessageStatus = MessageStatus.None;
+    }
 }

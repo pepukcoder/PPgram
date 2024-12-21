@@ -1,5 +1,4 @@
 using Avalonia.Layout;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,6 +7,7 @@ using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
+using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
@@ -24,7 +24,7 @@ using System.Threading;
 
 namespace PPgram.MVVM.ViewModels;
 
-partial class MainViewModel : ViewModelBase
+internal partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
     private ViewModelBase _currentPage;
@@ -34,6 +34,10 @@ partial class MainViewModel : ViewModelBase
     private bool dialogPanelVisible = false;
     [ObservableProperty]
     private VerticalAlignment dialogPosition = VerticalAlignment.Center;
+    [ObservableProperty]
+    private MediaPreviewer mediaPreviewer = new();
+    [ObservableProperty]
+    private AppState pPAppState = AppState.Instance;
     // pages
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
@@ -42,6 +46,7 @@ partial class MainViewModel : ViewModelBase
 
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
+    
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
@@ -49,6 +54,7 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, e) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
+        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, e) => Logout());
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, (r,e) => ConnectToServer());
         WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => jsonClient.SearchChats(e.searchQuery));
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
@@ -71,8 +77,7 @@ partial class MainViewModel : ViewModelBase
                 UserId = e.userId,
                 SessionId = e.sessionId
             };
-            JsonSerializerOptions options = new() { WriteIndented = true }; // Pretty print the JSON
-            if (!e.auto) FSManager.CreateFile(PPpath.SessionFile, JsonSerializer.Serialize(data));
+            if (!e.auto) FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(data));
             CurrentPage = chat_vm;
             jsonClient.FetchSelf();
         });
@@ -84,15 +89,6 @@ partial class MainViewModel : ViewModelBase
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
             jsonClient.FetchChats();
         });
-        WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
-        {
-            ObservableCollection<ChatModel> chats = [];
-            foreach (ChatDTO chat in e.chats)
-            {
-                chats.Add(DTOToModelConverter.ConvertChat(chat));
-            }
-            chat_vm.UpdateChats(chats);
-        });
         WeakReferenceMessenger.Default.Register<Msg_SearchChatsResult>(this, (r, e) =>
         {
             ObservableCollection<ChatModel> resultList = [];
@@ -101,7 +97,6 @@ partial class MainViewModel : ViewModelBase
                 if (chat.Id == profileState.UserId) continue;
                 UserModel result = new()
                 {
-                    Type = ChatType.Chat,
                     Id = chat.Id ?? 0,
                     Profile = new()
                     {
@@ -112,7 +107,7 @@ partial class MainViewModel : ViewModelBase
                 };
                 resultList.Add(result);
             }
-            chat_vm.UpdateSearch(resultList);
+            //chat_vm.UpdateSearch(resultList);
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchMessagesResult>(this, (r, e) =>
         {
@@ -121,17 +116,17 @@ partial class MainViewModel : ViewModelBase
             {
                 messages.Add(DTOToModelConverter.ConvertMessage(messageDTO));
             }
-            chat_vm.UpdateMessages(messages);
+            //chat_vm.UpdateMessages(messages);
         });
         WeakReferenceMessenger.Default.Register<Msg_NewChat>(this, (r, e) =>
         {
             if (e.chat == null) return;
-            chat_vm.AddChat(DTOToModelConverter.ConvertChat(e.chat));
+            //chat_vm.AddChat(DTOToModelConverter.ConvertChat(e.chat));
         });
         WeakReferenceMessenger.Default.Register<Msg_NewMessage>(this, (r, e) =>
         {
             if (e.message == null) return;
-            chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
+            //chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
         {
@@ -159,7 +154,7 @@ partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, e) =>
         {
             if (e.message == null) return;
-            chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
+            //chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
         WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, (r, e) =>
         {
@@ -181,7 +176,12 @@ partial class MainViewModel : ViewModelBase
         CurrentPage = login_vm;
         ConnectToServer();
     }
-
+    private void Logout()
+    {
+        File.Delete(PPPath.SessionFile);
+        CurrentPage = login_vm;
+        // TODO: make api call to end auth session
+    }
     private void ConnectToServer()
     {
         ConnectionOptions connectionOptions = new()
@@ -190,29 +190,29 @@ partial class MainViewModel : ViewModelBase
             JsonPort = 3000,
             FilesPort = 8080
         };
-        if(!File.Exists(PPpath.ConnectionFile)) FSManager.CreateFile(PPpath.ConnectionFile, JsonSerializer.Serialize(connectionOptions));
+        if(!File.Exists(PPPath.ConnectionFile)) FSManager.CreateFile(PPPath.ConnectionFile, JsonSerializer.Serialize(connectionOptions));
         try
         {
-            string data = File.ReadAllText(PPpath.ConnectionFile);
+            string data = File.ReadAllText(PPPath.ConnectionFile);
             connectionOptions = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new Exception();
         }
         catch
         {
-            File.Delete(PPpath.ConnectionFile);
+            File.Delete(PPPath.ConnectionFile);
         }
         jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
         filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
 
-        if (!File.Exists(PPpath.SessionFile)) return;
+        if (!File.Exists(PPPath.SessionFile)) return;
         try
         {
-            string json = File.ReadAllText(PPpath.SessionFile);
+            string json = File.ReadAllText(PPPath.SessionFile);
             AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json) ?? throw new Exception();
             jsonClient.AuthSessionId(creds.SessionId, creds.UserId);
         }
         catch
         {
-            File.Delete(PPpath.SessionFile);
+            File.Delete(PPPath.SessionFile);
         }
     }
     private void UploadFiles(ObservableCollection<FileModel> files)
