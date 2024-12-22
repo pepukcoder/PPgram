@@ -3,35 +3,37 @@ using PPgram.MVVM.Models.Dialog;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PPgram.Net;
 
 internal class JsonClient
 {
-    private string host = string.Empty;
-    private int port;
     private TcpClient? client;
     private NetworkStream? stream;
-    public void Connect(string remoteHost, int remotePort)
+    private readonly ConcurrentQueue<object> requests = [];
+    public async Task<bool> Connect(ConnectionOptions options)
     {
-        host = remoteHost;
-        port = remotePort;
         try
         {
-            if (client != null) return;
+            if (client != null) throw new InvalidOperationException("Client is already connected");
             client = new();
-            if (!client.ConnectAsync(host, port).Wait(5000)) throw new TimeoutException("Connection to server timed out");
+            Task task = client.ConnectAsync(options.Host, options.JsonPort);
+            if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
             Thread listenThread = new(new ThreadStart(Listen)) { IsBackground = true };
             listenThread.Start();
+            return true;
         }
-        catch { Disconnect(); }
+        catch { return false; }
     }
     private void Listen()
     {
@@ -41,7 +43,11 @@ internal class JsonClient
             try
             {
                 connection.ReadStream(stream);
-                if (connection.IsReady) HandleResponse(connection.GetResponseAsString());
+                if (connection.IsReady)
+                {
+                    string response = connection.GetResponseAsString();
+                    Task.Run(() => HandleResponse(response));
+                }
             }
             catch { Disconnect(); }
         }
@@ -63,44 +69,55 @@ internal class JsonClient
     {
         try
         {
+            // TODO: move tcs enqueue here
             string request = JsonSerializer.Serialize(data);
             stream?.Write(JsonConnection.BuildJsonRequest(request));
         }
         catch { Disconnect(); }
     }
-    public void AuthSessionId(string sessionId, int userId)
+    public async Task<bool> Auth(string session_id, int user_id)
     {
-        var data = new
+        TaskCompletionSource<bool> tcs = new();
+        var payload = new
         {
             method = "auth",
-            user_id = userId,
-            session_id = sessionId,
+            user_id,
+            session_id,
         };
-        Send(data);
+        Send(payload);
+        requests.Enqueue(tcs);
+        return await tcs.Task;
     }
-    public void AuthLogin(string login_username, string login_password)
+    public async Task<AuthDTO> Login(string username, string password)
     {
-        var data = new
+        TaskCompletionSource<AuthDTO> tcs = new();
+        var payload = new
         {
             method = "login",
-            username = login_username,
-            password = login_password
+            username,
+            password
         };
-        Send(data);
+        Send(payload);
+        requests.Enqueue(tcs);
+        return await tcs.Task;
     }
-    public void RegisterUser(string new_username, string new_name, string new_password)
+    public async Task<AuthDTO> Register(string new_username, string new_name, string new_password)
     {
-        var data = new
+        TaskCompletionSource<AuthDTO> tcs = new();
+        var payload = new
         {
             method = "register",
             username= new_username,
             name = new_name,
             password = new_password
         };
-        Send(data);
+        Send(payload);
+        requests.Enqueue(tcs);
+        return await tcs.Task;
     }
-    public void CheckUsername(string username)
+    public async Task<bool> CheckUsername(string username)
     {
+        TaskCompletionSource<bool> tcs = new();
         var data = new
         {
             method = "check",
@@ -108,6 +125,8 @@ internal class JsonClient
             data = username
         };
         Send(data);
+        requests.Enqueue(tcs);
+        return await tcs.Task;
     }
     public void FetchSelf()
     {
@@ -137,8 +156,9 @@ internal class JsonClient
         };
         Send(data);
     }
-    public void FetchMessages(int id, int[] fetchRange)
+    public async Task<List<MessageDTO>> FetchMessages(int id, int[] fetchRange)
     {
+        TaskCompletionSource<List<MessageDTO>> tcs = new();
         var data = new
         {
             method = "fetch",
@@ -147,6 +167,8 @@ internal class JsonClient
             range = fetchRange
         };
         Send(data);
+        requests.Enqueue(tcs);
+        return await tcs.Task;
     }
     public void SendMessage(int chatId, int? replyTo, string text, List<string> hashes)
     {
@@ -224,35 +246,29 @@ internal class JsonClient
         switch (r_method)
         {
             case "login":
-                if (ok != true) return;
-                WeakReferenceMessenger.Default.Send(new Msg_AuthResult
-                {
-                    sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
-                    userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
-                });
-                break;
             case "register":
                 if (ok != true) return;
-                WeakReferenceMessenger.Default.Send(new Msg_AuthResult
-                {
-                    sessionId = rootNode?["session_id"]?.GetValue<string>() ?? string.Empty,
-                    userId = rootNode?["user_id"]?.GetValue<int>() ?? 0
-                });
+                AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
+                if (auth == null) return;
+                requests.TryDequeue(out object? tcs);
+                if (tcs is TaskCompletionSource<AuthDTO> login_tcs) login_tcs.SetResult(auth);
                 break;
             case "auth":
                 if (ok != true) return;
-                WeakReferenceMessenger.Default.Send(new Msg_AuthResult { auto = true });
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(true);
                 break;
             case "check_username":
-                if (ok == true) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = false });
-                else if (ok == false) WeakReferenceMessenger.Default.Send(new Msg_CheckResult { available = true });
+                if (ok != true && ok != false) return;
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<bool> check_tcs) check_tcs.SetResult(ok != true);
                 break;
             case "fetch_self":
                 if (ok != true) return;
-                WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
-                {
-                    profile = rootNode?.Deserialize<ProfileDTO>()
-                });
+                //WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
+                //{
+                //    profile = rootNode?.Deserialize<ProfileDTO>()
+                //});
                 break;
             case "fetch_chats":
                 if (ok != true) return;
@@ -264,7 +280,7 @@ internal class JsonClient
                     ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
                     if (chat != null) chatlist.Add(chat);
                 }
-                WeakReferenceMessenger.Default.Send(new Msg_FetchChatsResult { chats = chatlist });
+                //WeakReferenceMessenger.Default.Send(new Msg_FetchChatsResult { chats = chatlist });
                 break;
             case "fetch_users":
                 if (ok != true) return;
@@ -277,7 +293,7 @@ internal class JsonClient
                         ChatDTO? user = userNode?.Deserialize<ChatDTO>();
                         if (user != null)
                         {
-                            user.Id = userNode?["user_id"]?.GetValue<int>() ?? 0;
+                            user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
                             userList.Add(user);
                         }
                     }
@@ -287,22 +303,23 @@ internal class JsonClient
             case "fetch_messages":
                 if (ok != true) return;
                 JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
-                List<MessageDTO> messageList = [];
                 if (messagesJson == null) return;
+                List<MessageDTO> messageList = [];
                 foreach(JsonNode? messageNode in messagesJson)
                 {
                     MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
                     if (message != null) messageList.Add(message);
                 }
                 messageList.Reverse();
-                WeakReferenceMessenger.Default.Send(new Msg_FetchMessagesResult { messages = messageList });
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs) fmsg_tcs.SetResult(messageList);
                 break;
             case "send_message":
                 if (ok != true) return;
                 int? messageId = rootNode?["message_id"]?.GetValue<int>();
                 int? chatId = rootNode?["chat_id"]?.GetValue<int>();
                 if (messageId == null || chatId == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_ChangeMessageStatus { chat = chatId ?? 0, Id = messageId ?? 0, status = MessageStatus.Delivered});
+                WeakReferenceMessenger.Default.Send(new Msg_ChangeMessageStatus { chat = chatId ?? -1, Id = messageId ?? -1, status = MessageStatus.Delivered});
                 break;
         }
         // parse events
@@ -330,7 +347,7 @@ internal class JsonClient
                 int? chat = rootNode?["chat_id"]?.GetValue<int>();
                 int? id = rootNode?["message_id"]?.GetValue<int>();
                 if (chat == null || id == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? 0, Id = id ?? 0 });
+                WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? -1, Id = id ?? -1 });
                 break;
         }
     }

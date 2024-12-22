@@ -20,6 +20,7 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -70,21 +71,28 @@ partial class ChatViewModel : ViewModelBase
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
-        WeakReferenceMessenger.Default.Register<Msg_FetchChatsResult>(this, (r, e) =>
-        {
-            foreach (ChatDTO chat in e.chats)
-            {
-                Chats.Add(DTOToModelConverter.ConvertChat(chat));
-            }
-        });
         //WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => ChangeMessageStatus(e.chat, e.Id, e.status));
+        
+        WeakReferenceMessenger.Default.Register<Msg_NewChat>(this, (r, e) =>
+        {
+            if (e.chat != null) Chats.Add(DTOToModelConverter.ConvertChat(e.chat));
+        });
+        WeakReferenceMessenger.Default.Register<Msg_NewMessage>(this, (r, e) =>
+        {
+            if (e.message == null) return;
+            MessageModel message = DTOToModelConverter.ConvertMessage(e.message);
+            if (TryFindChat(message.Chat, out var chat)) chat.AddMessage(message);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, e) =>
+        {
+            if (e.message == null) return;
+            MessageModel message = DTOToModelConverter.ConvertMessage(e.message);
+            if (TryFindChat(message.Chat, out var chat)) chat.EditMessage(message);
+        });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, e) =>
         {
-            ObservableCollection<ChatItem>? messages = Chats.FirstOrDefault(c => c.Id == e.chat)?.Messages;
-            if (messages == null) return;
-            MessageModel? originalMessage = messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == e.Id);
-            if (originalMessage == null) return;
-            chainManager.DeleteChain(originalMessage, messages);
+            if (e.chat == -1 || e.Id == -1) return;
+            if (TryFindChat(e.chat, out var chat)) chat.DeleteMessage(e.Id);
         });
     }
     partial void OnSearchInputChanged(string value)
@@ -128,10 +136,8 @@ partial class ChatViewModel : ViewModelBase
     {
         if (value?.Messages.Count == 0 && !inSearch)
         {
-            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages()
-            {
-                chatId = value.Id,
-            });
+            Msg_FetchMessages msg = new() { chatId = value.Id };
+            WeakReferenceMessenger.Default.Send(msg);
         }
     }
     /*
@@ -140,20 +146,14 @@ partial class ChatViewModel : ViewModelBase
         SearchList = resultList;
         SearchListSelected = null;
     }
-    public void UpdateChats(ObservableCollection<ChatModel> chatList) => ChatList = chatList;
-    public void UpdateMessages(ObservableCollection<MessageModel> messageList)
+    */
+    public void UpdateMessages(int chat_id, List<MessageModel> messages)
     {
-        if (ChatListSelected == null) return;
-        MessageList = ChatListSelected.Messages = chainManager.GenerateChain(messageList, ChatListSelected);
+        if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages);
     }
+    /*
     public void AddChat(ChatModel chat) => ChatList.Add(chat);
-    public void AddMessage(MessageModel message)
-    {
-        ObservableCollection<ChatItem>? messages = ChatList.FirstOrDefault(c => c.Id == message.Chat)?.Messages;
-        if (messages == null) return;
-        messages.Add(message);
-        chainManager.AddChain(messages);
-    }
+   
     public void ChangeMessageStatus(int chat, int id, MessageStatus status)
     {
         MessageModel? message = ChatList.FirstOrDefault(c => c.Id == chat)?.Messages.OfType<MessageModel>().LastOrDefault();
@@ -163,6 +163,14 @@ partial class ChatViewModel : ViewModelBase
             message.Status = status;
         }
     }
+    */
+    private bool TryFindChat(int id, out ChatModel chat)
+    {
+        ChatModel? chat_or_null = Chats.FirstOrDefault(c => c.Id == id);
+        chat = chat_or_null ?? default!;
+        return chat_or_null != null;
+    }
+    /*
     [RelayCommand]
     private void ClearSearch()
     {

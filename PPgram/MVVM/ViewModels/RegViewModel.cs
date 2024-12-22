@@ -28,9 +28,6 @@ partial class RegViewModel : ViewModelBase
         // username check request delay timer
         _timer = new() { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += CheckUsername;
-
-        WeakReferenceMessenger.Default.Register<Msg_CheckResult>(this, (r, e) => 
-        ShowUsernameStatus(e.available ? "Username is available" : "Username is already taken", e.available));
     }
     partial void OnPasswordChanged(string value)
     {
@@ -69,13 +66,9 @@ partial class RegViewModel : ViewModelBase
     {
         // stop timer to prevent request spam
         _timer.Stop();
-        WeakReferenceMessenger.Default.Send(new Msg_Register()
-        {
-            username = $"@{Username}",
-            check = true
-        });
+        WeakReferenceMessenger.Default.Send(new Msg_CheckUsername() { username = $"@{Username}" });
     }
-    private void ShowUsernameStatus(string status = "", bool ok = false)
+    public void ShowUsernameStatus(string status = "", bool ok = false)
     {
         UsernameStatus = status;
         UsernameOk = ok;
@@ -85,7 +78,7 @@ partial class RegViewModel : ViewModelBase
     {
         // check if all fields are valid
         if (String.IsNullOrEmpty(Name) || !UsernameOk || !PassOk ) return;
-        WeakReferenceMessenger.Default.Send(new Msg_Register()
+        WeakReferenceMessenger.Default.Send(new Msg_Auth()
         {
             name = Name,
             username = $"@{Username}",

@@ -21,6 +21,6 @@ internal class MessageDTO
     public bool? Edited { get; set; }
     [JsonPropertyName("content")]
     public string? Text { get; set; }
-    [JsonPropertyName("media_hashes")]
+    [JsonPropertyName("sha256_hashes")]
     public string[]? MediaHashes { get; set; }
 }

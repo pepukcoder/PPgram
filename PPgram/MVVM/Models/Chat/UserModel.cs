@@ -1,5 +1,4 @@
-﻿using PPgram.App;
-using PPgram.MVVM.Models.Message;
+﻿using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.Shared;
 using System.Collections.Specialized;

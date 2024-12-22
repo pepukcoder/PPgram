@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -18,7 +19,9 @@ using PPgram.MVVM.Models.User;
 using PPgram.Shared;
 
 namespace PPgram.MVVM.Models.Chat;
-
+/// <summary>
+/// A base class that represents a PPgram chat with its functionality
+/// </summary>
 internal abstract partial class ChatModel : ObservableObject
 {
     [ObservableProperty]
@@ -66,6 +69,7 @@ internal abstract partial class ChatModel : ObservableObject
 
     public int Id { get; set; }
 
+    private ConcurrentQueue<MessageModel> sendingQueue = [];
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     protected readonly ProfileState profileState = ProfileState.Instance;
@@ -74,13 +78,18 @@ internal abstract partial class ChatModel : ObservableObject
     {
         Messages.CollectionChanged += UpdateLastMessage;
     }
+    private void UpdateLastMessage() => UpdateLastMessage(this, new(NotifyCollectionChangedAction.Reset));
     protected abstract void UpdateLastMessage(object? sender, NotifyCollectionChangedEventArgs e);
+    public void LoadMessages(List<MessageModel> messageList)
+    {
+        Messages = chainManager.GenerateChain(messageList, this);
+    }
     partial void OnSelectedMessageChanged(ChatItem? value)
     {
         if (value is MessageModel message)
         {
             ContextVisible = true;
-            CanEdit = message.SenderId == profileState.UserId;
+            CanEdit = message.SenderId == profileState.UserId && message.Content is ITextContent;
         }
         else
         {
@@ -105,7 +114,6 @@ internal abstract partial class ChatModel : ObservableObject
             Id = message.Id,
             newContent = editedContent
         });
-        CloseSecondary();
     }
     public void AttachFiles(List<FileModel> files)
     {
@@ -121,22 +129,32 @@ internal abstract partial class ChatModel : ObservableObject
             Files.Add(file);
         }
     }
-    public void EditMessage(MessageModel newMessage)
+    public void AddMessage(MessageModel message)
     {
-        MessageModel? originalMessage = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == newMessage.Id);
-        if (originalMessage == null) return;
-        originalMessage.Edited = true;
-        originalMessage.Content = newMessage.Content;
+        Messages.Add(message);
+        chainManager.AddChain(Messages);
+    }
+    public void EditMessage(MessageModel message)
+    {
+        MessageModel? origin = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.Id);
+        if (origin == null) return;
+        origin = message;
+        origin.Edited = true;
     }
     public void DeleteMessage(int id)
     {
-        MessageModel? originalMessage = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == id);
-        if (originalMessage == null) return;
-        chainManager.DeleteChain(originalMessage, Messages);
+        MessageModel? origin = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == id);
+        if (origin == null) return;
+        chainManager.DeleteChain(origin, Messages);
+    }
+    public void ChangeMessageStatus(int id, MessageStatus status)
+    {
+        
     }
     [RelayCommand]
     private void BuildMessage()
     {
+        
         // send edit request if editing
         if (InEdit && SelectedMessage is MessageModel editMessage)
         {
@@ -150,11 +168,10 @@ internal abstract partial class ChatModel : ObservableObject
                 tc.Text = MessageInput.Trim();
             }
             editMessage.Edited = true;
-            UpdateLastMessage(this, new(NotifyCollectionChangedAction.Reset));
+            CloseSecondary();
             SendEditMessage(editMessage, editMessage.Content);
             return;
         }
-
         // create message
         MessageModel message = new()
         {
@@ -171,7 +188,6 @@ internal abstract partial class ChatModel : ObservableObject
         {
             message.ReplyTo = selectedMessage.Id;
             message.Reply = reply;
-            CloseSecondary();
         }
         // add content & send
         if (Files.Count != 0)
@@ -190,37 +206,13 @@ internal abstract partial class ChatModel : ObservableObject
         else if (!String.IsNullOrEmpty(MessageInput))
         {
             message.Content = new TextContentModel { Text = MessageInput.Trim() };
+            CloseSecondary();
             SendMessage(message);
         }
         else return;
         Messages.Add(message);
         chainManager.AddChain(Messages);
         MessageInput = "";
-    }
-    [RelayCommand]
-    private void DeleteMessage()
-    {
-        if (SelectedMessage != null && SelectedMessage is MessageModel message)
-        {
-            chainManager.DeleteChain(message, Messages);
-            WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
-            {
-                chat = message.Chat,
-                Id = message.Id
-            });
-        }
-    }
-    [RelayCommand]
-    private void StartEdit()
-    {
-        if (SelectedMessage != null && SelectedMessage is MessageModel message)
-        {
-            SecondaryVisible = true;
-            InReply = false;
-            InEdit = true;
-            SecondaryHeader = "Editing message";
-            if (message.Content is ITextContent tc) MessageInput = SecondaryText = tc.Text;
-        }
     }
     [RelayCommand]
     private void AddReply()
@@ -240,13 +232,35 @@ internal abstract partial class ChatModel : ObservableObject
         }
     }
     [RelayCommand]
+    private void StartEdit()
+    {
+        if (SelectedMessage != null && SelectedMessage is MessageModel message)
+        {
+            SecondaryVisible = true;
+            InReply = false;
+            InEdit = true;
+            SecondaryHeader = "Editing message";
+            if (message.Content is ITextContent tc) MessageInput = SecondaryText = tc.Text;
+        }
+    }
+    [RelayCommand]
+    private void DeleteMessage()
+    {
+        if (SelectedMessage != null && SelectedMessage is MessageModel message)
+        {
+            chainManager.DeleteChain(message, Messages);
+            WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
+            {
+                chat = message.Chat,
+                Id = message.Id
+            });
+        }
+    }
+    [RelayCommand]
     private void CloseSecondary()
     {
-        if (InEdit)
-        {
-            MessageInput = "";
-            InEdit = false;
-        }
+        if (InEdit) MessageInput = "";
+        InEdit = false;
         InReply = false;
         SecondaryVisible = false;
         SelectedMessage = null;

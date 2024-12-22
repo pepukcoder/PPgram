@@ -18,7 +18,7 @@ partial class LoginViewModel : ViewModelBase
     {
         // check if all fields are filled
         if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password)) return;
-        WeakReferenceMessenger.Default.Send(new Msg_Login
+        WeakReferenceMessenger.Default.Send(new Msg_Auth
         {
             username = $"@{Username}",
             password = Password

@@ -1,4 +1,5 @@
 using Avalonia.Layout;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -10,7 +11,6 @@ using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
-using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Net.DTO;
 using PPgram.Shared;
@@ -19,15 +19,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
 
 internal partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private ViewModelBase _currentPage;
+    private ViewModelBase currentPage;
     [ObservableProperty]
     private Dialog? dialog;
     [ObservableProperty]
@@ -43,7 +45,7 @@ internal partial class MainViewModel : ViewModelBase
     private readonly LoginViewModel login_vm = new();
     private readonly ChatViewModel chat_vm = new();
     private readonly ProfileViewModel profile_vm = new();
-
+    // network
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
     
@@ -55,39 +57,42 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
         WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, e) => Logout());
-        WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, (r,e) => ConnectToServer());
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, (r, e) => jsonClient.SearchChats(e.searchQuery));
-        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, (r, e) => jsonClient.FetchMessages(e.chatId, e.range));
-        WeakReferenceMessenger.Default.Register<Msg_Login>(this, (r, e) => jsonClient.AuthLogin(e.username, e.password));
+        WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
+        {
+            if(await ConnectToServer()) await AutoAuth();
+        });
+
+        WeakReferenceMessenger.Default.Register<Msg_Auth>(this, async (r, m) =>
+        {
+            AuthDTO auth;
+            if (String.IsNullOrEmpty(m.name)) auth = await jsonClient.Register(m.username, m.name, m.password);
+            else auth = await jsonClient.Login(m.username, m.password);
+            FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(auth));
+            await LoadOnline();
+        });
+        WeakReferenceMessenger.Default.Register<Msg_CheckUsername>(this, async (r, m) =>
+        {
+            bool available = await jsonClient.CheckUsername(m.username);
+            reg_vm.ShowUsernameStatus(available ? "Username is available" : "Username is already taken", available);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, async (r, e) =>
+        {
+            ////////////////
+            jsonClient.SearchChats(e.searchQuery);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
+        {
+            List<MessageDTO> dtos = await jsonClient.FetchMessages(m.chatId, m.range);
+            List<MessageModel> messages = [];
+            foreach (MessageDTO dto in dtos) messages.Add(DTOToModelConverter.ConvertMessage(dto));
+            chat_vm.UpdateMessages(m.chatId, messages);
+        });
+        
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
         WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
         {
             Thread thread = new(() => UploadFiles(e.files)) { IsBackground = true };
             thread.Start();
-        });
-        WeakReferenceMessenger.Default.Register<Msg_Register>(this, (r, e) =>
-        {
-            if (e.check) jsonClient.CheckUsername(e.username);
-            else jsonClient.RegisterUser(e.username, e.name, e.password);
-        });
-        WeakReferenceMessenger.Default.Register<Msg_AuthResult>(this, (r, e) =>
-        {
-            AuthCredentialsModel data = new()
-            {
-                UserId = e.userId,
-                SessionId = e.sessionId
-            };
-            if (!e.auto) FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(data));
-            CurrentPage = chat_vm;
-            jsonClient.FetchSelf();
-        });
-        WeakReferenceMessenger.Default.Register<Msg_FetchSelfResult>(this, (r, e) =>
-        {
-            profileState.UserId = e.profile?.Id ?? 0;
-            profileState.Name = e.profile?.Name ?? string.Empty;
-            profileState.Username = e.profile?.Username ?? string.Empty;
-            profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
-            jsonClient.FetchChats();
         });
         WeakReferenceMessenger.Default.Register<Msg_SearchChatsResult>(this, (r, e) =>
         {
@@ -108,25 +113,6 @@ internal partial class MainViewModel : ViewModelBase
                 resultList.Add(result);
             }
             //chat_vm.UpdateSearch(resultList);
-        });
-        WeakReferenceMessenger.Default.Register<Msg_FetchMessagesResult>(this, (r, e) =>
-        {
-            ObservableCollection<MessageModel> messages = [];
-            foreach (MessageDTO messageDTO in e.messages)
-            {
-                messages.Add(DTOToModelConverter.ConvertMessage(messageDTO));
-            }
-            //chat_vm.UpdateMessages(messages);
-        });
-        WeakReferenceMessenger.Default.Register<Msg_NewChat>(this, (r, e) =>
-        {
-            if (e.chat == null) return;
-            //chat_vm.AddChat(DTOToModelConverter.ConvertChat(e.chat));
-        });
-        WeakReferenceMessenger.Default.Register<Msg_NewMessage>(this, (r, e) =>
-        {
-            if (e.message == null) return;
-            //chat_vm.AddMessage(DTOToModelConverter.ConvertMessage(e.message));
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
         {
@@ -151,11 +137,6 @@ internal partial class MainViewModel : ViewModelBase
             else text = "";
             jsonClient.EditMessage(e.chat,e.Id, text);
         });
-        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, e) =>
-        {
-            if (e.message == null) return;
-            //chat_vm.EditMessage(DTOToModelConverter.ConvertMessage(e.message));
-        });
         WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, (r, e) =>
         {
             if (e.file.Hash == null) return;
@@ -174,7 +155,35 @@ internal partial class MainViewModel : ViewModelBase
 
         // connection
         CurrentPage = login_vm;
-        ConnectToServer();
+        Task.Run(async() => 
+        {
+            if (await ConnectToServer() && await AutoAuth()) await LoadOnline();
+        });
+    }
+    private async Task LoadOnline()
+    {
+        CurrentPage = chat_vm;
+        /*
+        profileState.UserId = e.profile?.Id ?? 0;
+        profileState.Name = e.profile?.Name ?? string.Empty;
+        profileState.Username = e.profile?.Username ?? string.Empty;
+        profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
+        jsonClient.FetchChats();*/
+    }
+    private async Task<bool> AutoAuth()
+    {
+        if (!File.Exists(PPPath.SessionFile)) return false;
+        try
+        {
+            string json = File.ReadAllText(PPPath.SessionFile);
+            AuthDTO? credentials = JsonSerializer.Deserialize<AuthDTO>(json) ?? throw new InvalidDataException();
+            return await jsonClient.Auth(credentials.SessionId ?? string.Empty, credentials.UserId ?? 0);
+        }
+        catch
+        {
+            File.Delete(PPPath.SessionFile);
+            return false;
+        }
     }
     private void Logout()
     {
@@ -182,38 +191,23 @@ internal partial class MainViewModel : ViewModelBase
         CurrentPage = login_vm;
         // TODO: make api call to end auth session
     }
-    private void ConnectToServer()
+    private async Task<bool> ConnectToServer()
     {
-        ConnectionOptions connectionOptions = new()
+        ConnectionOptions options = new()
         {
             Host = "127.0.0.1",
             JsonPort = 3000,
             FilesPort = 8080
         };
-        if(!File.Exists(PPPath.ConnectionFile)) FSManager.CreateFile(PPPath.ConnectionFile, JsonSerializer.Serialize(connectionOptions));
+        // try load settings
+        if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateFile(PPPath.ConnectionFile, JsonSerializer.Serialize(options));
         try
         {
             string data = File.ReadAllText(PPPath.ConnectionFile);
-            connectionOptions = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new Exception();
+            options = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new InvalidDataException();
         }
-        catch
-        {
-            File.Delete(PPPath.ConnectionFile);
-        }
-        jsonClient.Connect(connectionOptions.Host, connectionOptions.JsonPort);
-        filesClient.Connect(connectionOptions.Host, connectionOptions.FilesPort);
-
-        if (!File.Exists(PPPath.SessionFile)) return;
-        try
-        {
-            string json = File.ReadAllText(PPPath.SessionFile);
-            AuthCredentialsModel? creds = JsonSerializer.Deserialize<AuthCredentialsModel>(json) ?? throw new Exception();
-            jsonClient.AuthSessionId(creds.SessionId, creds.UserId);
-        }
-        catch
-        {
-            File.Delete(PPPath.SessionFile);
-        }
+        catch { File.Delete(PPPath.ConnectionFile); }
+        return await jsonClient.Connect(options) && await filesClient.Connect(options);
     }
     private void UploadFiles(ObservableCollection<FileModel> files)
     {
