@@ -65,10 +65,11 @@ internal class JsonClient
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
     }
-    private void Send(object data)
+    private void Send(object data, object tcs)
     {
         try
         {
+            requests.Enqueue(tcs);
             // TODO: move tcs enqueue here
             string request = JsonSerializer.Serialize(data);
             stream?.Write(JsonConnection.BuildJsonRequest(request));
@@ -77,33 +78,30 @@ internal class JsonClient
     }
     public async Task<bool> Auth(string session_id, int user_id)
     {
-        TaskCompletionSource<bool> tcs = new();
         var payload = new
         {
             method = "auth",
             user_id,
             session_id,
         };
-        Send(payload);
-        requests.Enqueue(tcs);
+        TaskCompletionSource<bool> tcs = new();
+        Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<AuthDTO> Login(string username, string password)
     {
-        TaskCompletionSource<AuthDTO> tcs = new();
         var payload = new
         {
             method = "login",
             username,
             password
         };
-        Send(payload);
-        requests.Enqueue(tcs);
+        TaskCompletionSource<AuthDTO> tcs = new();
+        Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<AuthDTO> Register(string new_username, string new_name, string new_password)
     {
-        TaskCompletionSource<AuthDTO> tcs = new();
         var payload = new
         {
             method = "register",
@@ -111,79 +109,85 @@ internal class JsonClient
             name = new_name,
             password = new_password
         };
-        Send(payload);
-        requests.Enqueue(tcs);
+        TaskCompletionSource<AuthDTO> tcs = new();
+        Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> CheckUsername(string username)
     {
-        TaskCompletionSource<bool> tcs = new();
-        var data = new
+        var payload = new
         {
             method = "check",
             what = "username",
             data = username
         };
-        Send(data);
-        requests.Enqueue(tcs);
+        TaskCompletionSource<bool> tcs = new();
+        Send(payload, tcs);
         return await tcs.Task;
     }
-    public void FetchSelf()
+    public async Task<ProfileDTO> FetchSelf()
     {
-        var data = new
+        var payload = new
         {
             method = "fetch",
             what = "self"
         };
-        Send(data);
+        TaskCompletionSource<ProfileDTO> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
     }
-    public void FetchChats()
+    public async Task<List<ChatDTO>> FetchChats()
     {
-        var data = new
+        var payload = new
         {
             method = "fetch",
             what = "chats"
         };
-        Send(data);
+        TaskCompletionSource<List<ChatDTO>> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
     }
-    public void SearchChats(string searchQuery)
+    public async Task<List<ChatDTO>> FetchUsers(string query)
     {
-        var data = new
+        var payload = new
         {
             method = "fetch",
             what = "users",
-            query = searchQuery
+            query
         };
-        Send(data);
+        TaskCompletionSource<List<ChatDTO>> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
     }
     public async Task<List<MessageDTO>> FetchMessages(int id, int[] fetchRange)
     {
-        TaskCompletionSource<List<MessageDTO>> tcs = new();
-        var data = new
+        var payload = new
         {
             method = "fetch",
             what = "messages",
             chat_id = id,
             range = fetchRange
         };
-        Send(data);
-        requests.Enqueue(tcs);
+        TaskCompletionSource<List<MessageDTO>> tcs = new();
+        Send(payload, tcs);
         return await tcs.Task;
     }
-    public void SendMessage(int chatId, int? replyTo, string text, List<string> hashes)
+    public async Task<int> SendMessage(int chatId, int? reply_to, string text, List<string> hashes)
     {
-        var data = new
+        var payload = new
         {
             method = "send_message",
             to = chatId,
-            reply_to = replyTo != null ? replyTo : null,
+            reply_to = reply_to != null ? reply_to : null,
             content = new
             {
-                text = text,
+                text,
                 sha256_hashes = hashes.ToArray(),
             }
         };
-        Send(data);
+        TaskCompletionSource<int> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
     }
     public void EditMessage(int chatId, int messageId, string new_text)
     {
@@ -195,7 +199,6 @@ internal class JsonClient
             message_id = messageId,
             content = new_text
         };
-        Send(data);
     }
     public void DeleteMessage(int chatId, int messageId)
     {
@@ -205,7 +208,6 @@ internal class JsonClient
             chat_id = chatId,
             message_id = messageId,
         };
-        Send(data);
     }
     private void HandleResponse(string response)
     {
@@ -265,40 +267,40 @@ internal class JsonClient
                 break;
             case "fetch_self":
                 if (ok != true) return;
-                //WeakReferenceMessenger.Default.Send(new Msg_FetchSelfResult
-                //{
-                //    profile = rootNode?.Deserialize<ProfileDTO>()
-                //});
+                ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
+                if (profile == null) return;
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs) fself_tcs.SetResult(profile);
                 break;
             case "fetch_chats":
                 if (ok != true) return;
                 JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
-                List<ChatDTO> chatlist = [];
                 if (chatsJson == null) return;
+                List<ChatDTO> chatlist = [];
                 foreach (JsonNode? chatNode in chatsJson)
                 {
                     ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
                     if (chat != null) chatlist.Add(chat);
                 }
-                //WeakReferenceMessenger.Default.Send(new Msg_FetchChatsResult { chats = chatlist });
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs) fchats_tcs.SetResult(chatlist);
                 break;
             case "fetch_users":
                 if (ok != true) return;
                 JsonArray? usersJson = rootNode?["users"]?.AsArray();
+                if (usersJson == null) return;
                 List<ChatDTO> userList = [];
-                if (usersJson != null && usersJson.Count != 0)
+                foreach (JsonNode? userNode in usersJson)
                 {
-                    foreach (JsonNode? userNode in usersJson)
+                    ChatDTO? user = userNode?.Deserialize<ChatDTO>();
+                    if (user != null)
                     {
-                        ChatDTO? user = userNode?.Deserialize<ChatDTO>();
-                        if (user != null)
-                        {
-                            user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
-                            userList.Add(user);
-                        }
+                        user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
+                        userList.Add(user);
                     }
                 };
-                WeakReferenceMessenger.Default.Send(new Msg_SearchChatsResult { users = userList });
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs) fusers_tcs.SetResult(userList);
                 break;
             case "fetch_messages":
                 if (ok != true) return;
@@ -317,9 +319,9 @@ internal class JsonClient
             case "send_message":
                 if (ok != true) return;
                 int? messageId = rootNode?["message_id"]?.GetValue<int>();
-                int? chatId = rootNode?["chat_id"]?.GetValue<int>();
-                if (messageId == null || chatId == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_ChangeMessageStatus { chat = chatId ?? -1, Id = messageId ?? -1, status = MessageStatus.Delivered});
+                if (messageId == null) return;
+                requests.TryDequeue(out tcs);
+                if (tcs is TaskCompletionSource<int> msg_tcs) msg_tcs.SetResult(messageId ?? -1);
                 break;
         }
         // parse events

@@ -59,7 +59,7 @@
 												IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
 							<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right"
 									IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-									>
+									Command="{Binding ClearSearchCommand}" HotKey="13">
 								<icons:MaterialIcon Kind="Close" Height="24" Width="24" DockPanel.Dock="Left"/>
 							</Button>
 							<TextBox Background="Transparent" BorderThickness="0" FontFamily="{StaticResource Mono}" DockPanel.Dock="Right"
@@ -94,6 +94,9 @@
 						ItemContainerTheme="{StaticResource SearchEntry}"
 						SelectedItem="{Binding, Mode=TwoWay}"
 						ItemsSource="{Binding SearchResults}">
+					<ListBox.KeyBindings>
+						<KeyBinding Command="{Binding ClearSearchCommand}" Gesture="13"/>
+					</ListBox.KeyBindings>
 				</ListBox>
 				<Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Panel}">
 					<DockPanel Margin="5">

@@ -52,20 +52,20 @@ internal partial class MainViewModel : ViewModelBase
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
-        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, e) => ShowDialog(e.dialog));
-        WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, e) => { Dialog = null; DialogPanelVisible = false; });
-        WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, e) => CurrentPage = login_vm);
-        WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, e) => CurrentPage = reg_vm);
-        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, e) => Logout());
+        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, m) => ShowDialog(m.dialog));
+        WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
+        WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
+        WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
+        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) => Logout());
+
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
         {
             if(await ConnectToServer()) await AutoAuth();
         });
-
         WeakReferenceMessenger.Default.Register<Msg_Auth>(this, async (r, m) =>
         {
             AuthDTO auth;
-            if (String.IsNullOrEmpty(m.name)) auth = await jsonClient.Register(m.username, m.name, m.password);
+            if (!String.IsNullOrEmpty(m.name)) auth = await jsonClient.Register(m.username, m.name, m.password);
             else auth = await jsonClient.Login(m.username, m.password);
             FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(auth));
             await LoadOnline();
@@ -75,10 +75,12 @@ internal partial class MainViewModel : ViewModelBase
             bool available = await jsonClient.CheckUsername(m.username);
             reg_vm.ShowUsernameStatus(available ? "Username is available" : "Username is already taken", available);
         });
-        WeakReferenceMessenger.Default.Register<Msg_SearchChats>(this, async (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_SearchUsers>(this, async (r, m) =>
         {
-            ////////////////
-            jsonClient.SearchChats(e.searchQuery);
+            List<ChatDTO> dtos = await jsonClient.FetchUsers(m.query);
+            ObservableCollection<ChatModel> results = [];
+            foreach (ChatDTO dto in dtos) results.Add(DTOToModelConverter.ConvertChat(dto));
+            chat_vm.UpdateSearch(results);
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
         {
@@ -94,27 +96,8 @@ internal partial class MainViewModel : ViewModelBase
             Thread thread = new(() => UploadFiles(e.files)) { IsBackground = true };
             thread.Start();
         });
-        WeakReferenceMessenger.Default.Register<Msg_SearchChatsResult>(this, (r, e) =>
-        {
-            ObservableCollection<ChatModel> resultList = [];
-            foreach (ChatDTO chat in e.users)
-            {
-                if (chat.Id == profileState.UserId) continue;
-                UserModel result = new()
-                {
-                    Id = chat.Id ?? 0,
-                    Profile = new()
-                    {
-                        Name = chat.Name ?? "",
-                        Username = chat.Username ?? "",
-                        Avatar = Base64ToBitmapConverter.ConvertBase64(chat.Photo)
-                    }
-                };
-                resultList.Add(result);
-            }
-            //chat_vm.UpdateSearch(resultList);
-        });
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, e) =>
+
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, e) =>
         {
             string text;
             List<string> hashes = [];
@@ -128,7 +111,7 @@ internal partial class MainViewModel : ViewModelBase
                     if (file.Hash != null) hashes.Add(file.Hash);
                 }
             }
-            jsonClient.SendMessage(e.to, e.message.ReplyTo, text, hashes);
+            int id = await jsonClient.SendMessage(e.to, e.message.ReplyTo, text, hashes);
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, (r, e) =>
         {
@@ -158,17 +141,26 @@ internal partial class MainViewModel : ViewModelBase
         Task.Run(async() => 
         {
             if (await ConnectToServer() && await AutoAuth()) await LoadOnline();
+            else await LoadOffline();
         });
     }
     private async Task LoadOnline()
     {
         CurrentPage = chat_vm;
-        /*
-        profileState.UserId = e.profile?.Id ?? 0;
-        profileState.Name = e.profile?.Name ?? string.Empty;
-        profileState.Username = e.profile?.Username ?? string.Empty;
-        profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(e.profile?.Photo);
-        jsonClient.FetchChats();*/
+        ProfileDTO self = await jsonClient.FetchSelf();
+        profileState.UserId = self.Id ?? 0;
+        profileState.Name = self.Name ?? string.Empty;
+        profileState.Username = self.Username ?? string.Empty;
+        profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(self.Photo);
+
+        List<ChatDTO> chatDTOs = await jsonClient.FetchChats();
+        ObservableCollection<ChatModel> chats = [];
+        foreach (ChatDTO dto in chatDTOs) chats.Add(DTOToModelConverter.ConvertChat(dto));
+        chat_vm.UpdateChats(chats);
+    }
+    private async Task LoadOffline()
+    {
+        // Placeholder for offline app use (probably in future???)
     }
     private async Task<bool> AutoAuth()
     {

@@ -71,8 +71,7 @@ partial class ChatViewModel : ViewModelBase
         // search request delay timer
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
-        //WeakReferenceMessenger.Default.Register<Msg_ChangeMessageStatus>(this, (r, e) => ChangeMessageStatus(e.chat, e.Id, e.status));
-        
+        // events
         WeakReferenceMessenger.Default.Register<Msg_NewChat>(this, (r, e) =>
         {
             if (e.chat != null) Chats.Add(DTOToModelConverter.ConvertChat(e.chat));
@@ -97,27 +96,21 @@ partial class ChatViewModel : ViewModelBase
     }
     partial void OnSearchInputChanged(string value)
     {
-        // stop timer when editing search query
+        // stop timer if still editing
         _timer.Stop();
-        // restart delay if username is not null
-        // clean searchlist if search closed
         if (!String.IsNullOrEmpty(value.Trim()))
         {
+            // restart delay if done editing
             _timer.Start();
             inSearch = true;
         }
         else
         {
+            SearchResults = [];
             inSearch = false;
         }
     }
-    private void SearchChat(object? sender, EventArgs e)
-    {
-        // stop timer to prevent request spam
-        _timer.Stop();
-        WeakReferenceMessenger.Default.Send(new Msg_SearchChats { searchQuery = SearchInput.Trim() });
-    }
-    public void OnSearchListSelectedChanged(ChatModel? value)
+    partial void OnSelectedSearchChanged(ChatModel? value)
     {
         /*if (String.IsNullOrEmpty(SearchInput)) return;
         if (ChatList.Any(c => c.Id == value?.Id))
@@ -140,20 +133,31 @@ partial class ChatViewModel : ViewModelBase
             WeakReferenceMessenger.Default.Send(msg);
         }
     }
-    /*
+    private void SearchChat(object? sender, EventArgs e)
+    {
+        // stop timer to prevent request spam
+        _timer.Stop();
+        WeakReferenceMessenger.Default.Send(new Msg_SearchUsers { query = SearchInput.Trim() });
+    }
+    private bool TryFindChat(int id, out ChatModel chat)
+    {
+        ChatModel? chat_or_null = Chats.FirstOrDefault(c => c.Id == id);
+        chat = chat_or_null ?? default!;
+        return chat_or_null != null;
+    }
     public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
-        SearchList = resultList;
-        SearchListSelected = null;
+        SearchResults = resultList;
+        SelectedSearch = null;
     }
-    */
+    public void UpdateChats(ObservableCollection<ChatModel> chats) => Chats = chats;
     public void UpdateMessages(int chat_id, List<MessageModel> messages)
     {
         if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages);
     }
     /*
-    public void AddChat(ChatModel chat) => ChatList.Add(chat);
-   
+    public void AddChat(ChatModel chat) => Chats.Add(chat);
+
     public void ChangeMessageStatus(int chat, int id, MessageStatus status)
     {
         MessageModel? message = ChatList.FirstOrDefault(c => c.Id == chat)?.Messages.OfType<MessageModel>().LastOrDefault();
@@ -164,19 +168,8 @@ partial class ChatViewModel : ViewModelBase
         }
     }
     */
-    private bool TryFindChat(int id, out ChatModel chat)
-    {
-        ChatModel? chat_or_null = Chats.FirstOrDefault(c => c.Id == id);
-        chat = chat_or_null ?? default!;
-        return chat_or_null != null;
-    }
-    /*
     [RelayCommand]
-    private void ClearSearch()
-    {
-        SearchInput = string.Empty;
-        inSearch = false;
-    }*/
+    private void ClearSearch() => SearchInput = string.Empty;
     [RelayCommand]
     private void CloseChat() => SelectedChat = null;
     [RelayCommand]
