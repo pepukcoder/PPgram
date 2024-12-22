@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -69,7 +68,6 @@ internal abstract partial class ChatModel : ObservableObject
 
     public int Id { get; set; }
 
-    private ConcurrentQueue<MessageModel> sendingQueue = [];
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     protected readonly ProfileState profileState = ProfileState.Instance;
@@ -136,25 +134,29 @@ internal abstract partial class ChatModel : ObservableObject
     }
     public void EditMessage(MessageModel message)
     {
-        MessageModel? origin = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.Id);
-        if (origin == null) return;
-        origin = message;
-        origin.Edited = true;
+        if (TryFindMessage(message.Id, out var origin))
+        {
+            origin = message;
+            origin.Edited = true;
+        }     
     }
     public void DeleteMessage(int id)
     {
-        MessageModel? origin = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == id);
-        if (origin == null) return;
-        chainManager.DeleteChain(origin, Messages);
+        if (TryFindMessage(id, out var message)) chainManager.DeleteChain(message, Messages);
     }
     public void ChangeMessageStatus(int id, MessageStatus status)
     {
-        
+        if (TryFindMessage(id, out var message)) message.Status = status;
+    }
+    private bool TryFindMessage(int id, out MessageModel message)
+    {
+        MessageModel? msg_or_null = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == id);
+        message = msg_or_null ?? default!;
+        return msg_or_null != null;
     }
     [RelayCommand]
     private void BuildMessage()
     {
-        
         // send edit request if editing
         if (InEdit && SelectedMessage is MessageModel editMessage)
         {

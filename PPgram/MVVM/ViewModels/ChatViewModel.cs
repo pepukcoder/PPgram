@@ -1,29 +1,16 @@
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
-using PPgram.MVVM.Models.Dialog;
-using PPgram.MVVM.Models.File;
-using PPgram.MVVM.Models.Item;
-using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
-using PPgram.MVVM.Models.MessageContent;
-using PPgram.MVVM.Models.User;
-using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -46,7 +33,6 @@ partial class ChatViewModel : ViewModelBase
     private ChatModel? selectedSearch;
     [ObservableProperty]
     private FolderModel? selectedFolder;
-
 
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
@@ -72,15 +58,19 @@ partial class ChatViewModel : ViewModelBase
         _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
         _timer.Tick += SearchChat;
         // events
-        WeakReferenceMessenger.Default.Register<Msg_NewChat>(this, (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, e) =>
         {
             if (e.chat != null) Chats.Add(DTOToModelConverter.ConvertChat(e.chat));
         });
-        WeakReferenceMessenger.Default.Register<Msg_NewMessage>(this, (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, (r, e) =>
         {
             if (e.message == null) return;
             MessageModel message = DTOToModelConverter.ConvertMessage(e.message);
-            if (TryFindChat(message.Chat, out var chat)) chat.AddMessage(message);
+            if (TryFindChat(message.Chat, out var chat))
+            {
+                chat.AddMessage(message);
+                if (SelectedChat != chat) chat.UnreadCount++;
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, e) =>
         {
@@ -112,21 +102,21 @@ partial class ChatViewModel : ViewModelBase
     }
     partial void OnSelectedSearchChanged(ChatModel? value)
     {
-        /*if (String.IsNullOrEmpty(SearchInput)) return;
-        if (ChatList.Any(c => c.Id == value?.Id))
+        if (String.IsNullOrEmpty(SearchInput)) return;
+        if (Chats.Any(c => c.Id == value?.Id))
         {
             inSearch = false;
-            ChatListSelected = ChatList.FirstOrDefault(c => c.Id == value?.Id) ?? ChatList[0];
+            SelectedChat = Chats.FirstOrDefault(c => c.Id == value?.Id);
             ClearSearch();
         }
         else
         {
-            CurrentProfile = value?.Profile ?? CurrentProfile;
-            MessageList = [];
-        }*/
+            SelectedChat = value;
+        }
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
+        if (value != null) value.UnreadCount = 0;
         if (value?.Messages.Count == 0 && !inSearch)
         {
             Msg_FetchMessages msg = new() { chatId = value.Id };
@@ -155,19 +145,10 @@ partial class ChatViewModel : ViewModelBase
     {
         if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages);
     }
-    /*
-    public void AddChat(ChatModel chat) => Chats.Add(chat);
-
-    public void ChangeMessageStatus(int chat, int id, MessageStatus status)
+    public void ChangeMessageStatus(int chat_id, int message_id, MessageStatus status)
     {
-        MessageModel? message = ChatList.FirstOrDefault(c => c.Id == chat)?.Messages.OfType<MessageModel>().LastOrDefault();
-        if (message != null)
-        {
-            message.Id = id;
-            message.Status = status;
-        }
+        if (TryFindChat(chat_id, out var chat)) chat.ChangeMessageStatus(message_id, status);
     }
-    */
     [RelayCommand]
     private void ClearSearch() => SearchInput = string.Empty;
     [RelayCommand]

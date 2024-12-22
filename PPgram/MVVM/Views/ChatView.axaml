@@ -92,7 +92,7 @@
 						ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 						ScrollViewer.VerticalScrollBarVisibility="Hidden"
 						ItemContainerTheme="{StaticResource SearchEntry}"
-						SelectedItem="{Binding, Mode=TwoWay}"
+						SelectedItem="{Binding SelectedSearch, Mode=TwoWay}"
 						ItemsSource="{Binding SearchResults}">
 					<ListBox.KeyBindings>
 						<KeyBinding Command="{Binding ClearSearchCommand}" Gesture="13"/>

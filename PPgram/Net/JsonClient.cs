@@ -5,7 +5,6 @@ using PPgram.Shared;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -70,7 +69,6 @@ internal class JsonClient
         try
         {
             requests.Enqueue(tcs);
-            // TODO: move tcs enqueue here
             string request = JsonSerializer.Serialize(data);
             stream?.Write(JsonConnection.BuildJsonRequest(request));
         }
@@ -245,6 +243,7 @@ internal class JsonClient
         Debug.WriteLine(response);
 
         // parse specific fields
+        if (r_method != null)
         switch (r_method)
         {
             case "login":
@@ -325,19 +324,20 @@ internal class JsonClient
                 break;
         }
         // parse events
+        if (r_event != null)
         switch (r_event)
         {
             case "new_message":
                 JsonNode? messageNode = rootNode?["new_message"];
                 if (messageNode == null) return;
                 MessageDTO? messageDTO = messageNode.Deserialize<MessageDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_NewMessage { message = messageDTO });
+                WeakReferenceMessenger.Default.Send(new Msg_NewMessageEvent { message = messageDTO });
                 break;
             case "new_chat":
                 JsonNode? chatNode = rootNode?["new_chat"];
                 if (chatNode == null) return;
                 ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_NewChat { chat = chatDTO });
+                WeakReferenceMessenger.Default.Send(new Msg_NewChatEvent { chat = chatDTO });
                 break;
             case "edit_message":
                 messageNode = messageNode = rootNode?["new_message"];

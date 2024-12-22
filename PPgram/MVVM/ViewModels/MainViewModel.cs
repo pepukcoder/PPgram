@@ -1,5 +1,4 @@
 using Avalonia.Layout;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -19,7 +18,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,7 +77,12 @@ internal partial class MainViewModel : ViewModelBase
         {
             List<ChatDTO> dtos = await jsonClient.FetchUsers(m.query);
             ObservableCollection<ChatModel> results = [];
-            foreach (ChatDTO dto in dtos) results.Add(DTOToModelConverter.ConvertChat(dto));
+            foreach (ChatDTO dto in dtos)
+            {
+                ChatModel model = DTOToModelConverter.ConvertChat(dto);
+                model.LastMessage = "Click to add";
+                results.Add(model);
+            }
             chat_vm.UpdateSearch(results);
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
@@ -89,36 +92,44 @@ internal partial class MainViewModel : ViewModelBase
             foreach (MessageDTO dto in dtos) messages.Add(DTOToModelConverter.ConvertMessage(dto));
             chat_vm.UpdateMessages(m.chatId, messages);
         });
-        
-        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
-        WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
-        {
-            Thread thread = new(() => UploadFiles(e.files)) { IsBackground = true };
-            thread.Start();
-        });
-
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
         {
             string text;
             List<string> hashes = [];
-            if (e.message.Content is ITextContent tc) text = tc.Text;
+            if (m.message.Content is ITextContent tc) text = tc.Text;
             else text = "";
 
-            if (e.message.Content is FileContentModel fc)
+            if (m.message.Content is FileContentModel fc)
             {
                 foreach (FileModel file in fc.Files)
                 {
                     if (file.Hash != null) hashes.Add(file.Hash);
                 }
             }
-            int id = await jsonClient.SendMessage(e.to, e.message.ReplyTo, text, hashes);
+            int id = await jsonClient.SendMessage(m.to, m.message.ReplyTo, text, hashes);
+            if (id != -1)
+            {
+                m.message.Id = id;
+                m.message.Status = MessageStatus.Delivered;
+            }
+            else
+            {
+                m.message.Status = MessageStatus.Error;
+            }
         });
+
+        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
         WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, (r, e) =>
         {
             string text;
             if (e.newContent is ITextContent textContent) text = textContent.Text;
             else text = "";
             jsonClient.EditMessage(e.chat,e.Id, text);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
+        {
+            Thread thread = new(() => UploadFiles(e.files)) { IsBackground = true };
+            thread.Start();
         });
         WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, (r, e) =>
         {

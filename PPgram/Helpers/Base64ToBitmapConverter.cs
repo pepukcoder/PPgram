@@ -14,7 +14,7 @@ public class Base64ToBitmapConverter
     {
         try
         {
-            ArgumentNullException.ThrowIfNull(base64String);
+            if (base64String == null) return new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/image_broken.png", UriKind.Absolute)));
             byte[] imageBytes = Convert.FromBase64String(base64String);
             using MemoryStream ms = new(imageBytes);
             return new Bitmap(ms);

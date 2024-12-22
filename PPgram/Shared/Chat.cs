@@ -19,7 +19,3 @@ public enum GroupRole
     Admin,
     Owner
 }
-class Msg_NewChat
-{
-    public required ChatDTO? chat;
-}
