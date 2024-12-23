@@ -101,7 +101,7 @@ internal abstract partial class ChatModel : ObservableObject
         WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
         {
             message = message,
-            to = Id
+            to = this
         });
     }
     private void SendEditMessage(MessageModel message, MessageContentModel editedContent)

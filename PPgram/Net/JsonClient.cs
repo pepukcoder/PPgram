@@ -45,6 +45,7 @@ internal class JsonClient
                 if (connection.IsReady)
                 {
                     string response = connection.GetResponseAsString();
+                    Thread.Sleep(1000);
                     Task.Run(() => HandleResponse(response));
                 }
             }
@@ -53,14 +54,6 @@ internal class JsonClient
     }
     public void Disconnect()
     {
-        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        {
-            dialog = new ConnectionDialog
-            {
-                Position = Avalonia.Layout.VerticalAlignment.Bottom,
-                canSkip = false
-            }
-        });
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
     }
@@ -187,9 +180,9 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public void EditMessage(int chatId, int messageId, string new_text)
+    public async Task<bool> EditMessage(int chatId, int messageId, string new_text)
     {
-        var data = new
+        var payload = new
         {
             method = "edit",
             what = "message",
@@ -197,15 +190,21 @@ internal class JsonClient
             message_id = messageId,
             content = new_text
         };
+        TaskCompletionSource<bool> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
     }
-    public void DeleteMessage(int chatId, int messageId)
+    public async Task<bool> DeleteMessage(int chatId, int messageId)
     {
-        var data = new
+        var payload = new
         {
             method = "delete",
             chat_id = chatId,
             message_id = messageId,
         };
+        TaskCompletionSource<bool> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
     }
     private void HandleResponse(string response)
     {
@@ -216,31 +215,13 @@ internal class JsonClient
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
 
-        // LATER: remove debug errors dialogs and instead proccess them in mainviewmodel
-
+        #if DEBUG
+        Debug.WriteLine(response);
         if (ok == false && r_method != null && r_error != null) {
-            string method = r_method;
-            string error = r_error;
-
-            string result;
-            #if DEBUG
-                result = $"[DEBUG] Error in method: {method}\n Error:{error}";
-            #else
-                result = $"Error: {error}";
-            #endif
-            /* DIALOGFIX
-            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-            {
-                icon = DialogIcons.Error,
-                header = "Error occured!",
-                text = result,
-                decline = ""
-            });
-            */
+            Debug.WriteLine($"[DEBUG] Error in method: {r_method}\n[DEBUG] Error:{r_error}");
             return;
         }
-
-        Debug.WriteLine(response);
+        #endif
 
         // parse specific fields
         if (r_method != null)

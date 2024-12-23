@@ -16,10 +16,8 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
@@ -58,7 +56,7 @@ internal partial class MainViewModel : ViewModelBase
 
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
         {
-            if(await ConnectToServer()) await AutoAuth();
+            if (await ConnectToServer()) await AutoAuth();
         });
         WeakReferenceMessenger.Default.Register<Msg_Auth>(this, async (r, m) =>
         {
@@ -106,7 +104,7 @@ internal partial class MainViewModel : ViewModelBase
                     if (file.Hash != null) hashes.Add(file.Hash);
                 }
             }
-            int id = await jsonClient.SendMessage(m.to, m.message.ReplyTo, text, hashes);
+            int id = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
             if (id != -1)
             {
                 m.message.Id = id;
@@ -117,19 +115,36 @@ internal partial class MainViewModel : ViewModelBase
                 m.message.Status = MessageStatus.Error;
             }
         });
-
-        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, (r, e) => jsonClient.DeleteMessage(e.chat, e.Id));
-        WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async(r, m) =>
+        {
+            await jsonClient.DeleteMessage(m.chat, m.Id);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, async(r, m) =>
         {
             string text;
-            if (e.newContent is ITextContent textContent) text = textContent.Text;
+            if (m.newContent is ITextContent textContent) text = textContent.Text;
             else text = "";
-            jsonClient.EditMessage(e.chat,e.Id, text);
+            await jsonClient.EditMessage(m.chat,m.Id, text);
         });
         WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
         {
-            Thread thread = new(() => UploadFiles(e.files)) { IsBackground = true };
-            thread.Start();
+            try
+            {
+                foreach (FileModel file in e.files)
+                {
+                    file.Hash = filesClient.UploadFile(file.Path);
+                    if (file.Hash != null)
+                    {
+                        file.Status = FileStatus.Loaded;
+                        FSManager.SaveBinary(file.Hash, File.ReadAllBytes(file.Path), file.Name, false);
+                    }
+                }
+                WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
+            }
+            catch
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, (r, e) =>
         {
@@ -211,26 +226,6 @@ internal partial class MainViewModel : ViewModelBase
         }
         catch { File.Delete(PPPath.ConnectionFile); }
         return await jsonClient.Connect(options) && await filesClient.Connect(options);
-    }
-    private void UploadFiles(ObservableCollection<FileModel> files)
-    {
-        try
-        {
-            foreach (FileModel file in files)
-            {
-                file.Hash = filesClient.UploadFile(file.Path);
-                if (file.Hash != null)
-                {
-                    file.Status = FileStatus.Loaded;
-                    FSManager.SaveBinary(file.Hash, File.ReadAllBytes(file.Path), file.Name, false);
-                }
-            }
-            WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
-        }
-        catch
-        {
-            WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
-        }
     }
     [RelayCommand]
     private void ShowDialog(Dialog dialog)
