@@ -26,6 +26,7 @@
 	
 	
 	<SolidColorBrush x:Key="BackgroundWindow">#121212</SolidColorBrush>
+	<SolidColorBrush x:Key="BackgroundLight">#161718</SolidColorBrush>
 	<SolidColorBrush x:Key="Surface">#1e2021</SolidColorBrush>
 	<SolidColorBrush x:Key="SurfaceLight">#242627</SolidColorBrush>
 	<SolidColorBrush x:Key="Panel">#353637</SolidColorBrush>

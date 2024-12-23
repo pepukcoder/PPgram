@@ -4,8 +4,8 @@ using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.Helpers;
@@ -16,7 +16,7 @@ namespace PPgram.Helpers;
 internal class MessageChainManager
 {
     private readonly ProfileState profileState = ProfileState.Instance;
-    public ObservableCollection<ChatItem> GenerateChain(ObservableCollection<MessageModel> messages, ChatModel? chat)
+    public ObservableCollection<ChatItem> GenerateChain(List<MessageModel> messages, ChatModel? chat)
     {
         if (chat == null) return [];
         ObservableCollection<ChatItem> chain = new(messages);
@@ -56,7 +56,6 @@ internal class MessageChainManager
             ChatItem next = chat[currentIndex + 1];
             if (next is MessageModel msg)
             {
-                Debug.WriteLine(msg.Id);
                 chat.Remove(message);
                 SetRole(msg, chat);
             }

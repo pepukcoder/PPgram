@@ -3,7 +3,7 @@ using System.IO;
 
 namespace PPgram.Shared;
 
-internal record PPpath
+internal record PPPath
 {
     // folders
     public static readonly string LocalAppFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

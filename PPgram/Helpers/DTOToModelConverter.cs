@@ -67,7 +67,6 @@ internal class DTOToModelConverter
             return new GroupModel()
             {
                 Id = chatDTO.Id ?? 0,
-                Type = ChatType.Group,
                 Profile = profile,
             };
         }
@@ -76,7 +75,6 @@ internal class DTOToModelConverter
             return new UserModel()
             {
                 Id = chatDTO.Id ?? 0,
-                Type = ChatType.Chat,
                 Profile = profile,
             };
         }

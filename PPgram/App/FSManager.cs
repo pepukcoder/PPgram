@@ -16,11 +16,11 @@ internal class FSManager
             if (appState.DownloadsFolder == null) return;
 
             string filePath;
-            if (isPreview) filePath = Path.Combine(PPpath.FileCacheFolder, sha256_hash + ".preview");
+            if (isPreview) filePath = Path.Combine(PPPath.FileCacheFolder, sha256_hash + ".preview");
             else
             {
                 filePath = Path.Combine(appState.DownloadsFolder, fileName);
-                CreateFile(Path.Combine(PPpath.FileCacheFolder, sha256_hash + ".link"), filePath);
+                CreateFile(Path.Combine(PPPath.FileCacheFolder, sha256_hash + ".link"), filePath);
             }
             CreateFile(filePath, binary);
         }
@@ -37,6 +37,6 @@ internal class FSManager
         writer.Write(data);
     }
     public static void CreateFile(string path, string data) => CreateFile(path, Encoding.UTF8.GetBytes(data));
-    public static bool IsHashed(string hash) => File.Exists(Path.Combine(PPpath.FileCacheFolder, hash + ".link"));
+    public static bool IsHashed(string hash) => File.Exists(Path.Combine(PPPath.FileCacheFolder, hash + ".link"));
     private static void RestoreDirs(string path) => Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
 }

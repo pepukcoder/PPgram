@@ -1,6 +1,4 @@
-﻿using PPgram.Net.DTO;
-
-namespace PPgram.Shared;
+﻿namespace PPgram.Shared;
 
 public enum ChatType
 {
@@ -18,8 +16,4 @@ public enum GroupRole
     None,
     Admin,
     Owner
-}
-class Msg_NewChat
-{
-    public required ChatDTO? chat;
 }

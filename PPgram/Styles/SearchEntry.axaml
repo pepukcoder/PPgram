@@ -11,19 +11,11 @@
 			<ControlTemplate>
 				<Border x:Name="Back" CornerRadius="15" Padding="5" HorizontalAlignment="Stretch" Background="Transparent">
 					<DockPanel>
-            <Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
-              <Ellipse.Fill>
-                <ImageBrush Source="{Binding Profile.Avatar}"/>
-              </Ellipse.Fill>
-            </Ellipse>
-            <Panel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,0,0">
-              <icons:MaterialIcon IsVisible="{Binding Type, Converter={StaticResource EnumConvert}, ConverterParameter=Chat}"
-                                  Kind="Account" Height="20" Width="20" Foreground="{StaticResource SecondaryText}"/>
-              <icons:MaterialIcon IsVisible="{Binding Type, Converter={StaticResource EnumConvert}, ConverterParameter=Group}"
-                                  Kind="AccountMultiple" Height="20" Width="20" Foreground="{StaticResource SecondaryText}"/>
-              <icons:MaterialIcon IsVisible="{Binding Type, Converter={StaticResource EnumConvert}, ConverterParameter=Channel}"
-                                  Kind="Bullhorn" Height="20" Width="20" Foreground="{StaticResource SecondaryText}"/>
-            </Panel>
+						<Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
+							<Ellipse.Fill>
+							<ImageBrush Source="{Binding Profile.Avatar}"/>
+							</Ellipse.Fill>
+						</Ellipse>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 							<TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
 							<TextBlock Text="{Binding Profile.Username}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>

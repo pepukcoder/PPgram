@@ -25,9 +25,9 @@ partial class MessageModel : ChatItem
     public Bitmap Avatar { get; set; } = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
 
     [ObservableProperty]
-    public MessageContentModel content = new TextContentModel();
+    private MessageContentModel content = new TextContentModel();
     [ObservableProperty]
-    public bool edited;
+    private bool edited;
     [ObservableProperty]
     private MessageRole role;
     [ObservableProperty]

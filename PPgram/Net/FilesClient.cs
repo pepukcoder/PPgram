@@ -10,11 +10,10 @@ using PPgram.MVVM.Models.Message;
 using PPgram.App;
 using PPgram.Net;
 using PPgram.Shared;
+using System.Threading.Tasks;
 
 internal class FilesClient
 {
-    private string host = string.Empty;
-    private int port;
     private TcpClient? client;
     private NetworkStream? stream;
 
@@ -22,18 +21,18 @@ internal class FilesClient
     private const int chunkSize = 64 * 1024 * 1024; // 64 MiB
     const int MESSAGE_ALLOCATION_SIZE = 4 * 1024 * 1024; // 4 MiB
 
-    public void Connect(string remoteHost, int remotePort)
+    public async Task<bool> Connect(ConnectionOptions options)
     {
-        host = remoteHost;
-        port = remotePort;
         try
         {
-            if (client != null) return;
+            if (client != null) throw new InvalidOperationException("Client is already connected");
             client = new();
-            if (!client.ConnectAsync(host, port).Wait(5000)) throw new TimeoutException("Connection to server timed out");
+            Task task = client.ConnectAsync(options.Host, options.FilesPort);
+            if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
+            return true;
         }
-        catch { Disconnect(); }
+        catch { return false; }
     }
     private void Disconnect()
     {
