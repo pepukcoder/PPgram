@@ -52,8 +52,14 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
-        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) => Logout());
-
+        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) => 
+        {
+            string? exeFile = Process.GetCurrentProcess().MainModule?.FileName;
+            if (exeFile == null) return;
+            File.Delete(PPPath.SessionFile);
+            Process.Start(new ProcessStartInfo(exeFile)); 
+            Environment.Exit(0);
+        });
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
         {
             if (await ConnectToServer()) await AutoAuth();
