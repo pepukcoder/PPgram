@@ -63,7 +63,10 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
         {
-            if (await ConnectToServer()) await AutoAuth();
+            jsonClient.Disconnect();
+            await jsonClient.Connect(PPAppState.ConnectionOptions);
+            await AutoAuth();
+            await LoadOnline();
         });
         WeakReferenceMessenger.Default.Register<Msg_Auth>(this, async (r, m) =>
         {
@@ -122,11 +125,11 @@ internal partial class MainViewModel : ViewModelBase
                 m.message.Status = MessageStatus.Error;
             }
         });
-        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async(r, m) =>
+        WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async (r, m) =>
         {
             await jsonClient.DeleteMessage(m.chat, m.Id);
         });
-        WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, async(r, m) =>
+        WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, async (r, m) =>
         {
             string text;
             if (m.newContent is ITextContent textContent) text = textContent.Text;

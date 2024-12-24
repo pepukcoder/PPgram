@@ -19,6 +19,7 @@ internal class JsonClient
     private TcpClient? client;
     private NetworkStream? stream;
     private readonly ConcurrentQueue<object> requests = [];
+    private CancellationTokenSource cts = new();
     public async Task<bool> Connect(ConnectionOptions options)
     {
         try
@@ -28,16 +29,16 @@ internal class JsonClient
             Task task = client.ConnectAsync(options.Host, options.JsonPort);
             if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
-            Thread listenThread = new(new ThreadStart(Listen)) { IsBackground = true };
+            Thread listenThread = new(() => Listen(cts.Token)) { IsBackground = true };
             listenThread.Start();
             return true;
         }
         catch { return false; }
     }
-    private void Listen()
+    private void Listen(CancellationToken ct)
     {
         JsonConnection connection = new();
-        while (client != null)
+        while (!ct.IsCancellationRequested)
         {
             try
             {
@@ -45,7 +46,7 @@ internal class JsonClient
                 if (connection.IsReady)
                 {
                     string response = connection.GetResponseAsString();
-                    Task.Run(() => HandleResponse(response));
+                    Task.Run(() => HandleResponse(response), ct);
                 }
             }
             catch { Disconnect(); }
@@ -54,7 +55,10 @@ internal class JsonClient
     public void Disconnect()
     {
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
+        cts.Cancel();
+        requests.Clear();
         client = null;
+        cts = new();
     }
     private void Send(object data, object tcs)
     {
@@ -223,7 +227,7 @@ internal class JsonClient
         #endif
 
         // parse specific fields
-        if (r_method != null)
+        if (r_method != null && requests.TryDequeue(out object? tcs))
         switch (r_method)
         {
             case "login":
@@ -231,24 +235,20 @@ internal class JsonClient
                 if (ok != true) return;
                 AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
                 if (auth == null) return;
-                requests.TryDequeue(out object? tcs);
                 if (tcs is TaskCompletionSource<AuthDTO> login_tcs) login_tcs.SetResult(auth);
                 break;
             case "auth":
                 if (ok != true) return;
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(true);
                 break;
             case "check_username":
                 if (ok != true && ok != false) return;
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<bool> check_tcs) check_tcs.SetResult(ok != true);
                 break;
             case "fetch_self":
                 if (ok != true) return;
                 ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
                 if (profile == null) return;
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs) fself_tcs.SetResult(profile);
                 break;
             case "fetch_chats":
@@ -261,7 +261,6 @@ internal class JsonClient
                     ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
                     if (chat != null) chatlist.Add(chat);
                 }
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs) fchats_tcs.SetResult(chatlist);
                 break;
             case "fetch_users":
@@ -278,7 +277,6 @@ internal class JsonClient
                         userList.Add(user);
                     }
                 };
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs) fusers_tcs.SetResult(userList);
                 break;
             case "fetch_messages":
@@ -292,14 +290,12 @@ internal class JsonClient
                     if (message != null) messageList.Add(message);
                 }
                 messageList.Reverse();
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs) fmsg_tcs.SetResult(messageList);
                 break;
             case "send_message":
                 if (ok != true) return;
                 int? messageId = rootNode?["message_id"]?.GetValue<int>();
                 if (messageId == null) return;
-                requests.TryDequeue(out tcs);
                 if (tcs is TaskCompletionSource<int> msg_tcs) msg_tcs.SetResult(messageId ?? -1);
                 break;
         }
