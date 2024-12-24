@@ -45,7 +45,6 @@ internal class JsonClient
                 if (connection.IsReady)
                 {
                     string response = connection.GetResponseAsString();
-                    Thread.Sleep(1000);
                     Task.Run(() => HandleResponse(response));
                 }
             }

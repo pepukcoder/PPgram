@@ -16,6 +16,7 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -199,8 +200,7 @@ internal partial class MainViewModel : ViewModelBase
         if (!File.Exists(PPPath.SessionFile)) return false;
         try
         {
-            string json = File.ReadAllText(PPPath.SessionFile);
-            AuthDTO? credentials = JsonSerializer.Deserialize<AuthDTO>(json) ?? throw new InvalidDataException();
+            AuthDTO credentials = FSManager.LoadFromJsonFile<AuthDTO>(PPPath.SessionFile);
             return await jsonClient.Auth(credentials.SessionId ?? string.Empty, credentials.UserId ?? 0);
         }
         catch
@@ -209,29 +209,13 @@ internal partial class MainViewModel : ViewModelBase
             return false;
         }
     }
-    private void Logout()
-    {
-        File.Delete(PPPath.SessionFile);
-        CurrentPage = login_vm;
-        // TODO: make api call to end auth session
-    }
     private async Task<bool> ConnectToServer()
     {
-        ConnectionOptions options = new()
-        {
-            Host = "127.0.0.1",
-            JsonPort = 3000,
-            FilesPort = 8080
-        };
         // try load settings
-        if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateFile(PPPath.ConnectionFile, JsonSerializer.Serialize(options));
-        try
-        {
-            string data = File.ReadAllText(PPPath.ConnectionFile);
-            options = JsonSerializer.Deserialize<ConnectionOptions>(data) ?? throw new InvalidDataException();
-        }
+        if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateJsonFile(PPPath.ConnectionFile, PPAppState.ConnectionOptions);
+        try { PPAppState.ConnectionOptions = FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
         catch { File.Delete(PPPath.ConnectionFile); }
-        return await jsonClient.Connect(options) && await filesClient.Connect(options);
+        return await jsonClient.Connect(PPAppState.ConnectionOptions) && await filesClient.Connect(PPAppState.ConnectionOptions);
     }
     [RelayCommand]
     private void ShowDialog(Dialog dialog)
