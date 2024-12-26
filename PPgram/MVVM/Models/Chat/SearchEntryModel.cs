@@ -14,7 +14,7 @@ namespace PPgram.MVVM.Models.Chat;
 /// </remarks>
 internal partial class SearchEntryModel : ChatModel
 {
-    protected override void UpdateLastMessage(object? sender, NotifyCollectionChangedEventArgs e)
+    protected override void UpdateLastMessage()
     {
         LastMessage = "";
         LastMessageStatus = MessageStatus.None;

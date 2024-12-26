@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -118,11 +119,11 @@ internal partial class MainViewModel : ViewModelBase
             if (id != -1)
             {
                 m.message.Id = id;
-                m.message.Status = MessageStatus.Delivered;
+                chat_vm.ChangeMessageStatus(m.to.Id, id, MessageStatus.Delivered);
             }
             else
             {
-                m.message.Status = MessageStatus.Error;
+                chat_vm.ChangeMessageStatus(m.to.Id, id, MessageStatus.Error);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async (r, m) =>
@@ -136,6 +137,7 @@ internal partial class MainViewModel : ViewModelBase
             else text = "";
             await jsonClient.EditMessage(m.chat,m.Id, text);
         });
+
         WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
         {
             try
@@ -191,7 +193,13 @@ internal partial class MainViewModel : ViewModelBase
 
         List<ChatDTO> chatDTOs = await jsonClient.FetchChats();
         ObservableCollection<ChatModel> chats = [];
-        foreach (ChatDTO dto in chatDTOs) chats.Add(DTOToModelConverter.ConvertChat(dto));
+        foreach (ChatDTO dto in chatDTOs)
+        {
+            ChatModel chat = DTOToModelConverter.ConvertChat(dto);
+            List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, -1]);
+            chat.AddMessage(DTOToModelConverter.ConvertMessage(messages.First()));
+            chats.Add(chat);
+        }
         chat_vm.UpdateChats(chats);
     }
     private async Task LoadOffline()

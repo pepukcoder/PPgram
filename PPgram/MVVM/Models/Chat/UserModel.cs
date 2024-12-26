@@ -2,6 +2,7 @@
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.Shared;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.MVVM.Models.Chat;
@@ -14,7 +15,7 @@ internal class UserModel : ChatModel
     public bool Online { get; set; }
     public string LastOnline { get; set; } = string.Empty;
 
-    protected override void UpdateLastMessage(object? sender, NotifyCollectionChangedEventArgs e)
+    protected override void UpdateLastMessage()
     {
         MessageModel? lastmsg = Messages.OfType<MessageModel>().LastOrDefault();
         if (lastmsg == null)

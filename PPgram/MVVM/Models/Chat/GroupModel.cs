@@ -22,7 +22,7 @@ internal partial class GroupModel : ChatModel
     public bool Private { get; set; }
     public string Link { get; set; } = string.Empty;
     
-    protected override void UpdateLastMessage(object? sender, NotifyCollectionChangedEventArgs e)
+    protected override void UpdateLastMessage()
     {
         MessageModel? lastmsg = Messages.OfType<MessageModel>().LastOrDefault();
         if (lastmsg == null)

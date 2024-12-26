@@ -36,10 +36,9 @@ internal class MessageChainManager
         }
         return chain;
     }
-    public void AddChain(ObservableCollection<ChatItem> chat)
+    public void AddChain(MessageModel message, ObservableCollection<ChatItem> chat)
     {
-        MessageModel? message = chat.OfType<MessageModel>().LastOrDefault();
-        if (message == null) return;
+        chat.Add(message);
         SetBadge(message, chat);
         SetRole(message, chat);
         SetReply(message, chat);

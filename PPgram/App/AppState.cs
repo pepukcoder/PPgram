@@ -18,7 +18,7 @@ internal sealed partial class AppState : ObservableObject
     /// </summary>
     public string? DownloadsFolder { get; set; } = null;
     /// <summary>
-    /// Stores settings for connection to server
+    /// Settings for connection to server
     /// </summary>
     public ConnectionOptions ConnectionOptions { get; set; } = new()
     {

@@ -72,16 +72,7 @@ internal abstract partial class ChatModel : ObservableObject
     private readonly ReplyModel reply = new();
     protected readonly ProfileState profileState = ProfileState.Instance;
 
-    public ChatModel()
-    {
-        Messages.CollectionChanged += UpdateLastMessage;
-    }
-    private void UpdateLastMessage() => UpdateLastMessage(this, new(NotifyCollectionChangedAction.Reset));
-    protected abstract void UpdateLastMessage(object? sender, NotifyCollectionChangedEventArgs e);
-    public void LoadMessages(List<MessageModel> messageList)
-    {
-        Messages = chainManager.GenerateChain(messageList, this);
-    }
+    protected abstract void UpdateLastMessage();
     partial void OnSelectedMessageChanged(ChatItem? value)
     {
         if (value is MessageModel message)
@@ -94,24 +85,6 @@ internal abstract partial class ChatModel : ObservableObject
             ContextVisible = false;
             Dispatcher.UIThread.Post(() => SelectedMessage = null);
         }
-    }
-    private void SendMessage(MessageModel message)
-    {
-        // send message
-        WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
-        {
-            message = message,
-            to = this
-        });
-    }
-    private void SendEditMessage(MessageModel message, MessageContentModel editedContent)
-    {
-        WeakReferenceMessenger.Default.Send(new Msg_EditMessage
-        {
-            chat = message.Chat,
-            Id = message.Id,
-            newContent = editedContent
-        });
     }
     public void AttachFiles(List<FileModel> files)
     {
@@ -127,10 +100,15 @@ internal abstract partial class ChatModel : ObservableObject
             Files.Add(file);
         }
     }
+    public void LoadMessages(List<MessageModel> messageList)
+    {
+        Messages = chainManager.GenerateChain(messageList, this);
+        UpdateLastMessage();
+    }
     public void AddMessage(MessageModel message)
     {
-        Messages.Add(message);
-        chainManager.AddChain(Messages);
+        chainManager.AddChain(message, Messages);
+        UpdateLastMessage();
     }
     public void EditMessage(MessageModel message)
     {
@@ -138,15 +116,41 @@ internal abstract partial class ChatModel : ObservableObject
         {
             origin = message;
             origin.Edited = true;
+            UpdateLastMessage();
         }     
     }
     public void DeleteMessage(int id)
     {
-        if (TryFindMessage(id, out var message)) chainManager.DeleteChain(message, Messages);
+        if (TryFindMessage(id, out var message))
+        {
+            chainManager.DeleteChain(message, Messages);
+            UpdateLastMessage();
+        }
     }
     public void ChangeMessageStatus(int id, MessageStatus status)
     {
-        if (TryFindMessage(id, out var message)) message.Status = status;
+        if (TryFindMessage(id, out var message))
+        {
+            message.Status = status;
+            UpdateLastMessage();
+        }
+    }
+    private void SendMessage(MessageModel message)
+    {
+        WeakReferenceMessenger.Default.Send(new Msg_SendMessage()
+        {
+            message = message,
+            to = this
+        });
+    }
+    private void SendEditMessage(MessageModel message, MessageContentModel editedContent)
+    {
+        WeakReferenceMessenger.Default.Send(new Msg_EditMessage
+        {
+            chat = message.Chat,
+            Id = message.Id,
+            newContent = editedContent
+        });
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {
@@ -212,8 +216,8 @@ internal abstract partial class ChatModel : ObservableObject
             SendMessage(message);
         }
         else return;
-        Messages.Add(message);
-        chainManager.AddChain(Messages);
+        chainManager.AddChain(message, Messages);
+        UpdateLastMessage();
         MessageInput = "";
     }
     [RelayCommand]
@@ -251,6 +255,7 @@ internal abstract partial class ChatModel : ObservableObject
         if (SelectedMessage != null && SelectedMessage is MessageModel message)
         {
             chainManager.DeleteChain(message, Messages);
+            UpdateLastMessage();
             WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
             {
                 chat = message.Chat,
