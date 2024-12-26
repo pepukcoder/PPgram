@@ -97,9 +97,7 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
         {
             List<MessageDTO> dtos = await jsonClient.FetchMessages(m.chatId, m.range);
-            List<MessageModel> messages = [];
-            foreach (MessageDTO dto in dtos) messages.Add(DTOToModelConverter.ConvertMessage(dto));
-            chat_vm.UpdateMessages(m.chatId, messages);
+            chat_vm.LoadMessages(m.chatId, dtos);
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
         {
@@ -196,8 +194,8 @@ internal partial class MainViewModel : ViewModelBase
         foreach (ChatDTO dto in chatDTOs)
         {
             ChatModel chat = DTOToModelConverter.ConvertChat(dto);
-            List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, -1]);
-            chat.AddMessage(DTOToModelConverter.ConvertMessage(messages.First()));
+            List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, 0]);
+            chat.AddMessage(DTOToModelConverter.ConvertMessage(messages.First(), chat));
             chats.Add(chat);
         }
         chat_vm.UpdateChats(chats);

@@ -307,25 +307,25 @@ internal class JsonClient
                 JsonNode? messageNode = rootNode?["new_message"];
                 if (messageNode == null) return;
                 MessageDTO? messageDTO = messageNode.Deserialize<MessageDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_NewMessageEvent { message = messageDTO });
+                WeakReferenceMessenger.Default.Send(new Msg_NewMessageEvent { chat = messageDTO?.ChatId ?? -1, message = messageDTO });
+                break;
+            case "edit_message":
+                messageNode = messageNode = rootNode?["new_message"];
+                if (messageNode == null) return;
+                messageDTO = messageNode.Deserialize<MessageDTO>();
+                WeakReferenceMessenger.Default.Send(new Msg_EditMessageEvent { chat = messageDTO?.ChatId ?? -1, message = messageDTO });
+                break;
+            case "delete_message":
+                int? chat = rootNode?["chat_id"]?.GetValue<int>();
+                int? id = rootNode?["message_id"]?.GetValue<int>();
+                if (chat == null || id == null) return;
+                WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? -1, id = id ?? -1 });
                 break;
             case "new_chat":
                 JsonNode? chatNode = rootNode?["new_chat"];
                 if (chatNode == null) return;
                 ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
                 WeakReferenceMessenger.Default.Send(new Msg_NewChatEvent { chat = chatDTO });
-                break;
-            case "edit_message":
-                messageNode = messageNode = rootNode?["new_message"];
-                if (messageNode == null) return;
-                messageDTO = messageNode.Deserialize<MessageDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_EditMessageEvent { message = messageDTO });
-                break;
-            case "delete_message":
-                int? chat = rootNode?["chat_id"]?.GetValue<int>();
-                int? id = rootNode?["message_id"]?.GetValue<int>();
-                if (chat == null || id == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? -1, Id = id ?? -1 });
                 break;
         }
     }

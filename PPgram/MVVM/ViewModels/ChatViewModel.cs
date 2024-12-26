@@ -6,6 +6,7 @@ using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Message;
+using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
@@ -65,24 +66,25 @@ partial class ChatViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, (r, m) =>
         {
-            if (m.message == null) return;
-            MessageModel message = DTOToModelConverter.ConvertMessage(m.message);
-            if (TryFindChat(message.Chat, out var chat))
+            if (TryFindChat(m.chat, out var chat) && m.message != null)
             {
+                MessageModel message = DTOToModelConverter.ConvertMessage(m.message, chat);
                 chat.AddMessage(message);
                 if (SelectedChat != chat) chat.UnreadCount++;
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, m) =>
         {
-            if (m.message == null) return;
-            MessageModel message = DTOToModelConverter.ConvertMessage(m.message);
-            if (TryFindChat(message.Chat, out var chat)) chat.EditMessage(message);
+            if (TryFindChat(m.chat, out var chat) && m.message != null)
+            {
+                MessageModel message = DTOToModelConverter.ConvertMessage(m.message, chat);
+                chat.EditMessage(message);
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, m) =>
         {
-            if (m.chat == -1 || m.Id == -1) return;
-            if (TryFindChat(m.chat, out var chat)) chat.DeleteMessage(m.Id);
+            if (m.chat == -1 || m.id == -1) return;
+            if (TryFindChat(m.chat, out var chat)) chat.DeleteMessage(m.id);
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, m) =>
         {
@@ -154,9 +156,14 @@ partial class ChatViewModel : ViewModelBase
         SelectedSearch = null;
     }
     public void UpdateChats(ObservableCollection<ChatModel> chats) => Chats = chats;
-    public void UpdateMessages(int chat_id, List<MessageModel> messages)
+    public void LoadMessages(int chat_id, List<MessageDTO> dtos)
     {
-        if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages);
+        if (TryFindChat(chat_id, out var chat))
+        {
+            List<MessageModel> messages = [];
+            foreach (MessageDTO dto in dtos) messages.Add(DTOToModelConverter.ConvertMessage(dto, chat));
+            chat.LoadMessages(messages);
+        }
     }
     public void ChangeMessageStatus(int chat_id, int message_id, MessageStatus status)
     {

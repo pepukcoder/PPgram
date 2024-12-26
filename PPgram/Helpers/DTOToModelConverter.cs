@@ -14,7 +14,7 @@ namespace PPgram.Helpers;
 
 internal class DTOToModelConverter
 {
-    public static MessageModel ConvertMessage(MessageDTO messageDTO)
+    public static MessageModel ConvertMessage(MessageDTO messageDTO, ChatModel chat)
     { 
         MessageContentModel content;
         if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
@@ -42,11 +42,15 @@ internal class DTOToModelConverter
                 Text = messageDTO.Text ?? string.Empty
             };
         }
+        ProfileModel sender;
+        if (chat is UserModel && chat.Profile != null) sender = chat.Profile;
+        else sender = new();
         return new MessageModel()
         {
             Id = messageDTO.Id ?? 0,
             Chat = messageDTO.ChatId ?? 0,
             SenderId = messageDTO.From ?? 0,
+            Sender = sender,
             Time = messageDTO.Date ?? 0,
             ReplyTo = messageDTO.ReplyTo ?? 0,
             Edited = messageDTO.Edited ?? false,
