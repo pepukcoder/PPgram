@@ -39,11 +39,9 @@ public partial class ChatControl : UserControl
             foreach (IStorageFile file in files)
             {
                 string absolutePath = Uri.UnescapeDataString(file.Path.AbsolutePath);
-                string[] parts = file.Name.Split('.');
-                string format = parts[^1].ToLower().Trim();
-
+                string extension = Path.GetExtension(absolutePath);
                 // assign model based on file extension
-                if (PPFileFormats.VideoFormats.Contains(format))
+                if (PPFileExtensions.VideoExtensions.Contains(extension))
                 {
                     fileModels.Add(new VideoModel
                     {
@@ -53,7 +51,7 @@ public partial class ChatControl : UserControl
                         Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(150, 150), BitmapInterpolationMode.LowQuality)
                     });
                 }
-                else if (PPFileFormats.PhotoFormats.Contains(format))
+                else if (PPFileExtensions.PhotoExtensions.Contains(extension))
                 {
                     fileModels.Add(new PhotoModel
                     {
