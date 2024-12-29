@@ -162,17 +162,14 @@ internal abstract partial class ChatModel : ObservableObject
     private void BuildMessage()
     {
         // send edit request if editing
-        if (InEdit && SelectedMessage is MessageModel editMessage)
+        if (InEdit && SelectedMessage is MessageModel editMessage && editMessage.Content is ITextContent tc)
         {
-            if (editMessage.Content is ITextContent tc)
+            if (tc.Text == MessageInput.Trim())
             {
-                if (tc.Text == MessageInput.Trim())
-                {
-                    CloseSecondary();
-                    return;
-                }
-                tc.Text = MessageInput.Trim();
+                CloseSecondary();
+                return;
             }
+            tc.Text = MessageInput.Trim();
             editMessage.Edited = true;
             CloseSecondary();
             SendEditMessage(editMessage, editMessage.Content);
@@ -198,24 +195,18 @@ internal abstract partial class ChatModel : ObservableObject
         // add content & send
         if (Files.Count != 0)
         {
-            FileContentModel content = new FileContentModel { Files = new(Files), Text = MessageInput.Trim() };
+            FileContentModel content = new() { Files = new(Files), Text = MessageInput.Trim() };
             message.Content = content;
             Files.Clear();
-            WeakReferenceMessenger.Default.Send(new Msg_UploadFiles { files = content.Files });
-            WeakReferenceMessenger.Default.Register<Msg_UploadFilesResult>(this, (r, e) =>
-            {
-                WeakReferenceMessenger.Default.Unregister<Msg_UploadFilesResult>(this);
-                if (e.ok) SendMessage(message);
-                else message.Status = MessageStatus.Error;
-            });
+            SendMessage(message);
         }
         else if (!String.IsNullOrEmpty(MessageInput))
         {
             message.Content = new TextContentModel { Text = MessageInput.Trim() };
-            CloseSecondary();
             SendMessage(message);
         }
         else return;
+        CloseSecondary();
         chainManager.AddChain(message, Messages);
         UpdateLastMessage();
         MessageInput = "";

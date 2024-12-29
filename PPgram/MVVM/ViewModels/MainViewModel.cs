@@ -8,7 +8,6 @@ using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Media;
-using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.Net;
 using PPgram.Net.DTO;
@@ -103,9 +102,11 @@ internal partial class MainViewModel : ViewModelBase
         {
             string text;
             List<string> hashes = [];
+            // get message text if set
             if (m.message.Content is ITextContent tc) text = tc.Text;
             else text = "";
 
+            // upload files first if attached
             if (m.message.Content is FileContentModel fc)
             {
                 foreach (FileModel file in fc.Files)
@@ -113,6 +114,7 @@ internal partial class MainViewModel : ViewModelBase
                     if (file.Hash != null) hashes.Add(file.Hash);
                 }
             }
+            // get id from response and assign status
             int id = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
             if (id != -1)
             {

@@ -130,7 +130,6 @@ partial class ChatViewModel : ViewModelBase
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
-        Debug.WriteLine(value?.Messages.Count);
         if (value != null) value.UnreadCount = 0;
         if (value?.Messages.Count <= 2 && !inSearch)
         {

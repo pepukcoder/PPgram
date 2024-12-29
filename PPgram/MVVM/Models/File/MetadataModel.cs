@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace PPgram.MVVM.Models.Message;
+namespace PPgram.MVVM.Models.File;
 
 internal class RequestMetadataModel
 {
