@@ -1,15 +1,12 @@
+using PPgram.App;
+using PPgram.MVVM.Models.File;
+using PPgram.Net;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using CommunityToolkit.Mvvm.Messaging;
-using PPgram.MVVM.Models.Dialog;
-using PPgram.MVVM.Models.Message;
-using PPgram.App;
-using PPgram.Net;
-using PPgram.Shared;
 using System.Threading.Tasks;
 
 internal class FilesClient
@@ -34,40 +31,38 @@ internal class FilesClient
         }
         catch { return false; }
     }
-    private void Disconnect()
+    public void Disconnect()
     {
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
         client = null;
-        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-        {
-            dialog = new ConnectionDialog
-            {
-                Position = Avalonia.Layout.VerticalAlignment.Bottom,
-                canSkip = false
-            }
-        });
     }
-    public string? UploadFile(string filePath)
+    private void SendJson(object data)
     {
-        uint fileBytesSent = 0;
+        try
+        {
+            string request = JsonSerializer.Serialize(data);
+            stream?.Write(JsonConnection.BuildJsonRequest(request));
+        }
+        catch { Disconnect(); }
+    }
+    public string? UploadFile(string path)
+    {
+        FileInfo fileInfo = new(path);
+        if (!File.Exists(path)) throw new FileNotFoundException("File not found", path);
 
-        var data = new
+        var payload = new
         {
             method = "upload_file",
-            name = Path.GetFileName(filePath),
+            name = Path.GetFileName(path),
             is_media = false,
             compress = false
         };
-        string metadata = JsonSerializer.Serialize(data);
+        SendJson(payload);
 
-        FileInfo fileInfo = new(filePath);
-        if (!File.Exists(filePath)) throw new FileNotFoundException("File not found", filePath);
-
-        using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read);
+        using FileStream fileStream = new(path, FileMode.Open, FileAccess.Read);
         byte[] buffer = new byte[chunkSize];
+        uint fileBytesSent = 0;
         int bytesRead;
-
-        stream?.Write(JsonConnection.BuildJsonRequest(metadata));
 
         byte[] lengthBytes = BitConverter.GetBytes(fileInfo.Length);
         if (BitConverter.IsLittleEndian) Array.Reverse(lengthBytes);
@@ -87,29 +82,27 @@ internal class FilesClient
         HandleJsonResponse(response);
 
         JsonNode? rootNode = JsonNode.Parse(response);
-        return rootNode?["sha256_hash"]?.AsValue().ToString();
+        return rootNode?["sha256_hash"]?.GetValue<string>();
     }
-
-    private void ReadUntilFilled(byte[] buffer, int offset, long size)
+    private void ReadUntilFilled(byte[] buffer, int offset, long expected_size)
     {
         if (stream == null) return;
-        long totalBytesRead = 0;
-        while (totalBytesRead < size)
+        long size = 0;
+        while (size < expected_size)
         {
-            int bytesRead = stream.Read(buffer, offset + (int)totalBytesRead, (int)(size - totalBytesRead));
-            if (bytesRead == 0) throw new EndOfStreamException("The connection was closed before the requested size was read.");
-            totalBytesRead += bytesRead;
+            int read = stream.Read(buffer, offset + (int)size, (int)(expected_size - size));
+            if (read == 0) throw new EndOfStreamException("The connection was closed before the requested size was read.");
+            size += read;
         }
     }
     public MetadataModel? DownloadMetadata(string sha256Hash)
     {
-        var download_request = new
+        var payload = new
         {
             method = "download_metadata",
             sha256_hash = sha256Hash
         };
-        string request = JsonSerializer.Serialize(download_request);
-        stream?.Write(JsonConnection.BuildJsonRequest(request));
+        SendJson(payload);
 
         JsonConnection jsonConnection = new();
         while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);
@@ -117,17 +110,17 @@ internal class FilesClient
         DownloadMetadataResponseModel? metadatas = jsonConnection.GetResponseAsJson<DownloadMetadataResponseModel>();
         return metadatas?.Metadatas[0];
     }
-
     public void DownloadFiles(string sha256Hash, bool previewsOnly = false)
     {
-        var download_request = new
+        var payload = new
         {
             method = "download_file",
             sha256_hash = sha256Hash,
             previews_only = previewsOnly
         };
-        string request = JsonSerializer.Serialize(download_request);
+        string request = JsonSerializer.Serialize(payload);
         stream?.Write(JsonConnection.BuildJsonRequest(request));
+
 
         JsonConnection jsonConnection = new();
         while (!jsonConnection.IsReady) jsonConnection.ReadStream(stream);

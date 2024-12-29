@@ -21,7 +21,7 @@
 			</Ellipse>
 			<StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Spacing="4">
 				<DockPanel>
-					<TextBlock Text="{Binding Date, Converter={StaticResource DTConvert},ConverterParameter=Date}"
+					<TextBlock Text="{Binding LastMessageTime, Converter={StaticResource DTConvert},ConverterParameter=Date}"
 							   FontSize="13" Foreground="{StaticResource SecondaryText}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
 					<TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
 				</DockPanel>

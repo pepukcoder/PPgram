@@ -28,7 +28,9 @@ internal abstract partial class ChatModel : ObservableObject
     [ObservableProperty]
     private ChatItem? selectedMessage;
     [ObservableProperty]
-    private string lastMessage = "";
+    private string lastMessage = string.Empty;
+    [ObservableProperty]
+    private long lastMessageTime;
     [ObservableProperty]
     private MessageStatus lastMessageStatus;
     [ObservableProperty]
@@ -63,15 +65,19 @@ internal abstract partial class ChatModel : ObservableObject
     private int unreadCount;
     [ObservableProperty]
     private ChatStatus status;
-    [ObservableProperty]
-    private long date;
 
     public int Id { get; set; }
 
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
+    private readonly DispatcherTimer timer;
     protected readonly ProfileState profileState = ProfileState.Instance;
-
+    public ChatModel()
+    {
+        // draft update request delay timer
+        timer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+        timer.Tick += SendDraft;
+    }
     protected abstract void UpdateLastMessage();
     partial void OnSelectedMessageChanged(ChatItem? value)
     {
@@ -84,6 +90,15 @@ internal abstract partial class ChatModel : ObservableObject
         {
             ContextVisible = false;
             Dispatcher.UIThread.Post(() => SelectedMessage = null);
+        }
+    }
+    partial void OnMessageInputChanged(string value)
+    {
+        timer.Stop();
+        if (!String.IsNullOrEmpty(value.Trim()) && value.Length <= 2500)
+        {
+            // restart delay if draft is valid
+            timer.Start();
         }
     }
     public void AttachFiles(List<FileModel> files)
@@ -151,6 +166,11 @@ internal abstract partial class ChatModel : ObservableObject
             Id = message.Id,
             newContent = editedContent
         });
+    }
+    private void SendDraft(object? sender, EventArgs e)
+    {
+        timer.Stop();
+        //WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {

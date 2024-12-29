@@ -1,8 +1,6 @@
 ﻿using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.Shared;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.MVVM.Models.Chat;
@@ -27,5 +25,6 @@ internal class UserModel : ChatModel
         if (lastmsg.Content is ITextContent tc) LastMessage = tc.Text;
         if (lastmsg.SenderId == profileState.UserId) LastMessageStatus = lastmsg.Status;
         else LastMessageStatus = MessageStatus.None;
+        LastMessageTime = lastmsg.Time;
     }
 }

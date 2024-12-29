@@ -46,7 +46,7 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private bool platesVisible;
 
-    private readonly DispatcherTimer _timer;
+    private readonly DispatcherTimer timer;
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     private bool inSearch;
@@ -57,8 +57,8 @@ partial class ChatViewModel : ViewModelBase
         PlatesVisible = false;
 
         // search request delay timer
-        _timer = new() { Interval = TimeSpan.FromMilliseconds(25) };
-        _timer.Tick += SearchChat;
+        timer = new() { Interval = TimeSpan.FromMilliseconds(200) };
+        timer.Tick += SearchChat;
         // events
         WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
         {
@@ -101,11 +101,11 @@ partial class ChatViewModel : ViewModelBase
     partial void OnSearchInputChanged(string value)
     {
         // stop timer if still editing
-        _timer.Stop();
+        timer.Stop();
         if (!String.IsNullOrEmpty(value.Trim()))
         {
             // restart delay if done editing
-            _timer.Start();
+            timer.Start();
             inSearch = true;
         }
         else
@@ -140,7 +140,7 @@ partial class ChatViewModel : ViewModelBase
     private void SearchChat(object? sender, EventArgs e)
     {
         // stop timer to prevent request spam
-        _timer.Stop();
+        timer.Stop();
         WeakReferenceMessenger.Default.Send(new Msg_SearchUsers { query = SearchInput.Trim() });
     }
     private bool TryFindChat(int id, out ChatModel chat)

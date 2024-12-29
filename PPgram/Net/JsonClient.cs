@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using PPgram.MVVM.Models.Dialog;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
@@ -94,14 +93,14 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<AuthDTO> Register(string new_username, string new_name, string new_password)
+    public async Task<AuthDTO> Register(string username, string name, string password)
     {
         var payload = new
         {
             method = "register",
-            username= new_username,
-            name = new_name,
-            password = new_password
+            username,
+            name,
+            password
         };
         TaskCompletionSource<AuthDTO> tcs = new();
         Send(payload, tcs);
@@ -153,57 +152,70 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<List<MessageDTO>> FetchMessages(int id, int[] fetchRange)
+    public async Task<List<MessageDTO>> FetchMessages(int id, int[] range)
     {
         var payload = new
         {
             method = "fetch",
             what = "messages",
             chat_id = id,
-            range = fetchRange
+            range
         };
         TaskCompletionSource<List<MessageDTO>> tcs = new();
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<int> SendMessage(int chatId, int? reply_to, string text, List<string> hashes)
+    public async Task<(int, int)> SendMessage(int to, int? reply_to, string text, List<string> hashes)
     {
         var payload = new
         {
             method = "send_message",
-            to = chatId,
             reply_to = reply_to != null ? reply_to : null,
             content = new
             {
                 text,
                 sha256_hashes = hashes.ToArray(),
-            }
+            },
+            to
         };
-        TaskCompletionSource<int> tcs = new();
+        TaskCompletionSource<(int, int)> tcs = new();
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<bool> EditMessage(int chatId, int messageId, string new_text)
+    public async Task<bool> EditMessage(int chat_id, int message_id, string new_text)
     {
         var payload = new
         {
             method = "edit",
             what = "message",
-            chat_id = chatId,
-            message_id = messageId,
-            content = new_text
+            content = new_text,
+            chat_id,
+            message_id
         };
         TaskCompletionSource<bool> tcs = new();
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<bool> DeleteMessage(int chatId, int messageId)
+    public async Task<bool> DeleteMessage(int chat_id, int message_id)
     {
         var payload = new
         {
             method = "delete",
-            chat_id = chatId,
-            message_id = messageId,
+            chat_id,
+            message_id
+        };
+        TaskCompletionSource<bool> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
+    }
+    public async Task<bool> SendDraft(int chat_id, string draft)
+    {
+        var payload = new
+        {
+            method = "edit",
+            what = "draft",
+            chat_id,
+            draft
         };
         TaskCompletionSource<bool> tcs = new();
         Send(payload, tcs);
@@ -295,8 +307,9 @@ internal class JsonClient
             case "send_message":
                 if (ok != true) return;
                 int? messageId = rootNode?["message_id"]?.GetValue<int>();
+                int? chatId = rootNode?["chat_id"]?.GetValue<int>();
                 if (messageId == null) return;
-                if (tcs is TaskCompletionSource<int> msg_tcs) msg_tcs.SetResult(messageId ?? -1);
+                if (tcs is TaskCompletionSource<(int, int)> msg_tcs) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
                 break;
         }
         // parse events

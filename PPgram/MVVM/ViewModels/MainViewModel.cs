@@ -64,7 +64,9 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
         {
             jsonClient.Disconnect();
+            filesClient.Disconnect();
             await jsonClient.Connect(PPAppState.ConnectionOptions);
+            await filesClient.Connect(PPAppState.ConnectionOptions);
             await AutoAuth();
             await LoadOnline();
         });
@@ -111,19 +113,21 @@ internal partial class MainViewModel : ViewModelBase
             {
                 foreach (FileModel file in fc.Files)
                 {
+                    // implement file sending
                     if (file.Hash != null) hashes.Add(file.Hash);
                 }
             }
             // get id from response and assign status
-            int id = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
-            if (id != -1)
+            (int, int) response = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
+            if (m.to.Id == 0) m.to.Id = response.Item2;
+            if (response.Item1 != -1 && response.Item2 != -1)
             {
-                m.message.Id = id;
-                chat_vm.ChangeMessageStatus(m.to.Id, id, MessageStatus.Delivered);
+                m.message.Id = response.Item1;
+                chat_vm.ChangeMessageStatus(m.to.Id, m.message.Id, MessageStatus.Delivered);
             }
             else
             {
-                chat_vm.ChangeMessageStatus(m.to.Id, id, MessageStatus.Error);
+                chat_vm.ChangeMessageStatus(m.to.Id, m.message.Id, MessageStatus.Error);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async (r, m) =>
@@ -136,6 +140,10 @@ internal partial class MainViewModel : ViewModelBase
             if (m.newContent is ITextContent textContent) text = textContent.Text;
             else text = "";
             await jsonClient.EditMessage(m.chat,m.Id, text);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_SendDraft>(this, async (r, m) =>
+        {
+            await jsonClient.SendDraft(m.chat_id, m.draft);
         });
 
         WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>

@@ -43,5 +43,6 @@ internal partial class GroupModel : ChatModel
             LastSender = lastmsg.Sender.Name;
             LastMessageStatus = MessageStatus.None;
         }
+        LastMessageTime = lastmsg.Time;
     }
 }
