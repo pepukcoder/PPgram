@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 
 namespace PPgram.MVVM.Models.Dialog;
 
-partial class AttachFileDialog : Dialog
+internal partial class AttachFileDialog : Dialog
 {
     [ObservableProperty]
     private ObservableCollection<FileModel> files = [];

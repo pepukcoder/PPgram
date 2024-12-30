@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:m="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="PPgram.Controls.Chat.UserHeaderControl"
+			 x:DataType="m:UserModel">
+	<UserControl.Resources>
+		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
+	</UserControl.Resources>
+	<DockPanel>
+		<StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+			<Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
+				<Ellipse.Fill>
+					<ImageBrush Source="{Binding Profile.Avatar}"/>
+				</Ellipse.Fill>
+			</Ellipse>
+			<StackPanel Orientation="Vertical" VerticalAlignment="Center">
+				<TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" FontSize="16"/>
+				<StackPanel Orientation="Horizontal" IsVisible="{Binding Status,Converter={StaticResource EnumConvert}, ConverterParameter=Typing}">
+					<TextBlock Text="typing" FontSize="13"/>
+					<TextBlock Text="" FontSize="13" FontWeight="Medium">
+						<TextBlock.Styles>
+							<Style Selector="TextBlock">
+								<Style.Animations>
+									<Animation Duration="0:0:0.9" IterationCount="Infinite">
+										<KeyFrame Cue="0%">
+											<Setter Property="Text" Value="..."/>
+										</KeyFrame>
+										<KeyFrame Cue="100%">
+											<Setter Property="Text" Value="..."/>
+										</KeyFrame>
+									</Animation>
+								</Style.Animations>
+							</Style>
+						</TextBlock.Styles>
+					</TextBlock>
+				</StackPanel>
+			</StackPanel>
+		</StackPanel>
+		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">
+			<icons:MaterialIcon Kind="DotsVertical" Height="24" Width="24" />
+		</Button>
+		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">
+			<icons:MaterialIcon Kind="Search" Height="24" Width="24" />
+		</Button>
+	</DockPanel>
+</UserControl>
