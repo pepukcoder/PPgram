@@ -15,10 +15,11 @@ namespace PPgram.MVVM.Models.Chat;
 internal partial class GroupModel : ChatModel
 {
     [ObservableProperty]
-    public string lastSender = "";
+    private string lastSender = string.Empty;
     [ObservableProperty]
     private ObservableCollection<GroupMemberModel> members = [];
-
+    [ObservableProperty]
+    private string typing = string.Empty;
     public bool Private { get; set; }
     public string Link { get; set; } = string.Empty;
     
@@ -44,5 +45,9 @@ internal partial class GroupModel : ChatModel
             LastMessageStatus = MessageStatus.None;
         }
         LastMessageTime = lastmsg.Time;
+    }
+    protected override void UpdateStatus()
+    {
+
     }
 }

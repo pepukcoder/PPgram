@@ -14,7 +14,7 @@ using Avalonia.VisualTree;
 using System.Linq;
 using System.Diagnostics;
 
-namespace PPgram.Controls;
+namespace PPgram.Controls.Chat;
 
 public partial class ChatControl : UserControl
 {

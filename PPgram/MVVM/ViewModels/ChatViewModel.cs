@@ -86,6 +86,16 @@ partial class ChatViewModel : ViewModelBase
             if (m.chat == -1 || m.id == -1) return;
             if (TryFindChat(m.chat, out var chat)) chat.DeleteMessage(m.id);
         });
+        WeakReferenceMessenger.Default.Register<Msg_IsTypingEvent>(this, (r, m) =>
+        {
+            if (m.chat == -1 || m.user == -1) return;
+            if (TryFindChat(m.chat, out var chat))
+            {
+                if (m.typing == true) chat.Status = ChatStatus.Typing;
+                else chat.Status = ChatStatus.None;
+            }
+        });
+        
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, m) =>
         {
             if (!TryFindChat(m.to.Id, out var chat))
@@ -96,7 +106,7 @@ partial class ChatViewModel : ViewModelBase
                 SelectedChat = m.to;
                 ClearSearch();
             }
-        });
+        });  
     }
     partial void OnSearchInputChanged(string value)
     {

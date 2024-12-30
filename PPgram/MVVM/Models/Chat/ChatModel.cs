@@ -79,6 +79,8 @@ internal abstract partial class ChatModel : ObservableObject
         timer.Tick += SendDraft;
     }
     protected abstract void UpdateLastMessage();
+    protected abstract void UpdateStatus();
+    partial void OnStatusChanged(ChatStatus value) => UpdateStatus();
     partial void OnSelectedMessageChanged(ChatItem? value)
     {
         if (value is MessageModel message)
@@ -170,7 +172,7 @@ internal abstract partial class ChatModel : ObservableObject
     private void SendDraft(object? sender, EventArgs e)
     {
         timer.Stop();
-        //WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
+        WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {

@@ -5,8 +5,8 @@
              xmlns:m="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             x:Class="PPgram.Controls.Chat.UserHeaderControl"
-			 x:DataType="m:UserModel"
+             x:Class="PPgram.Controls.Chat.GroupHeaderControl"
+			 x:DataType="m:GroupModel"
 			 FontSize="14">
 	<UserControl.Resources>
 		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
@@ -20,31 +20,27 @@
 			</Ellipse>
 			<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 				<TextBlock Text="{Binding Profile.Name}" FontWeight="Medium" FontSize="16" Margin="0,0,0,5"/>
-				<Panel>
-					<Panel IsVisible="{Binding ShowOnline}">
-						<TextBlock Text="Offline" Foreground="{StaticResource SecondaryText}" IsVisible="{Binding !Online}"/>
-						<TextBlock Text="Online" IsVisible="{Binding Online}"/>
-					</Panel>
-					<StackPanel Orientation="Horizontal" IsVisible="{Binding Status,Converter={StaticResource EnumConvert}, ConverterParameter=Typing}">
-						<TextBlock Text="typing"/>
-						<TextBlock Text="" FontWeight="Medium">
-							<TextBlock.Styles>
-								<Style Selector="TextBlock">
-									<Style.Animations>
-										<Animation Duration="0:0:0.9" IterationCount="Infinite">
-											<KeyFrame Cue="0%">
-												<Setter Property="Text" Value="..."/>
-											</KeyFrame>
-											<KeyFrame Cue="100%">
-												<Setter Property="Text" Value="..."/>
-											</KeyFrame>
-										</Animation>
-									</Style.Animations>
-								</Style>
-							</TextBlock.Styles>
-						</TextBlock>
-					</StackPanel>
-				</Panel>
+				<TextBlock Text="{Binding Members.Count, StringFormat='{}{0} members'}" Foreground="{StaticResource SecondaryText}"
+						   IsVisible="{Binding Status,Converter={StaticResource EnumConvert}, ConverterParameter=None}"/>
+				<StackPanel Orientation="Horizontal" IsVisible="{Binding Status,Converter={StaticResource EnumConvert}, ConverterParameter=Typing}">
+					<TextBlock Text="{Binding Typing, StringFormat='{}{0} typing'}"/>
+					<TextBlock Text="" FontWeight="Medium">
+						<TextBlock.Styles>
+							<Style Selector="TextBlock">
+								<Style.Animations>
+									<Animation Duration="0:0:0.9" IterationCount="Infinite">
+										<KeyFrame Cue="0%">
+											<Setter Property="Text" Value="..."/>
+										</KeyFrame>
+										<KeyFrame Cue="100%">
+											<Setter Property="Text" Value="..."/>
+										</KeyFrame>
+									</Animation>
+								</Style.Animations>
+							</Style>
+						</TextBlock.Styles>
+					</TextBlock>
+				</StackPanel>
 			</StackPanel>
 		</StackPanel>
 		<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right">

@@ -339,6 +339,13 @@ internal class JsonClient
                 if (chatNode == null) return;
                 ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
                 WeakReferenceMessenger.Default.Send(new Msg_NewChatEvent { chat = chatDTO });
+                    break;
+            case "is_typing":
+                bool? typing = rootNode?["is_typing"]?.GetValue<bool>();
+                chat = rootNode?["chat_id"]?.GetValue<int>();
+                int? user = rootNode?["user_id"]?.GetValue<int>();
+                if (chat == null || user == null || typing == null) return;
+                WeakReferenceMessenger.Default.Send(new Msg_IsTypingEvent { typing = typing ?? false, chat = chat ?? -1, user = user ?? -1 });
                 break;
         }
     }

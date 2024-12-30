@@ -19,4 +19,9 @@ internal partial class SearchEntryModel : ChatModel
         LastMessage = "";
         LastMessageStatus = MessageStatus.None;
     }
+
+    protected override void UpdateStatus()
+    {
+        throw new System.NotImplementedException();
+    }
 }

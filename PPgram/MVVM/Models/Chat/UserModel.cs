@@ -1,4 +1,5 @@
-﻿using PPgram.MVVM.Models.Message;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.Shared;
 using System.Linq;
@@ -8,10 +9,12 @@ namespace PPgram.MVVM.Models.Chat;
 /// <summary>
 /// Repsenets properties of a user chat
 /// </summary>
-internal class UserModel : ChatModel
+internal partial class UserModel : ChatModel
 {
-    public bool Online { get; set; }
-    public string LastOnline { get; set; } = string.Empty;
+    [ObservableProperty]
+    private bool online;
+    [ObservableProperty]
+    private bool showOnline = true;
 
     protected override void UpdateLastMessage()
     {
@@ -26,5 +29,10 @@ internal class UserModel : ChatModel
         if (lastmsg.SenderId == profileState.UserId) LastMessageStatus = lastmsg.Status;
         else LastMessageStatus = MessageStatus.None;
         LastMessageTime = lastmsg.Time;
+    }
+    protected override void UpdateStatus()
+    {
+        if (Status == ChatStatus.Typing) ShowOnline = false;
+        else if (Status == ChatStatus.None) ShowOnline = true;
     }
 }
