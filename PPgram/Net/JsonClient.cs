@@ -222,14 +222,14 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<int> SendRead(int chat_id, int message_id)
+    public async Task<int> SendRead(int chat_id, int[] message_ids)
     {
         var payload = new
         {
             method = "edit",
             what = "is_unread",
             chat_id,
-            message_id
+            message_ids
         };
         TaskCompletionSource<int> tcs = new();
         Send(payload, tcs);
@@ -259,141 +259,148 @@ internal class JsonClient
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
 
-        #if DEBUG
+#if DEBUG
         Debug.WriteLine(response);
-        if (ok == false && r_method != null && r_error != null) {
+        if (ok == false && r_method != null && r_error != null)
+        {
             Debug.WriteLine($"[DEBUG] Error in method: {r_method}\n[DEBUG] Error:{r_error}");
             return;
         }
-        #endif
+#endif
 
         // parse specific fields
         if (r_method != null && requests.TryDequeue(out object? tcs))
-        switch (r_method)
-        {
-            case "login":
-            case "register":
-                if (ok != true) return;
-                AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
-                if (auth == null) return;
-                if (tcs is TaskCompletionSource<AuthDTO> login_tcs) login_tcs.SetResult(auth);
-                break;
-            case "auth":
-                if (ok != true) return;
-                if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(true);
-                break;
-            case "check_username":
-                if (ok != true && ok != false) return;
-                if (tcs is TaskCompletionSource<bool> check_tcs) check_tcs.SetResult(ok != true);
-                break;
-            case "fetch_self":
-                if (ok != true) return;
-                ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
-                if (profile == null) return;
-                if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs) fself_tcs.SetResult(profile);
-                break;
-            case "fetch_chats":
-                if (ok != true) return;
-                JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
-                if (chatsJson == null) return;
-                List<ChatDTO> chatlist = [];
-                foreach (JsonNode? chatNode in chatsJson)
-                {
-                    ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
-                    if (chat != null) chatlist.Add(chat);
-                }
-                if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs) fchats_tcs.SetResult(chatlist);
-                break;
-            case "fetch_users":
-                if (ok != true) return;
-                JsonArray? usersJson = rootNode?["users"]?.AsArray();
-                if (usersJson == null) return;
-                List<ChatDTO> userList = [];
-                foreach (JsonNode? userNode in usersJson)
-                {
-                    ChatDTO? user = userNode?.Deserialize<ChatDTO>();
-                    if (user != null)
+            switch (r_method)
+            {
+                case "login":
+                case "register":
+                    if (ok != true) return;
+                    AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
+                    if (auth == null) return;
+                    if (tcs is TaskCompletionSource<AuthDTO> login_tcs) login_tcs.SetResult(auth);
+                    break;
+                case "auth":
+                    if (ok != true) return;
+                    if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(true);
+                    break;
+                case "check_username":
+                    if (ok != true && ok != false) return;
+                    if (tcs is TaskCompletionSource<bool> check_tcs) check_tcs.SetResult(ok != true);
+                    break;
+                case "fetch_self":
+                    if (ok != true) return;
+                    ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
+                    if (profile == null) return;
+                    if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs) fself_tcs.SetResult(profile);
+                    break;
+                case "fetch_chats":
+                    if (ok != true) return;
+                    JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
+                    if (chatsJson == null) return;
+                    List<ChatDTO> chatlist = [];
+                    foreach (JsonNode? chatNode in chatsJson)
                     {
-                        user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
-                        userList.Add(user);
+                        ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
+                        if (chat != null) chatlist.Add(chat);
                     }
-                };
-                if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs) fusers_tcs.SetResult(userList);
-                break;
-            case "fetch_messages":
-                if (ok != true) return;
-                JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
-                if (messagesJson == null) return;
-                List<MessageDTO> messageList = [];
-                foreach(JsonNode? messageNode in messagesJson)
-                {
-                    MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
-                    if (message != null) messageList.Add(message);
-                }
-                messageList.Reverse();
-                if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs) fmsg_tcs.SetResult(messageList);
-                break;
-            case "send_message":
-                if (ok != true) return;
-                int? messageId = rootNode?["message_id"]?.GetValue<int>();
-                int? chatId = rootNode?["chat_id"]?.GetValue<int>();
-                if (messageId == null) return;
-                if (tcs is TaskCompletionSource<(int, int)> msg_tcs) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
-                break;
-            case "edit_is_unread":
-                if (ok != true) return;
-                chatId = rootNode?["chat_id"]?.GetValue<int>();
-                if (chatId == null) return;
-                if (tcs is TaskCompletionSource<int> editread_tcs) editread_tcs.SetResult(chatId ?? -1);
-                break;
-            case "new_group":
-                if (ok != true) return;
-                ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
-                if (group == null) return;
-                if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs) newgroup_tcs.SetResult(group);
-                break;
-        }
+                    if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs) fchats_tcs.SetResult(chatlist);
+                    break;
+                case "fetch_users":
+                    if (ok != true) return;
+                    JsonArray? usersJson = rootNode?["users"]?.AsArray();
+                    if (usersJson == null) return;
+                    List<ChatDTO> userList = [];
+                    foreach (JsonNode? userNode in usersJson)
+                    {
+                        ChatDTO? user = userNode?.Deserialize<ChatDTO>();
+                        if (user != null)
+                        {
+                            user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
+                            userList.Add(user);
+                        }
+                    };
+                    if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs) fusers_tcs.SetResult(userList);
+                    break;
+                case "fetch_messages":
+                    if (ok != true) return;
+                    JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
+                    if (messagesJson == null) return;
+                    List<MessageDTO> messageList = [];
+                    foreach (JsonNode? messageNode in messagesJson)
+                    {
+                        MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
+                        if (message != null) messageList.Add(message);
+                    }
+                    messageList.Reverse();
+                    if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs) fmsg_tcs.SetResult(messageList);
+                    break;
+                case "send_message":
+                    if (ok != true) return;
+                    int? messageId = rootNode?["message_id"]?.GetValue<int>();
+                    int? chatId = rootNode?["chat_id"]?.GetValue<int>();
+                    if (messageId == null) return;
+                    if (tcs is TaskCompletionSource<(int, int)> msg_tcs) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
+                    break;
+                case "edit_is_unread":
+                    if (ok != true) return;
+                    chatId = rootNode?["chat_id"]?.GetValue<int>();
+                    if (chatId == null) return;
+                    if (tcs is TaskCompletionSource<int> editread_tcs) editread_tcs.SetResult(chatId ?? -1);
+                    break;
+                case "new_group":
+                    if (ok != true) return;
+                    ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
+                    if (group == null) return;
+                    if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs) newgroup_tcs.SetResult(group);
+                    break;
+            }
         // parse events
         if (r_event != null)
-        switch (r_event)
-        {
-            case "new_message":
-                JsonNode? messageNode = rootNode?["new_message"];
-                if (messageNode == null) return;
-                MessageDTO? messageDTO = messageNode.Deserialize<MessageDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_NewMessageEvent { chat = messageDTO?.ChatId ?? -1, message = messageDTO });
-                break;
-            case "edit_message":
-                messageNode = messageNode = rootNode?["new_message"];
-                if (messageNode == null) return;
-                messageDTO = messageNode.Deserialize<MessageDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_EditMessageEvent { chat = messageDTO?.ChatId ?? -1, message = messageDTO });
-                break;
-            case "delete_message":
-                int? chat = rootNode?["chat_id"]?.GetValue<int>();
-                int? id = rootNode?["message_id"]?.GetValue<int>();
-                if (chat == null || id == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? -1, id = id ?? -1 });
-                break;
-            case "new_chat":
-                JsonNode? chatNode = rootNode?["new_chat"];
-                if (chatNode == null) return;
-                ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
-                WeakReferenceMessenger.Default.Send(new Msg_NewChatEvent { chat = chatDTO });
-                break;
-            case "is_typing":
-                bool? typing = rootNode?["is_typing"]?.GetValue<bool>();
-                chat = rootNode?["chat_id"]?.GetValue<int>();
-                int? user = rootNode?["user_id"]?.GetValue<int>();
-                if (chat == null || user == null || typing == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_IsTypingEvent { typing = typing ?? false, chat = chat ?? -1, user = user ?? -1 });
-                break;
-            case "mark_as_read":
-                chat = rootNode?["chat_id"]?.GetValue<int>();
-                id = rootNode?["message_id"]?.GetValue<int>();
-                if (chat == null || id == null) return;
-                WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, id = id ?? -1 });
-                break;
-        }
+            switch (r_event)
+            {
+                case "new_message":
+                    JsonNode? messageNode = rootNode?["new_message"];
+                    if (messageNode == null) return;
+                    MessageDTO? messageDTO = messageNode.Deserialize<MessageDTO>();
+                    WeakReferenceMessenger.Default.Send(new Msg_NewMessageEvent { chat = messageDTO?.ChatId ?? -1, message = messageDTO });
+                    break;
+                case "edit_message":
+                    messageNode = messageNode = rootNode?["new_message"];
+                    if (messageNode == null) return;
+                    messageDTO = messageNode.Deserialize<MessageDTO>();
+                    WeakReferenceMessenger.Default.Send(new Msg_EditMessageEvent { chat = messageDTO?.ChatId ?? -1, message = messageDTO });
+                    break;
+                case "delete_message":
+                    int? chat = rootNode?["chat_id"]?.GetValue<int>();
+                    int? id = rootNode?["message_id"]?.GetValue<int>();
+                    if (chat == null || id == null) return;
+                    WeakReferenceMessenger.Default.Send(new Msg_DeleteMessageEvent { chat = chat ?? -1, id = id ?? -1 });
+                    break;
+                case "new_chat":
+                    JsonNode? chatNode = rootNode?["new_chat"];
+                    if (chatNode == null) return;
+                    ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
+                    WeakReferenceMessenger.Default.Send(new Msg_NewChatEvent { chat = chatDTO });
+                    break;
+                case "is_typing":
+                    bool? typing = rootNode?["is_typing"]?.GetValue<bool>();
+                    chat = rootNode?["chat_id"]?.GetValue<int>();
+                    int? user = rootNode?["user_id"]?.GetValue<int>();
+                    if (chat == null || user == null || typing == null) return;
+                    WeakReferenceMessenger.Default.Send(new Msg_IsTypingEvent { typing = typing ?? false, chat = chat ?? -1, user = user ?? -1 });
+                    break;
+                case "mark_as_read":
+                    chat = rootNode?["chat_id"]?.GetValue<int>();
+                    var msg_ids = rootNode?["message_ids"]?.AsArray()?.GetValues<int>();
+                    if (chat == null || msg_ids == null) return;
+
+                    List<int> test = new();
+                    foreach(var msg_id in msg_ids) {
+                        test.Add(msg_id);
+                    }
+
+                    WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, ids = test.ToArray() });
+                    break;
+            }
     }
 }

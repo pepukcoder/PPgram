@@ -76,6 +76,7 @@ partial class ChatViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, m) =>
         {
+            // TODO: Event Queue for each Chat
             if (TryFindChat(m.chat, out var chat) && m.message != null)
             {
                 MessageModel message = DTOToModelConverter.ConvertMessage(m.message, chat);
@@ -84,6 +85,7 @@ partial class ChatViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, m) =>
         {
+            // TODO: Event Queue for each Chat
             if (m.chat == -1 || m.id == -1) return;
             if (TryFindChat(m.chat, out var chat)) chat.DeleteMessage(m.id);
         });
@@ -98,8 +100,15 @@ partial class ChatViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_MarkAsReadEvent>(this, (r, m) =>
         {
-            if (m.chat == -1 || m.id == -1) return;
-            if (TryFindChat(m.chat, out var chat)) chat.ChangeMessageStatus(m.id, MessageStatus.Read);
+            // TODO: Event Queue for each Chat
+            if (m.chat == -1) return;
+            if (TryFindChat(m.chat, out var chat))
+            {
+                foreach (var id in m.ids)
+                {
+                    chat.ChangeMessageStatus(id, MessageStatus.Read);
+                }
+            }
         });
 
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, m) =>
@@ -112,7 +121,7 @@ partial class ChatViewModel : ViewModelBase
                 SelectedChat = m.to;
                 ClearSearch();
             }
-        });  
+        });
     }
     partial void OnSearchInputChanged(string value)
     {
@@ -142,7 +151,7 @@ partial class ChatViewModel : ViewModelBase
         else
         {
             SelectedChat = value;
-        }   
+        }
     }
     partial void OnSelectedChatChanged(ChatModel? value)
     {
@@ -151,7 +160,7 @@ partial class ChatViewModel : ViewModelBase
         {
             Msg_FetchMessages msg = new() { chatId = value.Id };
             WeakReferenceMessenger.Default.Send(msg);
-        }     
+        }
     }
     private void SearchChat(object? sender, EventArgs e)
     {
