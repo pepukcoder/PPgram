@@ -1,8 +1,15 @@
-﻿using PPgram.MVVM.Models.Message;
+﻿using PPgram.MVVM.Models.File;
+using PPgram.MVVM.Models.Message;
 using System.Collections.Generic;
 
 namespace PPgram.Shared;
 
+class Msg_CreateGroup
+{
+    public required string name;
+    public string username = string.Empty;
+    public required PhotoModel photo;
+}
 class Msg_SendRead
 {
     public required List<MessageModel> messages;

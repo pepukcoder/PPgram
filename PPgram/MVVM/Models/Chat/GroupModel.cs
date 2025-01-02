@@ -1,11 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
-using System.Collections.Specialized;
-using System.Linq;
 using PPgram.MVVM.Models.User;
 using PPgram.Shared;
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace PPgram.MVVM.Models.Chat;
 

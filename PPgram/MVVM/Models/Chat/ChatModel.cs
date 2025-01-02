@@ -23,7 +23,7 @@ namespace PPgram.MVVM.Models.Chat;
 internal abstract partial class ChatModel : ObservableObject
 {
     [ObservableProperty]
-    private ProfileModel? profile;
+    private ProfileModel profile = new();
     [ObservableProperty]
     private ChatItem? selectedMessage;
     [ObservableProperty]

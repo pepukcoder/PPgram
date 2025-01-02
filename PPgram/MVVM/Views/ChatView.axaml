@@ -36,7 +36,7 @@
 					<TextBlock Text="Settings" HorizontalAlignment="Center" FontWeight="Medium" FontSize="13" TextTrimming="CharacterEllipsis"/>
 				</StackPanel>
 			</Button>			
-			<Button x:Name="newchat" Theme="{StaticResource ButtonNav}" DockPanel.Dock="Bottom">
+			<Button x:Name="newgroup" Theme="{StaticResource ButtonNav}" DockPanel.Dock="Bottom" Command="{Binding OpenNewGroupDialogCommand}">
 				<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 					<icons:MaterialIcon Kind="AccountMultiplePlus" HorizontalAlignment="Center" Width="28" Height="28" />
 					<TextBlock Text="New group" TextAlignment="Center" TextWrapping="Wrap" HorizontalAlignment="Center" FontWeight="Medium" FontSize="13" TextTrimming="CharacterEllipsis"/>

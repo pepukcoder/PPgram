@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using PPgram.MVVM.Models.Chat;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
@@ -234,6 +235,20 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
+    public async Task<ChatDTO> CreateGroup(string name, string username, string avatar_hash)
+    {
+        var payload = new
+        {
+            method = "new",
+            what = "group",
+            name,
+            username,
+            avatar_hash
+        };
+        TaskCompletionSource<ChatDTO> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
+    }
 
     private void HandleResponse(string response)
     {
@@ -330,6 +345,12 @@ internal class JsonClient
                 chatId = rootNode?["chat_id"]?.GetValue<int>();
                 if (chatId == null) return;
                 if (tcs is TaskCompletionSource<int> editread_tcs) editread_tcs.SetResult(chatId ?? -1);
+                break;
+            case "new_group":
+                if (ok != true) return;
+                ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
+                if (group == null) return;
+                if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs) newgroup_tcs.SetResult(group);
                 break;
         }
         // parse events

@@ -55,6 +55,9 @@
 						<DataTemplate DataType="md:ConnectionDialog">
 							<cd:ConnectionDialogControl/>
 						</DataTemplate>
+						<DataTemplate DataType="md:NewGroupDialog">
+							<cd:NewGroupDialogControl/>
+						</DataTemplate>
 					</ContentControl.DataTemplates>
 				</ContentControl>
 			</Border>

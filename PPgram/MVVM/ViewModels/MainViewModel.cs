@@ -152,7 +152,11 @@ internal partial class MainViewModel : ViewModelBase
                 await jsonClient.SendRead(item.Chat, item.Id);
             }
         });
-
+        WeakReferenceMessenger.Default.Register<Msg_CreateGroup>(this, async (r, m) =>
+        {
+            ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
+            chat_vm.Chats.Add(DTOToModelConverter.ConvertChat(chatDTO));
+        });
         WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
         {
             try

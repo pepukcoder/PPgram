@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
+using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
 using PPgram.Net.DTO;
 using PPgram.Shared;
@@ -182,6 +183,11 @@ partial class ChatViewModel : ViewModelBase
     public void ChangeMessageStatus(int chat_id, int message_id, MessageStatus status)
     {
         if (TryFindChat(chat_id, out var chat)) chat.ChangeMessageStatus(message_id, status);
+    }
+    [RelayCommand]
+    private void OpenNewGroupDialog()
+    {
+        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new NewGroupDialog() });
     }
     [RelayCommand]
     private void ClearSearch() => SearchInput = string.Empty;
