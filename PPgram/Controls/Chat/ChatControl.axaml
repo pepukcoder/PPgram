@@ -17,12 +17,14 @@
 				Background="Transparent" Padding="0" BorderThickness="0"
 				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 				ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,5"
+				ScrollViewer.ScrollChanged="ChatScrolled"
+				
 				ItemsSource="{Binding Messages, Mode=OneWay}"
 				SelectedItem="{Binding SelectedMessage, Mode=TwoWay}"
 				SelectionMode="Toggle">
-			<Interaction.Behaviors>
+			<!--<Interaction.Behaviors>
 				<bh:ScrollToEndBehavior />
-			</Interaction.Behaviors>
+			</Interaction.Behaviors>-->
 			<ListBox.ContextMenu>
 				<ContextMenu IsVisible="{Binding ContextVisible}">
 					<MenuItem Header="Reply" Command="{Binding AddReplyCommand}" HotKey="Ctrl+R">

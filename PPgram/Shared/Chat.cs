@@ -1,5 +1,12 @@
-﻿namespace PPgram.Shared;
+﻿using PPgram.MVVM.Models.Message;
+using System.Collections.Generic;
 
+namespace PPgram.Shared;
+
+class Msg_SendRead
+{
+    public required List<MessageModel> messages;
+}
 class Msg_SendDraft
 {
     public required string draft;

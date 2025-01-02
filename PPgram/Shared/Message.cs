@@ -20,6 +20,7 @@ public enum MessageStatus
     Sending,
     Delivered,
     Read,
+    ReadInvisible,
     Error
 }
 public enum ContentType

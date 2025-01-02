@@ -221,6 +221,20 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
+    public async Task<int> SendRead(int chat_id, int message_id)
+    {
+        var payload = new
+        {
+            method = "edit",
+            what = "is_unread",
+            chat_id,
+            message_id
+        };
+        TaskCompletionSource<int> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
+    }
+
     private void HandleResponse(string response)
     {
         JsonNode? rootNode = JsonNode.Parse(response);
@@ -311,6 +325,12 @@ internal class JsonClient
                 if (messageId == null) return;
                 if (tcs is TaskCompletionSource<(int, int)> msg_tcs) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
                 break;
+            case "edit_is_unread":
+                if (ok != true) return;
+                chatId = rootNode?["chat_id"]?.GetValue<int>();
+                if (chatId == null) return;
+                if (tcs is TaskCompletionSource<int> editread_tcs) editread_tcs.SetResult(chatId ?? -1);
+                break;
         }
         // parse events
         if (r_event != null)
@@ -339,13 +359,19 @@ internal class JsonClient
                 if (chatNode == null) return;
                 ChatDTO? chatDTO = chatNode.Deserialize<ChatDTO>();
                 WeakReferenceMessenger.Default.Send(new Msg_NewChatEvent { chat = chatDTO });
-                    break;
+                break;
             case "is_typing":
                 bool? typing = rootNode?["is_typing"]?.GetValue<bool>();
                 chat = rootNode?["chat_id"]?.GetValue<int>();
                 int? user = rootNode?["user_id"]?.GetValue<int>();
                 if (chat == null || user == null || typing == null) return;
                 WeakReferenceMessenger.Default.Send(new Msg_IsTypingEvent { typing = typing ?? false, chat = chat ?? -1, user = user ?? -1 });
+                break;
+            case "mark_as_read":
+                chat = rootNode?["chat_id"]?.GetValue<int>();
+                id = rootNode?["message_id"]?.GetValue<int>();
+                if (chat == null || id == null) return;
+                WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, id = id ?? -1 });
                 break;
         }
     }

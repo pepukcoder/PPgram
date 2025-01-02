@@ -21,6 +21,11 @@ class Msg_DeleteMessageEvent
     public required int chat;
     public required int id;
 }
+class Msg_MarkAsReadEvent
+{
+    public required int chat;
+    public required int id;
+}
 class Msg_IsTypingEvent
 {
     public required bool typing;

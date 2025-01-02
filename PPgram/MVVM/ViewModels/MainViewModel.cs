@@ -145,6 +145,13 @@ internal partial class MainViewModel : ViewModelBase
         {
             await jsonClient.SendDraft(m.chat_id, m.draft);
         });
+        WeakReferenceMessenger.Default.Register<Msg_SendRead>(this, async (r, m) =>
+        {
+            foreach (var item in m.messages)
+            {
+                await jsonClient.SendRead(item.Chat, item.Id);
+            }
+        });
 
         WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
         {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -16,6 +11,10 @@ using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
 using PPgram.Shared;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace PPgram.MVVM.Models.Chat;
 /// <summary>
@@ -71,6 +70,7 @@ internal abstract partial class ChatModel : ObservableObject
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     private readonly DispatcherTimer timer;
+    private readonly Queue<object> events = new();
     protected readonly ProfileState profileState = ProfileState.Instance;
     public ChatModel()
     {
@@ -172,7 +172,7 @@ internal abstract partial class ChatModel : ObservableObject
     private void SendDraft(object? sender, EventArgs e)
     {
         timer.Stop();
-        WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
+        //WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {

@@ -95,7 +95,12 @@ partial class ChatViewModel : ViewModelBase
                 else chat.Status = ChatStatus.None;
             }
         });
-        
+        WeakReferenceMessenger.Default.Register<Msg_MarkAsReadEvent>(this, (r, m) =>
+        {
+            if (m.chat == -1 || m.id == -1) return;
+            if (TryFindChat(m.chat, out var chat)) chat.ChangeMessageStatus(m.id, MessageStatus.Read);
+        });
+
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, m) =>
         {
             if (!TryFindChat(m.to.Id, out var chat))
