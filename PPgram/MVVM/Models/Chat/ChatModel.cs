@@ -50,7 +50,7 @@ internal abstract partial class ChatModel : ObservableObject
     private bool inReply;
     [ObservableProperty]
     private bool inEdit;
-    
+
     [ObservableProperty]
     private bool canReply;
     [ObservableProperty]
@@ -134,7 +134,7 @@ internal abstract partial class ChatModel : ObservableObject
             origin = message;
             origin.Edited = true;
             UpdateLastMessage();
-        }     
+        }
     }
     public void DeleteMessage(int id)
     {
@@ -172,7 +172,7 @@ internal abstract partial class ChatModel : ObservableObject
     private void SendDraft(object? sender, EventArgs e)
     {
         timer.Stop();
-        //WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
+        WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {

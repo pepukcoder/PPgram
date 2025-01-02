@@ -45,7 +45,7 @@ internal partial class MainViewModel : ViewModelBase
     // network
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
-    
+
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
@@ -53,12 +53,12 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
-        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) => 
+        WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) =>
         {
             string? exeFile = Process.GetCurrentProcess().MainModule?.FileName;
             if (exeFile == null) return;
             File.Delete(PPPath.SessionFile);
-            Process.Start(new ProcessStartInfo(exeFile)); 
+            Process.Start(new ProcessStartInfo(exeFile));
             Environment.Exit(0);
         });
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
@@ -147,10 +147,8 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_SendRead>(this, async (r, m) =>
         {
-            foreach (var item in m.messages)
-            {
-                await jsonClient.SendRead(item.Chat, item.Id);
-            }
+            int[] msg_ids = m.messages.Select(message => message.Id).ToArray();
+            await jsonClient.SendRead(m.messages.First().Chat, msg_ids);
         });
         WeakReferenceMessenger.Default.Register<Msg_CreateGroup>(this, async (r, m) =>
         {
@@ -195,7 +193,7 @@ internal partial class MainViewModel : ViewModelBase
 
         // connection
         CurrentPage = login_vm;
-        Task.Run(async() => 
+        Task.Run(async() =>
         {
             if (await ConnectToServer() && await AutoAuth()) await LoadOnline();
             else await LoadOffline();

@@ -84,8 +84,8 @@ internal class MessageChainManager
             else if (currentIndex > 0)
             {
                 previous = chat[currentIndex - 1];
-                if (previous is MessageModel prevm 
-                    && prevm.Role != Shared.MessageRole.OwnFirst 
+                if (previous is MessageModel prevm
+                    && prevm.Role != Shared.MessageRole.OwnFirst
                     && prevm.Role != Shared.MessageRole.Own) message.Role = Shared.MessageRole.OwnFirst;
                 else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.OwnFirst;
                 else message.Role = Shared.MessageRole.Own;
@@ -100,10 +100,10 @@ internal class MessageChainManager
                 if (previous is MessageModel prevm
                     && prevm.Role != Shared.MessageRole.UserFirst
                     && prevm.Role != Shared.MessageRole.User) message.Role = Shared.MessageRole.UserFirst;
-                else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.UserFirst;     
-                else message.Role = Shared.MessageRole.User;     
+                else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.UserFirst;
+                else message.Role = Shared.MessageRole.User;
             }
-            message.Status = Shared.MessageStatus.None;
+            message.Status = message.Status == Shared.MessageStatus.Delivered ? Shared.MessageStatus.UnReadInvisible : Shared.MessageStatus.ReadInvisible;
         }
     }
     private void SetBadge(MessageModel message, ObservableCollection<ChatItem> chat)
@@ -113,7 +113,7 @@ internal class MessageChainManager
         {
             ChatItem previous = chat[currentIndex - 1];
             if (previous is DateBadgeModel) return;
-            if (previous is MessageModel prevm 
+            if (previous is MessageModel prevm
                 && DateTimeOffset.FromUnixTimeSeconds(message.Time).Date == DateTimeOffset.FromUnixTimeSeconds(prevm.Time).Date) return;
         }
         chat.Insert(currentIndex, new DateBadgeModel() { Date = message.Time });

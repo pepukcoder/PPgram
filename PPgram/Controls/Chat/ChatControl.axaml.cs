@@ -105,9 +105,9 @@ public partial class ChatControl : UserControl
             if (lastindex == 0 && firstindex == 0) return;
             for (int index = firstindex; index <= lastindex; index++)
             {
-                if (MessageHistory.Items.Source[index] is MessageModel message 
-                    && message.SenderId != profileState.UserId 
-                    && message.Status == MessageStatus.None)
+                if (MessageHistory.Items.Source[index] is MessageModel message
+                    && message.SenderId != profileState.UserId
+                    && message.Status == MessageStatus.UnReadInvisible)
                 {
                     message.Status = MessageStatus.ReadInvisible;
                     readmessages.Add(message);
