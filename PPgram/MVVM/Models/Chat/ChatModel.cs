@@ -70,7 +70,6 @@ internal abstract partial class ChatModel : ObservableObject
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     private readonly DispatcherTimer timer;
-    private readonly Queue<object> events = new();
     protected readonly ProfileState profileState = ProfileState.Instance;
     public ChatModel()
     {

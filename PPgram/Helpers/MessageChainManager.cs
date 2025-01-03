@@ -96,8 +96,9 @@ internal class MessageChainManager
                     && prevm.Role != MessageRole.User) message.Role = MessageRole.UserFirst;
                 else if (previous is DateBadgeModel) message.Role = MessageRole.UserFirst;
                 else message.Role = MessageRole.User;
+                message.Status = message.Status == MessageStatus.Delivered ? MessageStatus.UnReadInvisible : MessageStatus.ReadInvisible;
             }
-            message.Status = message.Status == MessageStatus.Delivered ? MessageStatus.UnReadInvisible : MessageStatus.ReadInvisible;
+            
         }
     }
     private static void SetBadge(MessageModel message, ObservableCollection<ChatItem> chat)

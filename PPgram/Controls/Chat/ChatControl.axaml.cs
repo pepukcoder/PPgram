@@ -1,8 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
 using PPgram.MVVM.Models.Chat;
@@ -11,7 +12,6 @@ using PPgram.MVVM.Models.Message;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -79,41 +79,22 @@ public partial class ChatControl : UserControl
     private void ChatScrolled(object? sender, ScrollChangedEventArgs e)
     {
         IEnumerable<Control> controls = MessageHistory.GetRealizedContainers();
+        TransformedBounds? globaltransform = MessageHistory.GetTransformedBounds();
+        if (globaltransform == null) return;
+        Rect viewport = globaltransform.Value.Clip;
         List<MessageModel> readmessages = [];
-        IScrollable? sc = MessageHistory.Scroll;
-        if (sc != null)
+        for (int index = 0; index < controls.Count(); index++)
         {
-            var absscrollpos = sc.Offset.Y + MessageHistory.Bounds.Height;
-            var sum = 0.0;
-            int firstindex = 0;
-            int lastindex = 0;
-            for (int index = 0; index < controls.Count(); index++)
+            TransformedBounds? bounds = controls.ElementAt(index).GetTransformedBounds();
+            if (bounds == null) return;
+            Rect clip = bounds.Value.Clip;
+            if (viewport.Intersects(clip) && MessageHistory.Items.Source[index] is MessageModel message
+                && message.SenderId != profileState.UserId && message.Status == MessageStatus.UnReadInvisible)
             {
-                sum += controls.ElementAt(index).Bounds.Height;
-                if (sum >= sc.Offset.Y && firstindex == 0)
-                {
-                    firstindex = index;
-                    Debug.WriteLine(index);
-                }
-                if (sum >= absscrollpos && lastindex == 0)
-                {
-                    lastindex = index;
-                    Debug.WriteLine(index);
-                }
-                if (lastindex != 0 && firstindex != 0) break;
+                message.Status = MessageStatus.ReadInvisible;
+                readmessages.Add(message);
             }
-            if (lastindex == 0 && firstindex == 0) return;
-            for (int index = firstindex; index <= lastindex; index++)
-            {
-                if (MessageHistory.Items.Source[index] is MessageModel message
-                    && message.SenderId != profileState.UserId
-                    && message.Status == MessageStatus.UnReadInvisible)
-                {
-                    message.Status = MessageStatus.ReadInvisible;
-                    readmessages.Add(message);
-                }
-            }
-            if (readmessages.Count != 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readmessages });
         }
+        if (readmessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readmessages });
     }
 }
