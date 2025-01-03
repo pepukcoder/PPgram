@@ -109,12 +109,12 @@ partial class ChatViewModel : ViewModelBase
                 }
             }
         });
-
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, m) =>
         {
             if (!TryFindChat(m.to.Id, out var chat))
             {
                 Chats.Add(m.to);
+                m.to.Searched = false;
                 // setting null to actually update ui property and show selection
                 SelectedChat = null;
                 SelectedChat = m.to;
