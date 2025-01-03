@@ -91,7 +91,7 @@ internal partial class MainViewModel : ViewModelBase
             foreach (ChatDTO dto in dtos)
             {
                 ChatModel model = DTOToModelConverter.ConvertChat(dto);
-                model.LastMessage = "Click to add";
+                model.Searched = true;
                 results.Add(model);
             }
             chat_vm.UpdateSearch(results);
