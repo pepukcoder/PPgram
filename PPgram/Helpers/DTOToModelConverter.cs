@@ -44,7 +44,7 @@ internal class DTOToModelConverter
         ProfileModel sender;
         if (chat is UserModel && chat.Profile != null) sender = chat.Profile;
         else sender = new();
-        return new MessageModel()
+        return new MessageModel
         {
             Id = messageDTO.Id ?? 0,
             Chat = messageDTO.ChatId ?? 0,

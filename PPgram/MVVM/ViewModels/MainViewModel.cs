@@ -8,6 +8,7 @@ using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Media;
+using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.Net;
 using PPgram.Net.DTO;
@@ -207,17 +208,14 @@ internal partial class MainViewModel : ViewModelBase
         profileState.Name = self.Name ?? string.Empty;
         profileState.Username = self.Username ?? string.Empty;
         profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(self.Photo);
-
         List<ChatDTO> chatDTOs = await jsonClient.FetchChats();
-        ObservableCollection<ChatModel> chats = [];
         foreach (ChatDTO dto in chatDTOs)
         {
             ChatModel chat = DTOToModelConverter.ConvertChat(dto);
-            List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, 0]);
-            chat.AddMessage(DTOToModelConverter.ConvertMessage(messages.First(), chat));
-            chats.Add(chat);
+            chat_vm.Chats.Add(chat);
+            List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
+            chat_vm.LoadMessages(chat.Id, messages);
         }
-        chat_vm.UpdateChats(chats);
     }
     private async Task LoadOffline()
     {

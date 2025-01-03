@@ -156,11 +156,6 @@ partial class ChatViewModel : ViewModelBase
     partial void OnSelectedChatChanged(ChatModel? value)
     {
         if (value != null) value.UnreadCount = 0;
-        if (value?.Messages.Count <= 2 && !inSearch)
-        {
-            Msg_FetchMessages msg = new() { chatId = value.Id };
-            WeakReferenceMessenger.Default.Send(msg);
-        }
     }
     private void SearchChat(object? sender, EventArgs e)
     {

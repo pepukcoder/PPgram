@@ -33,7 +33,7 @@ public class ScrollToEndBehavior : Behavior<ListBox>
             Dispatcher.UIThread.Post(() =>
             {
                 ScrollViewer? sc = AssociatedObject?.GetVisualDescendants()?.OfType<ScrollViewer>().FirstOrDefault();
-                if (sc != null) AssociatedObject?.ScrollIntoView(AssociatedObject.Items.Count - 1);
+                if (sc != null) AssociatedObject?.ScrollIntoView(0);
             }, DispatcherPriority.Background);
         }
     }
@@ -41,7 +41,7 @@ public class ScrollToEndBehavior : Behavior<ListBox>
     {
         ScrollViewer sw = e.NameScope.Get<ScrollViewer>("PART_ScrollViewer");
         sw.ScrollChanged += SwOnScrollChanged;
-        AssociatedObject?.ScrollIntoView(AssociatedObject.Items.Count - 1);
+        AssociatedObject?.ScrollIntoView(0);
     }
     private void SwOnScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
@@ -55,7 +55,7 @@ public class ScrollToEndBehavior : Behavior<ListBox>
         if (_shouldScrollToEnd && AssociatedObject?.Items.Count > 0)
         {
             _scrolling = true;
-            AssociatedObject.ScrollIntoView(AssociatedObject.Items.Count - 1);
+            AssociatedObject.ScrollIntoView(0);
             _scrolling = false;
         }
     }

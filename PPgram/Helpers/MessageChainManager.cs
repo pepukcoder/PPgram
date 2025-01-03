@@ -3,6 +3,7 @@ using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
+using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,7 +26,7 @@ internal class MessageChainManager
         {
             SetBadge(message, chain);
         }
-        foreach (ChatItem item in chain)
+        foreach (ChatItem item in chain.Reverse())
         {
             if (item is DateBadgeModel) continue;
             else if (item is MessageModel message)
@@ -38,21 +39,19 @@ internal class MessageChainManager
     }
     public void AddChain(MessageModel message, ObservableCollection<ChatItem> chat)
     {
-        chat.Add(message);
+        chat.Insert(0, message);
         SetBadge(message, chat);
         SetRole(message, chat);
         SetReply(message, chat);
     }
     public void DeleteChain(MessageModel message, ObservableCollection<ChatItem> chat)
     {
-        // possible improvements here
-
         int currentIndex = chat.IndexOf(message);
-        ChatItem prev = chat[currentIndex - 1];
+        ChatItem prev = chat[currentIndex + 1];
 
-        if (currentIndex != chat.Count - 1)
+        if (currentIndex > 0)
         {
-            ChatItem next = chat[currentIndex + 1];
+            ChatItem next = chat[currentIndex - 1];
             if (next is MessageModel msg)
             {
                 chat.Remove(message);
@@ -78,60 +77,53 @@ internal class MessageChainManager
     {
         int currentIndex = chat.IndexOf(message);
         ChatItem previous;
-        if (message.SenderId == profileState.UserId)
-        {
-            if (currentIndex == 0) message.Role = Shared.MessageRole.OwnFirst;
-            else if (currentIndex > 0)
+        if (currentIndex < chat.Count - 1)
+        { 
+            if (message.SenderId == profileState.UserId)
             {
-                previous = chat[currentIndex - 1];
+                previous = chat[currentIndex + 1];
                 if (previous is MessageModel prevm
-                    && prevm.Role != Shared.MessageRole.OwnFirst
-                    && prevm.Role != Shared.MessageRole.Own) message.Role = Shared.MessageRole.OwnFirst;
-                else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.OwnFirst;
-                else message.Role = Shared.MessageRole.Own;
+                    && prevm.Role != MessageRole.OwnFirst
+                    && prevm.Role != MessageRole.Own) message.Role = MessageRole.OwnFirst;
+                else if (previous is DateBadgeModel) message.Role = MessageRole.OwnFirst;
+                else message.Role = MessageRole.Own;
             }
-        }
-        else
-        {
-            if (currentIndex == 0) message.Role = Shared.MessageRole.UserFirst;
-            else if (currentIndex > 0)
+            else
             {
-                previous = chat[currentIndex - 1];
+                previous = chat[currentIndex + 1];
                 if (previous is MessageModel prevm
-                    && prevm.Role != Shared.MessageRole.UserFirst
-                    && prevm.Role != Shared.MessageRole.User) message.Role = Shared.MessageRole.UserFirst;
-                else if (previous is DateBadgeModel) message.Role = Shared.MessageRole.UserFirst;
-                else message.Role = Shared.MessageRole.User;
+                    && prevm.Role != MessageRole.UserFirst
+                    && prevm.Role != MessageRole.User) message.Role = MessageRole.UserFirst;
+                else if (previous is DateBadgeModel) message.Role = MessageRole.UserFirst;
+                else message.Role = MessageRole.User;
             }
-            message.Status = message.Status == Shared.MessageStatus.Delivered ? Shared.MessageStatus.UnReadInvisible : Shared.MessageStatus.ReadInvisible;
+            message.Status = message.Status == MessageStatus.Delivered ? MessageStatus.UnReadInvisible : MessageStatus.ReadInvisible;
         }
     }
-    private void SetBadge(MessageModel message, ObservableCollection<ChatItem> chat)
+    private static void SetBadge(MessageModel message, ObservableCollection<ChatItem> chat)
     {
         int currentIndex = chat.IndexOf(message);
-        if (currentIndex > 0)
+        if (currentIndex < chat.Count - 1)
         {
-            ChatItem previous = chat[currentIndex - 1];
+            ChatItem previous = chat[currentIndex + 1];
             if (previous is DateBadgeModel) return;
             if (previous is MessageModel prevm
                 && DateTimeOffset.FromUnixTimeSeconds(message.Time).Date == DateTimeOffset.FromUnixTimeSeconds(prevm.Time).Date) return;
         }
-        chat.Insert(currentIndex, new DateBadgeModel() { Date = message.Time });
+        chat.Insert(currentIndex + 1, new DateBadgeModel() { Date = message.Time });
     }
-    private void SetReply(MessageModel message, ObservableCollection<ChatItem> chat)
+    private static void SetReply(MessageModel message, ObservableCollection<ChatItem> chat)
     {
         if (message.ReplyTo == 0) return;
-        MessageModel? replied = chat.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.ReplyTo);
-        if (replied == null) return;
-
+        MessageModel? origin = chat.OfType<MessageModel>().FirstOrDefault(m => m.Id == message.ReplyTo);
+        if (origin == null) return;
         string text;
-        if (replied.Content is ITextContent content) text = content.Text;
-        else if (replied.Content is FileContentModel) text = "Files";
+        if (origin.Content is ITextContent content) text = content.Text;
+        else if (origin.Content is FileContentModel) text = "Files";
         else text = string.Empty;
-
         message.Reply = new()
         {
-            Name = replied.Sender.Name,
+            Name = origin.Sender.Name,
             Text = text
         };
     }

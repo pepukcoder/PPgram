@@ -331,7 +331,6 @@ internal class JsonClient
                         MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
                         if (message != null) messageList.Add(message);
                     }
-                    messageList.Reverse();
                     if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs) fmsg_tcs.SetResult(messageList);
                     break;
                 case "send_message":
@@ -391,15 +390,15 @@ internal class JsonClient
                     break;
                 case "mark_as_read":
                     chat = rootNode?["chat_id"]?.GetValue<int>();
-                    var msg_ids = rootNode?["message_ids"]?.AsArray()?.GetValues<int>();
-                    if (chat == null || msg_ids == null) return;
-
-                    List<int> test = new();
-                    foreach(var msg_id in msg_ids) {
-                        test.Add(msg_id);
+                    JsonArray? idsJson = rootNode?["message_ids"]?.AsArray();             
+                    if (chat == null || idsJson == null) return;
+                    List<int> ids = [];
+                    foreach (JsonNode? idJson in idsJson)
+                    {
+                        id = idJson?.GetValue<int>();
+                        ids.Add(id ?? -1);
                     }
-
-                    WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, ids = test.ToArray() });
+                    WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, ids = [.. ids] });
                     break;
             }
     }
