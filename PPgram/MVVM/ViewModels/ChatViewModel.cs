@@ -137,19 +137,19 @@ partial class ChatViewModel : ViewModelBase
             inSearch = false;
         }
     }
-    partial void OnSelectedSearchChanged(ChatModel? value)
+    partial void OnSelectedSearchChanged(ChatModel? oldValue, ChatModel? newValue)
     {
         if (String.IsNullOrEmpty(SearchInput)) return;
-        if (value == null) return;
-        if (Chats.Any(c => c.Id == value?.Id))
+        if (newValue == null) return;
+        if (Chats.Any(c => c.Id == newValue?.Id))
         {
             inSearch = false;
-            SelectedChat = Chats.FirstOrDefault(c => c.Id == value?.Id);
+            SelectedChat = Chats.FirstOrDefault(c => c.Id == newValue?.Id);
             ClearSearch();
         }
         else
         {
-            SelectedChat = value;
+            SelectedChat = newValue;
         }
     }
     partial void OnSelectedChatChanged(ChatModel? value)
