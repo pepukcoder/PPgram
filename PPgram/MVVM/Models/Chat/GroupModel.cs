@@ -24,7 +24,7 @@ internal partial class GroupModel : ChatModel
     
     protected override void UpdateLastMessage()
     {
-        MessageModel? lastmsg = Messages.OfType<MessageModel>().LastOrDefault();
+        MessageModel? lastmsg = Messages.OfType<MessageModel>().FirstOrDefault();
         if (lastmsg == null)
         {
             LastMessage = "";
