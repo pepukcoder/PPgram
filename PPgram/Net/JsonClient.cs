@@ -18,8 +18,9 @@ internal class JsonClient
 {
     private TcpClient? client;
     private NetworkStream? stream;
-    private readonly ConcurrentQueue<object> requests = [];
     private CancellationTokenSource cts = new();
+    private readonly ConcurrentQueue<object> requests = [];
+    private readonly Mutex mutex = new();
     public async Task<bool> Connect(ConnectionOptions options)
     {
         try
@@ -37,7 +38,7 @@ internal class JsonClient
     }
     private void Listen(CancellationToken ct)
     {
-        JsonConnection connection = new();
+        TcpConnection connection = new();
         while (!ct.IsCancellationRequested)
         {
             try
@@ -62,13 +63,15 @@ internal class JsonClient
     }
     private void Send(object data, object tcs)
     {
+        mutex.WaitOne();
         try
         {
             requests.Enqueue(tcs);
             string request = JsonSerializer.Serialize(data);
-            stream?.Write(JsonConnection.BuildJsonRequest(request));
+            stream?.Write(TcpConnection.BuildJsonRequest(request));
         }
         catch { Disconnect(); }
+        finally { mutex.ReleaseMutex(); }
     }
     public async Task<bool> Auth(string session_id, int user_id)
     {
@@ -270,6 +273,7 @@ internal class JsonClient
 
         // parse specific fields
         if (r_method != null && requests.TryDequeue(out object? tcs))
+        {
             switch (r_method)
             {
                 case "login":
@@ -353,8 +357,10 @@ internal class JsonClient
                     if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs) newgroup_tcs.SetResult(group);
                     break;
             }
+        }
         // parse events
         if (r_event != null)
+        {
             switch (r_event)
             {
                 case "new_message":
@@ -390,7 +396,7 @@ internal class JsonClient
                     break;
                 case "mark_as_read":
                     chat = rootNode?["chat_id"]?.GetValue<int>();
-                    JsonArray? idsJson = rootNode?["message_ids"]?.AsArray();             
+                    JsonArray? idsJson = rootNode?["message_ids"]?.AsArray();
                     if (chat == null || idsJson == null) return;
                     List<int> ids = [];
                     foreach (JsonNode? idJson in idsJson)
@@ -401,5 +407,6 @@ internal class JsonClient
                     WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, ids = [.. ids] });
                     break;
             }
+        }
     }
 }

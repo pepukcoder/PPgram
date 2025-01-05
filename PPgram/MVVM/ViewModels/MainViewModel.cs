@@ -156,40 +156,9 @@ internal partial class MainViewModel : ViewModelBase
             ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
             chat_vm.Chats.Add(DTOToModelConverter.ConvertChat(chatDTO));
         });
-        WeakReferenceMessenger.Default.Register<Msg_UploadFiles>(this, (r, e) =>
+        WeakReferenceMessenger.Default.Register<Msg_UploadFile>(this, async (r, m) => 
         {
-            try
-            {
-                foreach (FileModel file in e.files)
-                {
-                    file.Hash = filesClient.UploadFile(file.Path);
-                    if (file.Hash != null)
-                    {
-                        file.Status = FileStatus.Loaded;
-                        FSManager.SaveBinary(file.Hash, File.ReadAllBytes(file.Path), file.Name, false);
-                    }
-                }
-                WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = true });
-            }
-            catch
-            {
-                WeakReferenceMessenger.Default.Send(new Msg_UploadFilesResult { ok = false });
-            }
-        });
-        WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, (r, e) =>
-        {
-            if (e.file.Hash == null) return;
-            if (e.meta)
-            {
-                MetadataModel? meta = filesClient.DownloadMetadata(e.file.Hash);
-                e.file.Name = meta?.FileName ?? "???";
-                e.file.Size = meta?.FileSize ?? 0;
-            }
-            else
-            {
-                filesClient.DownloadFiles(e.file.Hash);
-                e.file.Status = FileStatus.Loaded;
-            }
+            // TODO: Modify AttachFilesDialog to send file type and compression method 
         });
 
         // connection
@@ -216,6 +185,12 @@ internal partial class MainViewModel : ViewModelBase
             List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
             chat_vm.LoadMessages(chat.Id, messages);
         }
+        /* DEBUG file sending
+        string hash = await filesClient.UploadFile("path\\to\\file", true, false);
+        (string? preview_temp, string? file_temp) = await filesClient.DownloadFile(hash, DownloadMode.full);
+        Debug.WriteLine($"preview path: {preview_temp}");
+        Debug.WriteLine($"file path: {file_temp}");
+        */
     }
     private async Task LoadOffline()
     {
