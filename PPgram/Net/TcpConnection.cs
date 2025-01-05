@@ -7,34 +7,30 @@ using System.Text.Json.Serialization;
 
 namespace PPgram.Net;
 
-internal class JsonConnection {
+internal class TcpConnection {
     private bool isFirst = true;
     private int expected_size = 0;
     private readonly List<byte> response_chunks = [];
     private bool is_ready = false;
     public bool IsReady { get => is_ready; }
-
-    public T? GetResponseAsJson<T>() where T : class {
-        if (!is_ready)
-            throw new InvalidOperationException("Response not ready yet.");
-
-        // Convert the accumulated bytes to a JSON string and deserialize it into the specified type
+    public T? GetResponseAsJson<T>() where T : class
+    {
+        if (!is_ready) throw new InvalidOperationException("Response not ready yet.");
+        //  deserialize accumulated bytes into the specified type
         byte[] responseData = [.. response_chunks];
         Reset();
         return JsonSerializer.Deserialize<T>(responseData);
     }
-
-    public string GetResponseAsString() {
-        if (!is_ready)
-            throw new InvalidOperationException("Response not ready yet.");
-
-        // Convert the accumulated bytes to a JSON string and deserialize it into the specified type
+    public string GetResponseAsString() 
+    {
+        if (!is_ready) throw new InvalidOperationException("Response not ready yet.");
+        // ñonvert the accumulated bytes to a JSON string
         byte[] responseData = [.. response_chunks];
         Reset();
         return Encoding.UTF8.GetString(responseData);
     }
-
-    public void ReadStream(NetworkStream? stream) {
+    public void ReadStream(NetworkStream? stream) 
+    {
         if (stream == null) { return; }
         int read_count;
         // get server response length if chunk is first

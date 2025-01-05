@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PPgram.Shared;
 
-internal static class PPFileExtensions
+internal record PPFileExtensions
 {
     public static readonly HashSet<string> PhotoExtensions = new(StringComparer.OrdinalIgnoreCase)
     {

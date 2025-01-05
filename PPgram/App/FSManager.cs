@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using PPgram.Net;
 using PPgram.Shared;
 
 namespace PPgram.App;
@@ -10,28 +9,6 @@ namespace PPgram.App;
 internal class FSManager
 {
     private static readonly AppState appState = AppState.Instance;
-    public static void SaveBinary(string sha256_hash, byte[] binary, string fileName, bool isPreview)
-    {
-        try
-        {
-            // DIALOGFIX if unable to get downloads folder
-            if (appState.DownloadsFolder == null) return;
-
-            string filePath;
-            if (isPreview) filePath = Path.Combine(PPPath.FileCacheFolder, sha256_hash + ".preview");
-            else
-            {
-                filePath = Path.Combine(appState.DownloadsFolder, fileName);
-                CreateFile(Path.Combine(PPPath.FileCacheFolder, sha256_hash + ".link"), filePath);
-            }
-            CreateFile(filePath, binary);
-        }
-        catch (Exception ex)
-        {
-            // DIALOGFIX if unable to save file
-            Console.WriteLine("An error occurred: " + ex.Message);
-        } 
-    }
     public static void CreateFile(string path, byte[] data)
     {
         RestoreDirs(path);

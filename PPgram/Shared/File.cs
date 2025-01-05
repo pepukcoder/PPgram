@@ -1,5 +1,4 @@
 ﻿using PPgram.MVVM.Models.File;
-using System.Collections.ObjectModel;
 
 namespace PPgram.Shared;
 
@@ -8,9 +7,9 @@ class Msg_DownloadFile
     public bool meta = false;
     public required FileModel file;
 }
-class Msg_UploadFiles
+class Msg_UploadFile
 {
-    public required ObservableCollection<FileModel> files;
+    public required FileModel file;
 }
 class Msg_UploadFilesResult
 {
@@ -21,4 +20,10 @@ public enum FileStatus
     NotLoaded,
     Loading,
     Loaded
+}
+public enum DownloadMode
+{
+    media_only,
+    preview_only,
+    full
 }

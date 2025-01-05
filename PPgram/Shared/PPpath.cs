@@ -17,7 +17,8 @@ internal record PPPath
     public static readonly string CacheFolder = Path.Combine(BaseFolder, "cache");
     /// <summary> ...local/PPgram/cache/files </summary>
     public static readonly string FileCacheFolder = Path.Combine(CacheFolder, "files");
-
+    /// <summary> ...local/PPgram/cache/avatars </summary>
+    public static readonly string AvatarCacheFolder = Path.Combine(CacheFolder, "avatars");
     // files
     /// <summary> ...local/PPgram/session.sesf </summary>
     public static readonly string SessionFile = Path.Combine(BaseFolder, "session.sesf");
@@ -25,4 +26,6 @@ internal record PPPath
     public static readonly string ConnectionFile = Path.Combine(SettingsFolder, "connection.setf");
     /// <summary> ...local/PPgram/settings/app.sesf </summary>
     public static readonly string AppSettingsFile = Path.Combine(SettingsFolder, "app.setf");
+    /// <summary> ...local/PPgram/cache/cachelinks.db </summary>
+    public static readonly string CacheDBFile = Path.Combine(CacheFolder, "cachelinks.db");
 }
