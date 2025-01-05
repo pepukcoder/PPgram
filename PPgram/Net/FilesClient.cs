@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 internal class FilesClient
 {
     // Controls suspension and resumption of the Listen method
-    private const int CHUNK_SIZE = 64 * 1024 * 1024; // 64 MiB
+    private const int CHUNK_SIZE = 1 * 1024 * 1024; // 1 MiB
     const int MESSAGE_ALLOCATION_SIZE = 4 * 1024 * 1024; // 4 MiB
 
     private TcpClient? client;
@@ -146,17 +146,18 @@ internal class FilesClient
     }
     private string DownloadFromNode(JsonNode node)
     {
-        int expected_size = node?["file_size"]?.GetValue<int>() ?? throw new JsonException("Unable to deserialize file size");
+        ulong expected_size = node?["file_size"]?.GetValue<ulong>() ?? throw new JsonException("Unable to deserialize file size");
         string temp_path = Path.Combine(PPPath.FileCacheFolder, Path.GetRandomFileName());
         byte[] buffer = new byte[CHUNK_SIZE];
         int bytesRead;
-        int totalRead = 0;
+        ulong totalRead = 0;
         using FileStream fs = new(temp_path, FileMode.Append, FileAccess.Write);
         while (stream != null && totalRead < expected_size)
         {
             bytesRead = stream.Read(buffer, 0, buffer.Length);
-            fs.Write(buffer);
-            totalRead += bytesRead;
+            if (bytesRead == 0) break; 
+            fs.Write(buffer.AsSpan()[..bytesRead]);
+            totalRead += (ulong)bytesRead;
         }
         return temp_path;
     }
