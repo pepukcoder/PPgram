@@ -103,19 +103,27 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
         {
-            string text;
-            List<string> hashes = [];
             // get message text if set
+            string text;
             if (m.message.Content is ITextContent tc) text = tc.Text;
             else text = "";
 
             // upload files first if attached
+            List<string> hashes = [];
             if (m.message.Content is FileContentModel fc)
             {
                 foreach (FileModel file in fc.Files)
                 {
-                    // implement file sending
-                    if (file.Hash != null) hashes.Add(file.Hash);
+                    string hash;
+                    if (file is VideoModel video) hash = await filesClient.UploadFile(video.Path, true, false);
+                    else if (file is PhotoModel photo) hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
+                    else hash = await filesClient.UploadFile(file.Path, false, false);
+                    if (file.Hash != null)
+                    {
+                        hashes.Add(file.Hash);
+                        file.Status = FileStatus.Loaded;
+                        // auto cache file
+                    }
                 }
             }
             // get id from response and assign status
@@ -156,10 +164,6 @@ internal partial class MainViewModel : ViewModelBase
             ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
             chat_vm.Chats.Add(DTOToModelConverter.ConvertChat(chatDTO));
         });
-        WeakReferenceMessenger.Default.Register<Msg_UploadFile>(this, async (r, m) => 
-        {
-            // TODO: Modify AttachFilesDialog to send file type and compression method 
-        });
 
         // connection
         CurrentPage = login_vm;
@@ -185,12 +189,6 @@ internal partial class MainViewModel : ViewModelBase
             List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
             chat_vm.LoadMessages(chat.Id, messages);
         }
-        /* DEBUG file sending
-        string hash = await filesClient.UploadFile("path\\to\\file", true, false);
-        (string? preview_temp, string? file_temp) = await filesClient.DownloadFile(hash, DownloadMode.full);
-        Debug.WriteLine($"preview path: {preview_temp}");
-        Debug.WriteLine($"file path: {file_temp}");
-        */
     }
     private async Task LoadOffline()
     {

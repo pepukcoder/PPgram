@@ -12,9 +12,12 @@
 	<UserControl.Resources>
 		<helpers:SizeConverter x:Key="SConvert"/>
 	</UserControl.Resources>
-	<StackPanel Orientation="Vertical" MinWidth="300">
-		<TextBlock Text="Send files" FontSize="16" FontWeight="Medium"/>
-		<ListBox BorderThickness="0" Padding="0" Background="Transparent" Margin="0,10,0,10" ItemsSource="{Binding Files}">
+	<StackPanel Orientation="Vertical" MinWidth="300" MaxWidth="400">
+		<TextBlock Text="Edit Attachments" FontSize="16" FontWeight="Medium" Margin="0,0,0,10"/>
+		<Border CornerRadius="10" Background="{StaticResource Panel}" IsVisible="{Binding !Files.Count}">
+			<TextBlock Text="Click Add to select files" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20"/>
+		</Border>
+		<ListBox BorderThickness="0" Padding="0" Background="Transparent" Margin="0,0,0,10" ItemsSource="{Binding Files}">
 			<ListBox.DataTemplates>
 				<DataTemplate DataType="m:PhotoModel">
 					<DockPanel Margin="0,2">
@@ -34,7 +37,7 @@
 							</Panel>
 						</ToggleButton>
 						<StackPanel VerticalAlignment="Center">
-							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
+							<TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,0,0,3"/>
 							<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
 					</DockPanel>
@@ -51,39 +54,25 @@
 							<icons:MaterialIcon Kind="Delete" Height="24" Width="24"/>
 						</Button>
 						<StackPanel VerticalAlignment="Center">
-							<TextBlock Text="{Binding Name}" Margin="0,0,0,3"/>
+							<TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,0,0,3"/>
 							<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
 					</DockPanel>
 				</DataTemplate>
 			</ListBox.DataTemplates>
 		</ListBox>
-		<TextBlock Text="Description" Foreground="{StaticResource SecondaryText}"/>
-		<Border CornerRadius="10" Padding="5" Background="{StaticResource Panel}"  HorizontalAlignment="Stretch" Margin="0,5,0,10">
-			<TextBox Background="Transparent" Padding="0" BorderThickness="0" AcceptsReturn="True"
-				CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-				ScrollViewer.VerticalScrollBarVisibility="Hidden"
-				FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
-				TextWrapping="Wrap" Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-				MaxLines="10" Margin="5,0">
-			<TextBox.KeyBindings>
-				<KeyBinding Gesture="Enter" Command="{Binding SendFilesCommand}"/>
-			</TextBox.KeyBindings>
-		</TextBox>
-		</Border>
 		<DockPanel LastChildFill="False">
-			<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" Margin="0,0,10,0" DockPanel.Dock="Left"
+			<Button Theme="{StaticResource ButtonRegular}" DockPanel.Dock="Right"
+					Command="{Binding CloseCommand}">
+				<TextBlock Text="Ok"/>
+			</Button>			
+			<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" Margin="0,0,10,0" DockPanel.Dock="Right"
 					Command="{Binding AddFilesCommand}">
 				<TextBlock Text="Add"/>
 			</Button>
-			<Button Theme="{StaticResource ButtonRegular}" DockPanel.Dock="Right"
-					Command="{Binding SendFilesCommand}">
-				<TextBlock Text="Send"/>
-			</Button>
-			<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" Margin="0,0,10,0" DockPanel.Dock="Right"
-					Command="{Binding CloseCommand}">
-				<TextBlock Text="Cancel"/>
+			<Button Theme="{StaticResource ButtonRegular}" Classes="secondary" DockPanel.Dock="Left"
+					Command="{Binding ClearCommand}" IsVisible="{Binding Files.Count}">
+				<TextBlock Text="Clear"/>
 			</Button>
 		</DockPanel>
 	</StackPanel>

@@ -106,13 +106,6 @@ internal abstract partial class ChatModel : ObservableObject
     }
     public void AttachFiles(List<FileModel> files)
     {
-        if (Files.Count == 0)
-        {
-            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog
-            {
-                dialog = new AttachFileDialog { Files = Files, canSkip = false }
-            });
-        }
         foreach (FileModel file in files)
         {
             Files.Add(file);
@@ -250,6 +243,21 @@ internal abstract partial class ChatModel : ObservableObject
             SecondaryHeader = $"Reply to {reply.Name}";
             SecondaryText = reply.Text;
         }
+    }
+    [RelayCommand]
+    private void OpenAttachFiles()
+    {
+        WeakReferenceMessenger.Default.Send(new Msg_OpenAttachFiles());
+    }
+    [RelayCommand]
+    private void RemoveFile(FileModel file)
+    {
+        Files.Remove(file);
+    }
+    [RelayCommand]
+    private void ClearFiles()
+    {
+        Files.Clear();
     }
     [RelayCommand]
     private void StartEdit()

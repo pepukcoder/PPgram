@@ -11,14 +11,17 @@ internal partial class AttachFileDialog : Dialog
 {
     [ObservableProperty]
     private ObservableCollection<FileModel> files = [];
-    [ObservableProperty]
-    private string text = string.Empty;
 
     [RelayCommand]
-    private void SendFiles()
+    private void Close()
     {
-        WeakReferenceMessenger.Default.Send(new Msg_SendAttachFiles { description = Text });
         WeakReferenceMessenger.Default.Send(new Msg_CloseDialog());
+    }
+    [RelayCommand]
+    private void Clear()
+    {
+        Files.Clear();
+        Close();
     }
     [RelayCommand]
     private void AddFiles()
@@ -30,11 +33,5 @@ internal partial class AttachFileDialog : Dialog
     {
         Files.Remove(file);
         if (Files.Count == 0) Close();
-    }
-    [RelayCommand]
-    private void Close()
-    {
-        Files.Clear();
-        WeakReferenceMessenger.Default.Send(new Msg_CloseDialog());
     }
 }

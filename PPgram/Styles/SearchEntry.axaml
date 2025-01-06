@@ -3,7 +3,7 @@
                     xmlns:md="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
 					xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
-  <ControlTheme x:Key="SearchEntry" TargetType="ListBoxItem" x:DataType="md:SearchEntryModel">
+  <ControlTheme x:Key="SearchEntry" TargetType="ListBoxItem" x:DataType="md:ChatModel">
     <ControlTheme.Resources>
 			<helpers:EnumMatchConverter x:Key="EnumConvert"/>
 		</ControlTheme.Resources>

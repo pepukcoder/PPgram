@@ -7,18 +7,22 @@
 			 xmlns:bh="clr-namespace:PPgram.Behaviours;assembly=PPgram"
 			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
 			 xmlns:mchat="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
+			 xmlns:mfile="clr-namespace:PPgram.MVVM.Models.File;assembly=PPgram"
 			 xmlns:mmed="clr-namespace:PPgram.MVVM.Models.Media;assembly=PPgram"
 			 xmlns:mitem="clr-namespace:PPgram.MVVM.Models.Item;assembly=PPgram"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 			 xmlns:mmsg="clr-namespace:PPgram.MVVM.Models.Message;assembly=PPgram"
 			 x:DataType="mchat:ChatModel"
              x:Class="PPgram.Controls.Chat.ChatControl">
+	<UserControl.Resources>
+		<helpers:SizeConverter x:Key="SConvert"/>
+	</UserControl.Resources>
 	<Grid RowDefinitions="*,Auto" Grid.Column="2">
 		<ListBox x:Name="MessageHistory" Grid.Row="0"
 				Background="Transparent" Padding="0" BorderThickness="0"
 				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 				ScrollViewer.VerticalScrollBarVisibility="Visible" Margin="0,5"
 				ScrollViewer.ScrollChanged="ChatScrolled"
-				
 				ItemsSource="{Binding Messages, Mode=OneWay}"
 				SelectedItem="{Binding SelectedMessage, Mode=TwoWay}"
 				SelectionMode="Toggle">
@@ -90,9 +94,73 @@
 						<TextBlock Text="{Binding SecondaryText}" FontSize="13" DockPanel.Dock="Right"/>
 					</DockPanel>
 				</Border>
-				<Button x:Name="AttachButton" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left"
-						VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,6">
-					<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24"/>
+				<Border CornerRadius="15" DockPanel.Dock="Top" Background="{StaticResource SurfaceLight}" Padding="5"
+						IsVisible="{Binding Files.Count}" Margin="0,0,0,5">
+					<DockPanel>
+						<icons:MaterialIcon Kind="File" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left"/>
+						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding ClearFilesCommand}">
+							<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
+						</Button>
+						<ListBox BorderThickness="0" Padding="0" Background="Transparent" ItemsSource="{Binding Files}"
+								 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+								 ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+							<ListBox.ItemsPanel>
+								<ItemsPanelTemplate>
+									<StackPanel Orientation="Horizontal" Spacing="5"/>
+								</ItemsPanelTemplate>
+							</ListBox.ItemsPanel>
+							<ListBox.DataTemplates>
+								<DataTemplate DataType="mfile:PhotoModel">
+									<Border Padding="3" CornerRadius="8" Background="{StaticResource Panel}}">
+										<DockPanel MaxWidth="200">
+											<Border CornerRadius="5" Background="White" ClipToBounds="True" DockPanel.Dock="Left">
+												<Image Width="32" Height="32" Source="{Binding Preview}"/>
+											</Border>
+											<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
+													Command="{Binding $parent[ListBox].((mchat:ChatModel)DataContext).RemoveFileCommand}"
+													CommandParameter="{Binding .}">
+												<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
+											</Button>
+											<ToggleButton x:Name="Compress" Theme="{StaticResource ButtonToggle}" Margin="0,0,5,0" HorizontalAlignment="Right" DockPanel.Dock="Right"
+														  IsChecked="{Binding Compress}">
+												<Panel>
+													<icons:MaterialIcon Kind="ImageSizeSelectActual" Height="18" Width="18" IsVisible="{Binding !#Compress.IsChecked}"/>
+													<icons:MaterialIcon Kind="ImageSizeSelectLarge" Height="18" Width="18" IsVisible="{Binding #Compress.IsChecked}"/>
+												</Panel>
+											</ToggleButton>
+											<StackPanel VerticalAlignment="Center" Margin="5,0">
+												<TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="13"/>
+												<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}" FontSize="13"/>
+											</StackPanel>
+										</DockPanel>
+									</Border>
+								</DataTemplate>
+								<DataTemplate DataType="mfile:FileModel">
+									<Border Padding="3" CornerRadius="8" Background="{StaticResource Panel}}">
+										<DockPanel MaxWidth="200">
+											<icons:MaterialIcon Kind="File" Height="32" Width="32" Foreground="{StaticResource ButtonIdle}"/>
+											<Button Theme="{StaticResource ButtonIcon}" HorizontalAlignment="Right" DockPanel.Dock="Right"
+													Command="{Binding $parent[ListBox].((mchat:ChatModel)DataContext).RemoveFileCommand}"
+													CommandParameter="{Binding .}">
+												<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
+											</Button>
+											<StackPanel VerticalAlignment="Center" Margin="5,0">
+												<TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="13"/>
+												<TextBlock Text="{Binding Size,Converter={StaticResource SConvert}}" Foreground="{StaticResource SecondaryText}" FontSize="13"/>
+											</StackPanel>
+										</DockPanel>
+									</Border>
+								</DataTemplate>
+							</ListBox.DataTemplates>
+						</ListBox>
+					</DockPanel>
+				</Border>
+				<Button x:Name="AttachButton" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
+						Command="{Binding OpenAttachFilesCommand}" Margin="0,0,0,6">
+					<Panel>
+						<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24" IsVisible="{Binding !Files.Count}"/>
+						<icons:MaterialIcon Kind="PaperclipPlus" Height="24" Width="24" IsVisible="{Binding Files.Count}"/>
+					</Panel>
 				</Button>
 				<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right"
 						Command="{Binding BuildMessageCommand}" Margin="0,0,0,6">
