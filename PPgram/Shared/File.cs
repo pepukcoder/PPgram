@@ -11,10 +11,6 @@ class Msg_UploadFile
 {
     public required FileModel file;
 }
-class Msg_UploadFilesResult
-{
-    public bool ok;
-}
 public enum FileStatus
 {
     NotLoaded,

@@ -23,10 +23,9 @@ public partial class ChatControl : UserControl
     public ChatControl()
     {
         InitializeComponent();
-        AttachButton.AddHandler(PointerPressedEvent, OpenFileDialog, RoutingStrategies.Tunnel);
-        WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog(this, new()));
+        WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog());
     }
-    private async void OpenFileDialog(object? sender, RoutedEventArgs args)
+    private async void OpenFileDialog()
     {
         TopLevel? topLevel = TopLevel.GetTopLevel(this);
         if (topLevel == null) return;
