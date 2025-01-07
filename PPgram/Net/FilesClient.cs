@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 internal class FilesClient
 {
@@ -72,6 +73,13 @@ internal class FilesClient
                                 if (filejson != null) file_path = DownloadFromNode(filejson);
                                 if (tcs is TaskCompletionSource<(string?, string?)> dload_tcs) dload_tcs.TrySetResult((preview_path, file_path));
                                 break;
+                            case "download_metadata":
+                                if (ok == false) return;
+                                filejson = rootNode?["file_metadata"];
+                                string name = filejson?["file_name"]?.GetValue<string>() ?? throw new JsonException("Unable to deserialize file name");
+                                long size = filejson?["file_size"]?.GetValue<long>() ?? throw new JsonException("Unable to deserialize file size");
+                                if (tcs is TaskCompletionSource<(string, long)> meta_tcs) meta_tcs.TrySetResult((name, size));
+                                break;
                         }
                     }   
                 }
@@ -133,6 +141,18 @@ internal class FilesClient
         requests.Enqueue(tcs);
         return await tcs.Task;
     }
+    public async Task<(string, long)> DownloadFileMetadata(string sha256Hash)
+    {
+        var payload = new
+        {
+            method = "download_metadata",
+            sha256_hash = sha256Hash,
+        };
+        TaskCompletionSource<(string, long)> tcs = new();
+        SendJson(payload);
+        requests.Enqueue(tcs);
+        return await tcs.Task;
+    }
     private void SendJson(object data)
     {
         mutex.WaitOne();
@@ -155,21 +175,10 @@ internal class FilesClient
         while (stream != null && totalRead < expected_size)
         {
             bytesRead = stream.Read(buffer, 0, buffer.Length);
-            if (bytesRead == 0) break; 
+            if (bytesRead == 0) throw new EndOfStreamException("The connection was closed before the requested size was read.");
             fs.Write(buffer.AsSpan()[..bytesRead]);
             totalRead += (ulong)bytesRead;
         }
         return temp_path;
-    }
-    private void ReadUntilFilled(byte[] buffer, int offset, long expected_size)
-    {
-        if (stream == null) return;
-        long size = 0;
-        while (size < expected_size)
-        {
-            int read = stream.Read(buffer, offset + (int)size, (int)(expected_size - size));
-            if (read == 0) throw new EndOfStreamException("The connection was closed before the requested size was read.");
-            size += read;
-        }
     }
 }

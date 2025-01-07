@@ -182,6 +182,7 @@ internal class JsonClient
             },
             to
         };
+        Debug.WriteLine(JsonSerializer.Serialize(payload));
         TaskCompletionSource<(int, int)> tcs = new();
         Send(payload, tcs);
         return await tcs.Task;
