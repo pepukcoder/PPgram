@@ -1,4 +1,5 @@
 using Avalonia.Layout;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -51,6 +52,7 @@ internal partial class MainViewModel : ViewModelBase
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
+        // ui
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, m) => ShowDialog(m.dialog));
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
@@ -63,6 +65,7 @@ internal partial class MainViewModel : ViewModelBase
             Process.Start(new ProcessStartInfo(exeFile));
             Environment.Exit(0);
         });
+        // network
         WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
         {
             jsonClient.Disconnect();
@@ -80,6 +83,7 @@ internal partial class MainViewModel : ViewModelBase
             FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(auth));
             await LoadOnline();
         });
+        // api
         WeakReferenceMessenger.Default.Register<Msg_CheckUsername>(this, async (r, m) =>
         {
             bool available = await jsonClient.CheckUsername(m.username);
@@ -101,7 +105,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.chatId, m.range);
             List<MessageModel> messages = [];
-            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(ConvertMessage(messageDTO));
+            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
             chat_vm.LoadMessages(m.chatId, messages);
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
@@ -119,10 +123,9 @@ internal partial class MainViewModel : ViewModelBase
             {
                 foreach (FileModel file in fc.Files)
                 {
-                    string hash;
-                    if (file is VideoModel video) hash = await filesClient.UploadFile(video.Path, true, false);
-                    else if (file is PhotoModel photo) hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
-                    else hash = await filesClient.UploadFile(file.Path, false, false);
+                    if (file is VideoModel video) file.Hash = await filesClient.UploadFile(video.Path, true, false);
+                    else if (file is PhotoModel photo) file.Hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
+                    else file.Hash = await filesClient.UploadFile(file.Path, false, false);
                     if (file.Hash != null)
                     {
                         hashes.Add(file.Hash);
@@ -169,17 +172,18 @@ internal partial class MainViewModel : ViewModelBase
             ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
             chat_vm.Chats.Add(ConvertChat(chatDTO));
         });
+        // chat events
         WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
         {
             if (m.chat != null) chat_vm.Chats.Add(ConvertChat(m.chat));
         });
-        WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, (r, m) =>
+        WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, async (r, m) =>
         {
-            if (m.message != null) chat_vm.AddMessage(ConvertMessage(m.message));        
+            if (m.message != null) chat_vm.AddMessage(await ConvertMessage(m.message));        
         });
-        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, m) =>
+        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, async (r, m) =>
         {
-            if (m.message != null) chat_vm.EditMessage(ConvertMessage(m.message));
+            if (m.message != null) chat_vm.EditMessage(await ConvertMessage(m.message));
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, m) =>
         {
@@ -218,7 +222,7 @@ internal partial class MainViewModel : ViewModelBase
             chat_vm.Chats.Add(chat);
             List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
             List<MessageModel> messages = [];
-            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(ConvertMessage(messageDTO));
+            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
             chat_vm.LoadMessages(chat.Id, messages);
         }
     }
@@ -248,7 +252,7 @@ internal partial class MainViewModel : ViewModelBase
         catch { File.Delete(PPPath.ConnectionFile); }
         return await jsonClient.Connect(PPAppState.ConnectionOptions) && await filesClient.Connect(PPAppState.ConnectionOptions);
     }
-    private static MessageModel ConvertMessage(MessageDTO messageDTO)
+    private async Task<MessageModel> ConvertMessage(MessageDTO messageDTO)
     {
         MessageContentModel content;
         if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
@@ -256,7 +260,35 @@ internal partial class MainViewModel : ViewModelBase
             List<FileModel> files = [];
             foreach (string hash in messageDTO.MediaHashes)
             {
-                // TODO: file meta downloading
+                (string name, long size) = await filesClient.DownloadFileMetadata(hash);
+                // assign model based on file extension
+                FileModel file;
+                string extension = Path.GetExtension(name);
+                if (PPFileExtensions.VideoExtensions.Contains(extension))
+                {
+                    file = new VideoModel
+                    {
+                        Name = name,
+                        Size = size,
+                    };
+                }
+                else if (PPFileExtensions.PhotoExtensions.Contains(extension))
+                {
+                    file = new PhotoModel
+                    {
+                        Name = name,
+                        Size = size,
+                    };
+                }
+                else
+                {
+                    file = new FileModel
+                    {
+                        Name = name,
+                        Size = size,
+                    };
+                }
+                files.Add(file);
             }
             content = new FileContentModel()
             {
