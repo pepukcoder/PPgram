@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
 using PPgram.Helpers;
-using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
@@ -118,7 +117,7 @@ internal abstract partial class ChatModel : ObservableObject
     }
     public void AddMessage(MessageModel message)
     {
-        chainManager.AddChain(message, Messages);
+        chainManager.AddChain(message, Messages, this);
         UpdateLastMessage();
     }
     public void EditMessage(MessageModel message)
@@ -134,7 +133,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (TryFindMessage(id, out var message))
         {
-            chainManager.DeleteChain(message, Messages);
+            chainManager.DeleteChain(message, Messages, this);
             UpdateLastMessage();
         }
     }
@@ -223,7 +222,7 @@ internal abstract partial class ChatModel : ObservableObject
         }
         else return;
         CloseSecondary();
-        chainManager.AddChain(message, Messages);
+        chainManager.AddChain(message, Messages, this);
         UpdateLastMessage();
         MessageInput = "";
     }
@@ -276,7 +275,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (SelectedMessage != null && SelectedMessage is MessageModel message)
         {
-            chainManager.DeleteChain(message, Messages);
+            chainManager.DeleteChain(message, Messages, this);
             UpdateLastMessage();
             WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
             {

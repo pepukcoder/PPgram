@@ -24,6 +24,7 @@ internal class MessageChainManager
 
         foreach (MessageModel message in messages)
         {
+            SetSender(message, chat);
             SetBadge(message, chain);
         }
         foreach (ChatItem item in chain.Reverse())
@@ -31,57 +32,58 @@ internal class MessageChainManager
             if (item is DateBadgeModel) continue;
             else if (item is MessageModel message)
             {
-                SetRole(message, chain);
+                SetRole(message, chain, chat);
                 SetReply(message, chain);
             }
         }
         return chain;
     }
-    public void AddChain(MessageModel message, ObservableCollection<ChatItem> chat)
+    public void AddChain(MessageModel message, ObservableCollection<ChatItem> messages, ChatModel chat)
     {
-        chat.Insert(0, message);
-        SetBadge(message, chat);
-        SetRole(message, chat);
-        SetReply(message, chat);
+        messages.Insert(0, message);
+        SetSender(message, chat);
+        SetBadge(message, messages);
+        SetRole(message, messages, chat);
+        SetReply(message, messages);
     }
-    public void DeleteChain(MessageModel message, ObservableCollection<ChatItem> chat)
+    public void DeleteChain(MessageModel message, ObservableCollection<ChatItem> messages, ChatModel chat)
     {
-        int currentIndex = chat.IndexOf(message);
-        ChatItem prev = chat[currentIndex + 1];
+        int currentIndex = messages.IndexOf(message);
+        ChatItem prev = messages[currentIndex + 1];
 
         if (currentIndex > 0)
         {
-            ChatItem next = chat[currentIndex - 1];
+            ChatItem next = messages[currentIndex - 1];
             if (next is MessageModel msg)
             {
-                chat.Remove(message);
-                SetRole(msg, chat);
+                messages.Remove(message);
+                SetRole(msg, messages, chat);
             }
             else if (prev is DateBadgeModel && next is DateBadgeModel)
             {
-                chat.Remove(prev);
-                chat.Remove(message);
+                messages.Remove(prev);
+                messages.Remove(message);
             }
         }
         else if (prev is DateBadgeModel)
         {
-            chat.Remove(prev);
-            chat.Remove(message);
+            messages.Remove(prev);
+            messages.Remove(message);
         }
         else
         {
-            chat.Remove(message);
+            messages.Remove(message);
         }
     }
-    private void SetRole(MessageModel message, ObservableCollection<ChatItem> chat)
+    private void SetRole(MessageModel message, ObservableCollection<ChatItem> messages, ChatModel chat)
     {
-        int currentIndex = chat.IndexOf(message);
+        int currentIndex = messages.IndexOf(message);
         ChatItem previous;
-        if (currentIndex < chat.Count - 1)
+        if (currentIndex < messages.Count - 1)
         { 
             if (message.SenderId == profileState.UserId)
             {
-                previous = chat[currentIndex + 1];
+                previous = messages[currentIndex + 1];
                 if (previous is MessageModel prevm
                     && prevm.Role != MessageRole.OwnFirst
                     && prevm.Role != MessageRole.Own) message.Role = MessageRole.OwnFirst;
@@ -90,7 +92,8 @@ internal class MessageChainManager
             }
             else
             {
-                previous = chat[currentIndex + 1];
+                // TODO: assign message role for groups
+                previous = messages[currentIndex + 1];
                 if (previous is MessageModel prevm
                     && prevm.Role != MessageRole.UserFirst
                     && prevm.Role != MessageRole.User) message.Role = MessageRole.UserFirst;
@@ -98,7 +101,6 @@ internal class MessageChainManager
                 else message.Role = MessageRole.User;
                 message.Status = message.Status == MessageStatus.Delivered ? MessageStatus.UnReadInvisible : MessageStatus.ReadInvisible;
             }
-            
         }
     }
     private static void SetBadge(MessageModel message, ObservableCollection<ChatItem> chat)
@@ -127,5 +129,10 @@ internal class MessageChainManager
             Name = origin.Sender.Name,
             Text = text
         };
+    }
+    private static void SetSender(MessageModel message, ChatModel chat)
+    {
+        if (chat is UserModel user) message.Sender = user.Profile;
+        // TODO: assign sender in group from members list
     }
 }

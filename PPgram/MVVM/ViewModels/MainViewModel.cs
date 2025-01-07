@@ -10,6 +10,7 @@ using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
+using PPgram.MVVM.Models.User;
 using PPgram.Net;
 using PPgram.Net.DTO;
 using PPgram.Shared;
@@ -90,7 +91,7 @@ internal partial class MainViewModel : ViewModelBase
             ObservableCollection<ChatModel> results = [];
             foreach (ChatDTO dto in dtos)
             {
-                ChatModel model = DTOToModelConverter.ConvertChat(dto);
+                ChatModel model = ConvertChat(dto);
                 model.Searched = true;
                 results.Add(model);
             }
@@ -98,11 +99,15 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
         {
-            List<MessageDTO> dtos = await jsonClient.FetchMessages(m.chatId, m.range);
-            chat_vm.LoadMessages(m.chatId, dtos);
+            List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.chatId, m.range);
+            List<MessageModel> messages = [];
+            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(ConvertMessage(messageDTO));
+            chat_vm.LoadMessages(m.chatId, messages);
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
         {
+            // move chat from search to chatlist if new
+            chat_vm.AddChatIfNotExists(m.to);
             // get message text if set
             string text;
             if (m.message.Content is ITextContent tc) text = tc.Text;
@@ -162,9 +167,34 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_CreateGroup>(this, async (r, m) =>
         {
             ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
-            chat_vm.Chats.Add(DTOToModelConverter.ConvertChat(chatDTO));
+            chat_vm.Chats.Add(ConvertChat(chatDTO));
         });
-
+        WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
+        {
+            if (m.chat != null) chat_vm.Chats.Add(ConvertChat(m.chat));
+        });
+        WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, (r, m) =>
+        {
+            if (m.message != null) chat_vm.AddMessage(ConvertMessage(m.message));        
+        });
+        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, m) =>
+        {
+            if (m.message != null) chat_vm.EditMessage(ConvertMessage(m.message));
+        });
+        WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, m) =>
+        {
+            if (m.chat != -1 || m.id != -1) chat_vm.DeleteMessage(m.chat, m.id);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_MarkAsReadEvent>(this, (r, m) =>
+        {
+            if (m.chat != -1) foreach (int id in m.ids) chat_vm.ChangeMessageStatus(m.chat, id, MessageStatus.Read);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_IsTypingEvent>(this, (r, m) =>
+        {
+            if (m.chat == -1 || m.user == -1) return;
+            if (m.typing) chat_vm.ChangeChatStatus(m.chat, ChatStatus.Typing);
+            else chat_vm.ChangeChatStatus(m.chat, ChatStatus.None);
+        });
         // connection
         CurrentPage = login_vm;
         Task.Run(async() =>
@@ -182,11 +212,13 @@ internal partial class MainViewModel : ViewModelBase
         profileState.Username = self.Username ?? string.Empty;
         profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(self.Photo);
         List<ChatDTO> chatDTOs = await jsonClient.FetchChats();
-        foreach (ChatDTO dto in chatDTOs)
+        foreach (ChatDTO chatDTO in chatDTOs)
         {
-            ChatModel chat = DTOToModelConverter.ConvertChat(dto);
+            ChatModel chat = ConvertChat(chatDTO);
             chat_vm.Chats.Add(chat);
-            List<MessageDTO> messages = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
+            List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
+            List<MessageModel> messages = [];
+            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(ConvertMessage(messageDTO));
             chat_vm.LoadMessages(chat.Id, messages);
         }
     }
@@ -215,6 +247,66 @@ internal partial class MainViewModel : ViewModelBase
         try { PPAppState.ConnectionOptions = FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
         catch { File.Delete(PPPath.ConnectionFile); }
         return await jsonClient.Connect(PPAppState.ConnectionOptions) && await filesClient.Connect(PPAppState.ConnectionOptions);
+    }
+    private static MessageModel ConvertMessage(MessageDTO messageDTO)
+    {
+        MessageContentModel content;
+        if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
+        {
+            List<FileModel> files = [];
+            foreach (string hash in messageDTO.MediaHashes)
+            {
+                // TODO: file meta downloading
+            }
+            content = new FileContentModel()
+            {
+                Files = new(files),
+                Text = messageDTO.Text ?? string.Empty
+            };
+        }
+        else
+        {
+            content = new TextContentModel()
+            {
+                Text = messageDTO.Text ?? string.Empty
+            };
+        }
+        return new MessageModel
+        {
+            Id = messageDTO.Id ?? 0,
+            Chat = messageDTO.ChatId ?? 0,
+            SenderId = messageDTO.From ?? 0,
+            Time = messageDTO.Date ?? 0,
+            ReplyTo = messageDTO.ReplyTo ?? 0,
+            Edited = messageDTO.Edited ?? false,
+            Content = content,
+            Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
+        };
+    }
+    private static ChatModel ConvertChat(ChatDTO chatDTO)
+    {
+        ProfileModel profile = new()
+        {
+            Name = chatDTO.Name ?? string.Empty,
+            Username = chatDTO.Username ?? string.Empty,
+            Avatar = Base64ToBitmapConverter.ConvertBase64(chatDTO.Photo)
+        };
+        if (chatDTO.IsGroup == true)
+        {
+            return new GroupModel()
+            {
+                Id = chatDTO.Id ?? 0,
+                Profile = profile,
+            };
+        }
+        else
+        {
+            return new UserModel()
+            {
+                Id = chatDTO.Id ?? 0,
+                Profile = profile,
+            };
+        }
     }
     [RelayCommand]
     private void ShowDialog(Dialog dialog)

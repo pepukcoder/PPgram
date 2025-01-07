@@ -7,7 +7,6 @@ using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.Message;
-using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
@@ -35,12 +34,10 @@ partial class ChatViewModel : ViewModelBase
     private ChatModel? selectedSearch;
     [ObservableProperty]
     private FolderModel? selectedFolder;
-
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
     [ObservableProperty]
     private string searchInput = string.Empty;
-
     [ObservableProperty]
     private bool foldersVisible;
     [ObservableProperty]
@@ -50,7 +47,6 @@ partial class ChatViewModel : ViewModelBase
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     private bool inSearch;
-
     public ChatViewModel()
     {
         FoldersVisible = true;
@@ -59,65 +55,6 @@ partial class ChatViewModel : ViewModelBase
         // search request delay timer
         timer = new() { Interval = TimeSpan.FromMilliseconds(200) };
         timer.Tick += SearchChat;
-        // events
-        WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
-        {
-            if (m.chat != null) Chats.Add(DTOToModelConverter.ConvertChat(m.chat));
-        });
-        WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, (r, m) =>
-        {
-            if (TryFindChat(m.chat, out var chat) && m.message != null)
-            {
-                MessageModel message = DTOToModelConverter.ConvertMessage(m.message, chat);
-                chat.AddMessage(message);
-                if (SelectedChat != chat) chat.UnreadCount++;
-            }
-        });
-        WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, (r, m) =>
-        {
-            if (TryFindChat(m.chat, out var chat) && m.message != null)
-            {
-                MessageModel message = DTOToModelConverter.ConvertMessage(m.message, chat);
-                chat.EditMessage(message);
-            }
-        });
-        WeakReferenceMessenger.Default.Register<Msg_DeleteMessageEvent>(this, (r, m) =>
-        {
-            if (m.chat == -1 || m.id == -1) return;
-            if (TryFindChat(m.chat, out var chat)) chat.DeleteMessage(m.id);
-        });
-        WeakReferenceMessenger.Default.Register<Msg_IsTypingEvent>(this, (r, m) =>
-        {
-            if (m.chat == -1 || m.user == -1) return;
-            if (TryFindChat(m.chat, out var chat))
-            {
-                if (m.typing == true) chat.Status = ChatStatus.Typing;
-                else chat.Status = ChatStatus.None;
-            }
-        });
-        WeakReferenceMessenger.Default.Register<Msg_MarkAsReadEvent>(this, (r, m) =>
-        {
-            if (m.chat == -1) return;
-            if (TryFindChat(m.chat, out var chat))
-            {
-                foreach (var id in m.ids)
-                {
-                    chat.ChangeMessageStatus(id, MessageStatus.Read);
-                }
-            }
-        });
-        WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, (r, m) =>
-        {
-            if (!TryFindChat(m.to.Id, out var chat))
-            {
-                Chats.Add(m.to);
-                m.to.Searched = false;
-                // setting null to actually update ui property and show selection
-                SelectedChat = null;
-                SelectedChat = m.to;
-                ClearSearch();
-            }
-        });
     }
     partial void OnSearchInputChanged(string value)
     {
@@ -149,9 +86,9 @@ partial class ChatViewModel : ViewModelBase
             SelectedChat = newValue;
         }
     }
-    partial void OnSelectedChatChanged(ChatModel? value)
+    partial void OnSelectedChatChanged(ChatModel? oldValue, ChatModel? newValue)
     {
-        if (value != null) value.UnreadCount = 0;
+        if (newValue != null) newValue.UnreadCount = 0;
     }
     private void SearchChat(object? sender, EventArgs e)
     {
@@ -170,14 +107,44 @@ partial class ChatViewModel : ViewModelBase
         SearchResults = resultList;
         SelectedSearch = null;
     }
-    public void UpdateChats(ObservableCollection<ChatModel> chats) => Chats = chats;
-    public void LoadMessages(int chat_id, List<MessageDTO> dtos)
+    public void AddChatIfNotExists(ChatModel chat)
+    {
+        if (!TryFindChat(chat.Id, out var c))
+        {
+            Chats.Add(chat);
+            chat.Searched = false;
+            // setting null to actually update ui property and show selection
+            SelectedChat = null;
+            SelectedChat = chat;
+            ClearSearch();
+        }
+    }
+    public void AddMessage(MessageModel message)
+    {
+        if (TryFindChat(message.Chat, out var chat))
+        {
+            chat.AddMessage(message);
+            if (SelectedChat != chat) chat.UnreadCount++;
+        }
+    }
+    public void EditMessage(MessageModel message)
+    {
+        if (TryFindChat(message.Chat, out var chat)) chat.EditMessage(message);
+    }
+    public void DeleteMessage(int chat_id, int message_id)
+    {
+        if (TryFindChat(chat_id, out var chat)) chat.DeleteMessage(message_id);
+    }
+    public void LoadMessages(int chat_id, List<MessageModel> messages)
+    {
+        if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages);
+    }
+    public void ChangeChatStatus(int chat_id, ChatStatus status)
     {
         if (TryFindChat(chat_id, out var chat))
         {
-            List<MessageModel> messages = [];
-            foreach (MessageDTO dto in dtos) messages.Add(DTOToModelConverter.ConvertMessage(dto, chat));
-            chat.LoadMessages(messages);
+            chat.Status = status;
+            // TODO: for group pass a typing user name fetched from id
         }
     }
     public void ChangeMessageStatus(int chat_id, int message_id, MessageStatus status)

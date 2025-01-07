@@ -9,10 +9,6 @@ class Msg_ShowDialog
 class Msg_CloseDialog;
 class Msg_Reconnect;
 class Msg_OpenAttachFiles;
-class Msg_SendAttachFiles
-{
-    public required string description;
-}
 class Msg_RegularDialogResult
 {
     public required string action;
