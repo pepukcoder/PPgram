@@ -19,15 +19,15 @@ internal partial class FileContentModel : MessageContentModel, ITextContent
     {
         switch (file.Status)
         {
-            case Shared.FileStatus.NotLoaded:
-                file.Status = Shared.FileStatus.Loading;
+            case FileStatus.NotLoaded:
+                file.Status = FileStatus.Loading;
                 WeakReferenceMessenger.Default.Send(new Msg_DownloadFile { file = file });
                 break;
-            case Shared.FileStatus.Loading:
-                file.Status = Shared.FileStatus.NotLoaded;
+            case FileStatus.Loading:
+                file.Status = FileStatus.NotLoaded;
                 // TODO: abort loading thread
                 break;
-            case Shared.FileStatus.Loaded:
+            case FileStatus.Loaded:
                 // TODO: call previewer
                 break;
         }
