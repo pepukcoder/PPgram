@@ -262,15 +262,6 @@ internal class JsonClient
         string? r_event = rootNode?["event"]?.GetValue<string>();
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
-
-#if DEBUG
-        Debug.WriteLine(response);
-        if (ok == false && r_method != null && r_error != null)
-        {
-            Debug.WriteLine($"[DEBUG] Error in method: {r_method}\n[DEBUG] Error:{r_error}");
-        }
-#endif
-
         // parse specific fields
         if (r_method != null && requests.TryDequeue(out object? tcs))
         {
@@ -278,82 +269,121 @@ internal class JsonClient
             {
                 case "login":
                 case "register":
-                    if (ok != true) return;
-                    AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
-                    if (auth == null) return;
-                    if (tcs is TaskCompletionSource<AuthDTO> login_tcs) login_tcs.SetResult(auth);
+                    if (tcs is TaskCompletionSource<AuthDTO> login_tcs)
+                    {
+                        AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
+                        if (ok == true && auth != null) login_tcs.SetResult(auth);
+                        else login_tcs.SetException(new Exception(r_error ?? "Authentification failed"));
+                    }
                     break;
                 case "auth":
-                    if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(ok == true ? true : false);
+                    if (tcs is TaskCompletionSource<bool> auth_tcs)
+                    {
+                        if (ok != null) auth_tcs.SetResult(ok == true);
+                        else auth_tcs.SetException(new Exception(r_error ?? "Auto authentification failed"));
+                    }
                     break;
                 case "check_username":
-                    if (ok != true && ok != false) return;
-                    if (tcs is TaskCompletionSource<bool> check_tcs) check_tcs.SetResult(ok != true);
+                    if (tcs is TaskCompletionSource<bool> check_tcs)
+                    {
+                        if (ok != null) check_tcs.SetResult(ok != true);
+                        else check_tcs.SetException(new Exception(r_error ?? "Check username failed"));
+                    }
                     break;
                 case "fetch_self":
-                    if (ok != true) return;
-                    ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
-                    if (profile == null) return;
-                    if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs) fself_tcs.SetResult(profile);
+                    if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs)
+                    {
+                        ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
+                        if (ok == true && profile != null) fself_tcs.SetResult(profile);
+                        else fself_tcs.SetException(new Exception(r_error ?? "Fetch profile failed"));
+                    }
                     break;
                 case "fetch_chats":
-                    if (ok != true) return;
-                    JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
-                    if (chatsJson == null) return;
-                    List<ChatDTO> chatlist = [];
-                    foreach (JsonNode? chatNode in chatsJson)
+                    if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs)
                     {
-                        ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
-                        if (chat != null) chatlist.Add(chat);
+                        JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
+                        if (ok == true && chatsJson != null)
+                        {
+                            List<ChatDTO> chatlist = [];
+                            foreach (JsonNode? chatNode in chatsJson)
+                            {
+                                ChatDTO? chat = chatNode?.Deserialize<ChatDTO>();
+                                if (chat != null) chatlist.Add(chat);
+                            }
+                            fchats_tcs.SetResult(chatlist);
+                        }
+                        else fchats_tcs.SetException(new Exception(r_error ?? "Fetch chats failed"));
                     }
-                    if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs) fchats_tcs.SetResult(chatlist);
                     break;
                 case "fetch_users":
-                    if (ok != true) return;
-                    JsonArray? usersJson = rootNode?["users"]?.AsArray();
-                    if (usersJson == null) return;
-                    List<ChatDTO> userList = [];
-                    foreach (JsonNode? userNode in usersJson)
+                    if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs)
                     {
-                        ChatDTO? user = userNode?.Deserialize<ChatDTO>();
-                        if (user != null)
+                        JsonArray? usersJson = rootNode?["users"]?.AsArray();
+                        if (ok == true && usersJson != null)
                         {
-                            user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
-                            userList.Add(user);
+                            List<ChatDTO> userList = [];
+                            foreach (JsonNode? userNode in usersJson)
+                            {
+                                ChatDTO? user = userNode?.Deserialize<ChatDTO>();
+                                if (user != null)
+                                {
+                                    user.Id = userNode?["user_id"]?.GetValue<int>() ?? -1;
+                                    userList.Add(user);
+                                }
+                            };
+                            fusers_tcs.SetResult(userList);
                         }
-                    };
-                    if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs) fusers_tcs.SetResult(userList);
+                        else fusers_tcs.SetException(new Exception(r_error ?? "Fetch users failed"));
+                    }
                     break;
                 case "fetch_messages":
-                    if (ok != true) return;
-                    JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
-                    if (messagesJson == null) return;
-                    List<MessageDTO> messageList = [];
-                    foreach (JsonNode? messageNode in messagesJson)
+                    if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs)
                     {
-                        MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
-                        if (message != null) messageList.Add(message);
+                        JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
+                        if (ok == true && messagesJson != null)
+                        {
+                            List<MessageDTO> messageList = [];
+                            foreach (JsonNode? messageNode in messagesJson)
+                            {
+                                MessageDTO? message = messageNode?.Deserialize<MessageDTO>();
+                                if (message != null) messageList.Add(message);
+                            }
+                            fmsg_tcs.SetResult(messageList);
+                        }
+                        else fmsg_tcs.SetException(new Exception(r_error ?? "Fetch messages failed"));
                     }
-                    if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs) fmsg_tcs.SetResult(messageList);
                     break;
                 case "send_message":
-                    if (ok != true) return;
-                    int? messageId = rootNode?["message_id"]?.GetValue<int>();
-                    int? chatId = rootNode?["chat_id"]?.GetValue<int>();
-                    if (messageId == null) return;
-                    if (tcs is TaskCompletionSource<(int, int)> msg_tcs) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
+                    if (tcs is TaskCompletionSource<(int, int)> msg_tcs)
+                    {
+                        int? messageId = rootNode?["message_id"]?.GetValue<int>();
+                        int? chatId = rootNode?["chat_id"]?.GetValue<int>();
+                        if (ok == true && messageId != null && chatId != null) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
+                        else msg_tcs.SetException(new Exception(r_error ?? "Send message failed"));
+                    }
+                    break;
+                case "edit_draft":
+                    if (tcs is TaskCompletionSource<bool> editdraft_tcs)
+                    {
+                        if (ok != null) editdraft_tcs.SetResult(ok == true);
+                        else editdraft_tcs.SetException(new Exception(r_error ?? "Send draft failed"));
+                    }
                     break;
                 case "edit_is_unread":
-                    if (ok != true) return;
-                    chatId = rootNode?["chat_id"]?.GetValue<int>();
-                    if (chatId == null) return;
-                    if (tcs is TaskCompletionSource<int> editread_tcs) editread_tcs.SetResult(chatId ?? -1);
+                    if (tcs is TaskCompletionSource<int> editread_tcs)
+                    {
+                        int? chatId = rootNode?["chat_id"]?.GetValue<int>();
+                        if (ok == true && chatId != null) editread_tcs.SetResult(chatId ?? -1);
+                        else editread_tcs.SetException(new Exception(r_error ?? "Read message failed"));
+                    }
                     break;
                 case "new_group":
-                    if (ok != true) return;
-                    ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
-                    if (group == null) return;
-                    if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs) newgroup_tcs.SetResult(group);
+                    if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs)
+                    {
+                        ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
+                        if (ok == true && group != null) newgroup_tcs.SetResult(group);
+                        else newgroup_tcs.SetException(new Exception(r_error ?? "Create group failed"));
+                    }
                     break;
             }
         }

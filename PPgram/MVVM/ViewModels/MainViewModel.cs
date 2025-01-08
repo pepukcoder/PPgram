@@ -74,93 +74,150 @@ internal partial class MainViewModel : ViewModelBase
         {
             jsonClient.Disconnect();
             filesClient.Disconnect();
-            await jsonClient.Connect(PPAppState.ConnectionOptions);
-            await filesClient.Connect(PPAppState.ConnectionOptions);
-            await AutoAuth();
-            await LoadOnline();
+            try
+            {
+                await jsonClient.Connect(PPAppState.ConnectionOptions);
+                await filesClient.Connect(PPAppState.ConnectionOptions);
+                await AutoAuth();
+                await LoadOnline();
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                await LoadOffline();
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_Auth>(this, async (r, m) =>
         {
             AuthDTO auth;
-            if (!String.IsNullOrEmpty(m.name)) auth = await jsonClient.Register(m.username, m.name, m.password);
-            else auth = await jsonClient.Login(m.username, m.password);
-            FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(auth));
-            await LoadOnline();
+            try
+            {
+                if (!String.IsNullOrEmpty(m.name)) auth = await jsonClient.Register(m.username, m.name, m.password);
+                else auth = await jsonClient.Login(m.username, m.password);
+                FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(auth));
+                await LoadOnline();
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                await LoadOffline();
+            }
         });
         // api
         WeakReferenceMessenger.Default.Register<Msg_CheckUsername>(this, async (r, m) =>
         {
-            bool available = await jsonClient.CheckUsername(m.username);
-            reg_vm.ShowUsernameStatus(available ? "Username is available" : "Username is already taken", available);
+            try
+            {
+                bool available = await jsonClient.CheckUsername(m.username);
+                reg_vm.ShowUsernameStatus(available ? "Username is available" : "Username is already taken", available);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_SearchUsers>(this, async (r, m) =>
         {
-            List<ChatDTO> dtos = await jsonClient.FetchUsers(m.query);
-            ObservableCollection<ChatModel> results = [];
-            foreach (ChatDTO dto in dtos)
+            try
             {
-                ChatModel model = ConvertChat(dto);
-                model.Searched = true;
-                results.Add(model);
+                List<ChatDTO> dtos = await jsonClient.FetchUsers(m.query);
+                ObservableCollection<ChatModel> results = [];
+                foreach (ChatDTO dto in dtos)
+                {
+                    ChatModel model = ConvertChat(dto);
+                    model.Searched = true;
+                    results.Add(model);
+                }
+                chat_vm.UpdateSearch(results);
             }
-            chat_vm.UpdateSearch(results);
+            catch
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = "Failed to fetch search results" }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
         {
-            List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.chatId, m.range);
-            List<MessageModel> messages = [];
-            foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
-            chat_vm.LoadMessages(m.chatId, messages);
+            try
+            {
+                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.chatId, m.range);
+                List<MessageModel> messages = [];
+                foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
+                chat_vm.LoadMessages(m.chatId, messages);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
         {
-            // move chat from search to chatlist if new
-            chat_vm.AddChatIfNotExists(m.to);
-            // get message text if set
-            string text;
-            if (m.message.Content is ITextContent tc) text = tc.Text;
-            else text = "";
-
-            // upload files first if attached
-            List<string> hashes = [];
-            if (m.message.Content is FileContentModel fc)
+            try
             {
-                foreach (FileModel file in fc.Files)
+                // move chat from search to chatlist if new
+                chat_vm.AddChatIfNotExists(m.to);
+                // get message text if set
+                string text;
+                if (m.message.Content is ITextContent tc) text = tc.Text;
+                else text = "";
+                // upload files first if attached
+                List<string> hashes = [];
+                if (m.message.Content is FileContentModel fc)
                 {
-                    if (file is VideoModel video) file.Hash = await filesClient.UploadFile(video.Path, true, false);
-                    else if (file is PhotoModel photo) file.Hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
-                    else file.Hash = await filesClient.UploadFile(file.Path, false, false);
-                    if (file.Hash != null)
+                    foreach (FileModel file in fc.Files)
                     {
-                        hashes.Add(file.Hash);
-                        file.Status = FileStatus.Loaded;
-                        // auto cache file
+                        if (file is VideoModel video) file.Hash = await filesClient.UploadFile(video.Path, true, false);
+                        else if (file is PhotoModel photo) file.Hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
+                        else file.Hash = await filesClient.UploadFile(file.Path, false, false);
+                        if (file.Hash != null)
+                        {
+                            hashes.Add(file.Hash);
+                            file.Status = FileStatus.Loaded;
+                            // auto cache file
+                        }
                     }
                 }
+                // get id from response and assign status
+                (int, int) response = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
+                if (m.to.Id == 0) m.to.Id = response.Item2;
+                if (response.Item1 != -1 && response.Item2 != -1)
+                {
+                    m.message.Id = response.Item1;
+                    chat_vm.ChangeMessageStatus(m.to.Id, m.message.Id, MessageStatus.Delivered);
+                }
+                else
+                {
+                    chat_vm.ChangeMessageStatus(m.to.Id, m.message.Id, MessageStatus.Error);
+                }
             }
-            // get id from response and assign status
-            (int, int) response = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
-            if (m.to.Id == 0) m.to.Id = response.Item2;
-            if (response.Item1 != -1 && response.Item2 != -1)
+            catch (Exception ex)
             {
-                m.message.Id = response.Item1;
-                chat_vm.ChangeMessageStatus(m.to.Id, m.message.Id, MessageStatus.Delivered);
-            }
-            else
-            {
-                chat_vm.ChangeMessageStatus(m.to.Id, m.message.Id, MessageStatus.Error);
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async (r, m) =>
         {
-            await jsonClient.DeleteMessage(m.chat, m.Id);
+            try
+            {
+                await jsonClient.DeleteMessage(m.chat, m.Id);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, async (r, m) =>
         {
-            string text;
-            if (m.newContent is ITextContent textContent) text = textContent.Text;
-            else text = "";
-            await jsonClient.EditMessage(m.chat,m.Id, text);
+            try
+            {
+                string text;
+                if (m.newContent is ITextContent textContent) text = textContent.Text;
+                else text = "";
+                await jsonClient.EditMessage(m.chat,m.Id, text);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_SendDraft>(this, async (r, m) =>
         {
@@ -168,13 +225,27 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_SendRead>(this, async (r, m) =>
         {
-            int[] msg_ids = m.messages.Select(message => message.Id).ToArray();
-            await jsonClient.SendRead(m.messages.First().Chat, msg_ids);
+            try
+            {
+                int[] msg_ids = m.messages.Select(message => message.Id).ToArray();
+                await jsonClient.SendRead(m.messages.First().Chat, msg_ids);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_CreateGroup>(this, async (r, m) =>
         {
-            ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
-            chat_vm.Chats.Add(ConvertChat(chatDTO));
+            try 
+            { 
+                ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
+                chat_vm.Chats.Add(ConvertChat(chatDTO));
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         // chat events
         WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
@@ -244,6 +315,7 @@ internal partial class MainViewModel : ViewModelBase
         }
         catch
         {
+            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = "Auto authentification failed" }, time = 3 });
             File.Delete(PPPath.SessionFile);
             return false;
         }
