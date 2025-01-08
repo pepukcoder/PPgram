@@ -1,5 +1,6 @@
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -23,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PPgram.MVVM.ViewModels;
@@ -50,11 +52,12 @@ internal partial class MainViewModel : ViewModelBase
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
 
+    private readonly DispatcherTimer timer = new();
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
         // ui
-        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, m) => ShowDialog(m.dialog));
+        WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, m) => ShowDialog(m.dialog, m.time));
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
@@ -377,17 +380,24 @@ internal partial class MainViewModel : ViewModelBase
             };
         }
     }
-    [RelayCommand]
-    private void ShowDialog(Dialog dialog)
+    private void ShowDialog(Dialog dialog, int time)
     {
         Dialog = dialog;
         DialogPanelVisible = dialog.backpanel;
         DialogPosition = dialog.Position;
+        if (time != 0)
+        {
+            timer.Interval = TimeSpan.FromSeconds(time);
+            timer.Tick += CloseDialogTimer;
+            timer.Start();
+        }
     }
+    private void CloseDialogTimer(object? sender, EventArgs e) => CloseDialog();
     [RelayCommand]
     private void CloseDialog()
     {
         if (!Dialog?.canSkip == true) return;
+        timer.Stop();
         Dialog = null;
         DialogPanelVisible = false;
     }
