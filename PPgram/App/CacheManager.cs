@@ -11,6 +11,7 @@ internal static class CacheManager
     private static readonly AppState appState = AppState.Instance;
     private static SQLiteConnection Init()
     {
+        FSManager.RestoreDirs(PPPath.CacheDBFile);
         string connectionString = @$"Data Source={PPPath.CacheDBFile};New=false";
         SQLiteConnection connection = new(connectionString);
         if (!File.Exists(PPPath.CacheDBFile))

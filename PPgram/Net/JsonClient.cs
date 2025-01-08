@@ -268,7 +268,6 @@ internal class JsonClient
         if (ok == false && r_method != null && r_error != null)
         {
             Debug.WriteLine($"[DEBUG] Error in method: {r_method}\n[DEBUG] Error:{r_error}");
-            return;
         }
 #endif
 
@@ -285,8 +284,7 @@ internal class JsonClient
                     if (tcs is TaskCompletionSource<AuthDTO> login_tcs) login_tcs.SetResult(auth);
                     break;
                 case "auth":
-                    if (ok != true) return;
-                    if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(true);
+                    if (tcs is TaskCompletionSource<bool> auth_tcs) auth_tcs.SetResult(ok == true ? true : false);
                     break;
                 case "check_username":
                     if (ok != true && ok != false) return;
