@@ -27,5 +27,5 @@ internal class FSManager
         string data = File.ReadAllText(path);
         return JsonSerializer.Deserialize<T>(data) ?? throw new InvalidDataException("Unable to deserialize json file");
     }
-    private static void RestoreDirs(string path) => Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
+    public static void RestoreDirs(string path) => Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);
 }
