@@ -57,6 +57,9 @@
 						<DataTemplate DataType="md:NewGroupDialog">
 							<cd:NewGroupDialogControl/>
 						</DataTemplate>
+						<DataTemplate DataType="md:ErrorDialog">
+							<cd:ErrorDialogControl/>
+						</DataTemplate>
 					</ContentControl.DataTemplates>
 				</ContentControl>
 			</Border>
