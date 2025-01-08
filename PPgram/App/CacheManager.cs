@@ -104,8 +104,8 @@ internal static class CacheManager
     public static void DeleteCached(string hash, bool avatar = false)
     {
         string query;
-        if (avatar) query = @"DELETE FROM files WHERE hash = $hash;";
-        else query = @"DELETE FROM avatars WHERE hash = $hash;";
+        if (avatar) query = @"DELETE FROM avatars WHERE hash = $hash;";
+        else query = @"DELETE FROM files WHERE hash = $hash;";
         using SQLiteConnection connection = Init();
         connection.Open();
         using SQLiteCommand command = new(query, connection);
