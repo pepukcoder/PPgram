@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Platform;
@@ -16,9 +17,6 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
-    }
-    private async void UserControl_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
         AppState appState = AppState.Instance;
         if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() )
         {
@@ -47,7 +45,8 @@ public partial class MainView : UserControl
             }
             if (sp != null)
             {
-                IStorageFolder? folder = await sp.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads);
+                IStorageFolder? folder;
+                folder = sp.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads).GetAwaiter().GetResult();
                 string? path = folder?.Path.AbsolutePath;
                 if (path != null) appState.DownloadsFolder = Path.Combine(path, "PPgram");
             }

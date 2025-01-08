@@ -1,3 +1,4 @@
+using PPgram.App;
 using PPgram.Net;
 using PPgram.Shared;
 using System;
@@ -128,7 +129,7 @@ internal class FilesClient
         requests.Enqueue(tcs);
         return await tcs.Task;
     }
-    public async Task<(string?, string?)> DownloadFile(string sha256Hash, DownloadMode mode)
+    public async Task<(string? preview_path, string? file_path)> DownloadFile(string sha256Hash, DownloadMode mode)
     {
         var payload = new
         {
@@ -141,7 +142,7 @@ internal class FilesClient
         requests.Enqueue(tcs);
         return await tcs.Task;
     }
-    public async Task<(string, long)> DownloadFileMetadata(string sha256Hash)
+    public async Task<(string name, long size)> DownloadFileMetadata(string sha256Hash)
     {
         var payload = new
         {
@@ -168,6 +169,7 @@ internal class FilesClient
     {
         ulong expected_size = node?["file_size"]?.GetValue<ulong>() ?? throw new JsonException("Unable to deserialize file size");
         string temp_path = Path.Combine(PPPath.FileCacheFolder, Path.GetRandomFileName());
+        FSManager.RestoreDirs(temp_path);
         byte[] buffer = new byte[CHUNK_SIZE];
         int bytesRead;
         ulong totalRead = 0;

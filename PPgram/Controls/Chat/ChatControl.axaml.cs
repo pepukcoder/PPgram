@@ -49,7 +49,6 @@ public partial class ChatControl : UserControl
                         Name = file.Name,
                         Path = absolutePath,
                         Size = new FileInfo(absolutePath).Length,
-                        Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(150, 150), BitmapInterpolationMode.LowQuality)
                     });
                 }
                 else if (PPFileExtensions.PhotoExtensions.Contains(extension))

@@ -18,6 +18,7 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -257,42 +258,78 @@ internal partial class MainViewModel : ViewModelBase
         MessageContentModel content;
         if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
         {
-            List<FileModel> files = [];
+            ObservableCollection<FileModel> files = [];
             foreach (string hash in messageDTO.MediaHashes)
             {
                 (string name, long size) = await filesClient.DownloadFileMetadata(hash);
                 // assign model based on file extension
-                FileModel file;
                 string extension = Path.GetExtension(name);
                 if (PPFileExtensions.VideoExtensions.Contains(extension))
                 {
-                    file = new VideoModel
+                    VideoModel video = new()
                     {
                         Name = name,
                         Size = size,
+                        Hash = hash,
                     };
+                    if (!CacheManager.IsCached(hash))
+                    {
+                        (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
+                        CacheManager.CacheFile(hash, name, temp_preview, temp_file);
+                    }
+                    string? preview_path = CacheManager.GetCachedFile(hash, true);
+                    string? file_path = CacheManager.GetCachedFile(hash);
+                    if (preview_path != null) video.Preview = new(preview_path);
+                    if (file_path != null)
+                    {
+                        video.Path = new(file_path);
+                        video.Status = FileStatus.Loaded;
+                    }
+                    files.Add(video);
                 }
                 else if (PPFileExtensions.PhotoExtensions.Contains(extension))
                 {
-                    file = new PhotoModel
+                    PhotoModel photo = new() 
                     {
                         Name = name,
                         Size = size,
+                        Hash = hash,
                     };
+                    if (!CacheManager.IsCached(hash))
+                    {
+                        (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
+                        CacheManager.CacheFile(hash, name, temp_preview, temp_file);
+                    }
+                    string? preview_path = CacheManager.GetCachedFile(hash, true);
+                    string? file_path = CacheManager.GetCachedFile(hash);
+                    if (preview_path != null) photo.Preview = new(preview_path);
+                    if (file_path != null)
+                    {
+                        photo.Path = new(file_path);
+                        photo.Status = FileStatus.Loaded;
+                    }
+                    files.Add(photo);
                 }
                 else
                 {
-                    file = new FileModel
+                    FileModel file = new()
                     {
                         Name = name,
                         Size = size,
+                        Hash = hash,
                     };
+                    string? file_path = CacheManager.GetCachedFile(hash);
+                    if (file_path != null)
+                    {
+                        file.Path = new(file_path);
+                        file.Status = FileStatus.Loaded;
+                    }
+                    files.Add(file);
                 }
-                files.Add(file);
             }
             content = new FileContentModel()
             {
-                Files = new(files),
+                Files = files,
                 Text = messageDTO.Text ?? string.Empty
             };
         }
