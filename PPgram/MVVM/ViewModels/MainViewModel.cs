@@ -20,9 +20,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Design;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Security.Policy;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -241,6 +244,25 @@ internal partial class MainViewModel : ViewModelBase
             { 
                 ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
                 chat_vm.Chats.Add(ConvertChat(chatDTO));
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
+        });
+        WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, async (r, m) =>
+        {
+            try
+            {
+                if (m.file.Hash == null) throw new InvalidOperationException("Download file failed");
+                (string? preview_temp, string? file_temp) = await filesClient.DownloadFile(m.file.Hash, DownloadMode.media_only);
+                if (file_temp != null)
+                {
+                    CacheManager.CacheFile(m.file.Hash, m.file.Name, preview_temp, file_temp);
+                    string file_path = CacheManager.GetCachedFile(m.file.Hash) ?? throw new SQLiteException("Load cached file failed");
+                    m.file.Path = file_path;
+                    m.file.Status = FileStatus.Loaded;
+                }
             }
             catch (Exception ex)
             {

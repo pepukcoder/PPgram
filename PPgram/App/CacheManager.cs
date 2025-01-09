@@ -67,9 +67,11 @@ internal static class CacheManager
             File.Move(temp_file_path, file_path, true);
         }
         string query = @"
-        INSERT INTO files (hash,file_path,preview_path) 
+        INSERT INTO files (hash,file_path,preview_path)
         VALUES ($hash,$file_path,$preview_path)
-        ON CONFLICT(hash) DO UPDATE SET file_path = $file_path, preview_path = $preview_path;";
+        ON CONFLICT(hash) DO UPDATE SET
+        file_path = COALESCE(files.file_path, excluded.file_path),
+        preview_path = COALESCE(files.preview_path, excluded.preview_path);";
         using SQLiteConnection connection = Init();
         connection.Open();
         using SQLiteCommand command = new(query, connection);
