@@ -44,9 +44,6 @@ partial class ChatViewModel : ViewModelBase
     private bool platesVisible;
 
     private readonly DispatcherTimer timer;
-    private readonly MessageChainManager chainManager = new();
-    private readonly ReplyModel reply = new();
-    private bool inSearch;
     public ChatViewModel()
     {
         FoldersVisible = true;
@@ -64,11 +61,6 @@ partial class ChatViewModel : ViewModelBase
         {
             // restart delay if done editing
             timer.Start();
-            inSearch = true;
-        }
-        else
-        {
-            inSearch = false;
         }
     }
     partial void OnSelectedSearchChanged(ChatModel? oldValue, ChatModel? newValue)
@@ -77,7 +69,6 @@ partial class ChatViewModel : ViewModelBase
         if (newValue == null) return;
         if (Chats.Any(c => c.Id == newValue?.Id))
         {
-            inSearch = false;
             SelectedChat = Chats.FirstOrDefault(c => c.Id == newValue?.Id);
             ClearSearch();
         }
