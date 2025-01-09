@@ -59,27 +59,41 @@ internal class FilesClient
                         switch (r_method)
                         {
                             case "upload_file":
-                                if (ok == false) return;
-                                string? hash = rootNode?["sha256_hash"]?.GetValue<string>();
-                                if (hash == null) return;
-                                if (tcs is TaskCompletionSource<string> upload_tcs) upload_tcs.TrySetResult(hash);
+                                if (tcs is TaskCompletionSource<string> upload_tcs)
+                                {
+                                    string? hash = rootNode?["sha256_hash"]?.GetValue<string>();
+                                    if (ok == true && hash != null) upload_tcs.SetResult(hash);
+                                    else upload_tcs.SetException(new Exception(r_error ?? "Upload file failed"));
+                                }
                                 break;
                             case "download_file":
-                                if (ok == false) return;
-                                JsonNode? previewjson = rootNode?["preview_metadata"];
-                                JsonNode? filejson = rootNode?["file_metadata"];
-                                string? preview_path = null;
-                                string? file_path = null;
-                                if (previewjson != null) preview_path = DownloadFromNode(previewjson);
-                                if (filejson != null) file_path = DownloadFromNode(filejson);
-                                if (tcs is TaskCompletionSource<(string?, string?)> dload_tcs) dload_tcs.TrySetResult((preview_path, file_path));
+                                if (tcs is TaskCompletionSource<(string?, string?)> dload_tcs)
+                                {
+                                    JsonNode? preview_json = rootNode?["preview_metadata"];
+                                    JsonNode? file_json = rootNode?["file_metadata"];
+                                    string? preview_path = null;
+                                    string? file_path = null;
+                                    if (ok == true)
+                                    {
+                                        try
+                                        {
+                                            if (preview_json != null) preview_path = DownloadFromNode(preview_json);
+                                            if (file_json != null) file_path = DownloadFromNode(file_json);
+                                            dload_tcs.SetResult((preview_path, file_path));
+                                        }
+                                        catch (Exception ex) { dload_tcs.SetException(ex); }
+                                    }
+                                }
                                 break;
                             case "download_metadata":
-                                if (ok == false) return;
-                                filejson = rootNode?["file_metadata"];
-                                string name = filejson?["file_name"]?.GetValue<string>() ?? throw new JsonException("Unable to deserialize file name");
-                                long size = filejson?["file_size"]?.GetValue<long>() ?? throw new JsonException("Unable to deserialize file size");
-                                if (tcs is TaskCompletionSource<(string, long)> meta_tcs) meta_tcs.TrySetResult((name, size));
+                                if (tcs is TaskCompletionSource<(string, long)> meta_tcs)
+                                {
+                                    JsonNode? filejson = rootNode?["file_metadata"];
+                                    string? name = filejson?["file_name"]?.GetValue<string>();
+                                    long? size = filejson?["file_size"]?.GetValue<long>();
+                                    if (ok == true && name != null && size != null) meta_tcs.TrySetResult((name ?? "???", size ?? 0));
+                                    else meta_tcs.SetException(new JsonException(r_error ?? "Download metadata failed"));
+                                }
                                 break;
                         }
                     }   
