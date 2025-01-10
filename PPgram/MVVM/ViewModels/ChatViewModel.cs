@@ -39,16 +39,12 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private string searchInput = string.Empty;
     [ObservableProperty]
-    private bool foldersVisible;
-    [ObservableProperty]
     private bool platesVisible;
 
     private readonly DispatcherTimer timer;
     public ChatViewModel()
     {
-        FoldersVisible = true;
         PlatesVisible = false;
-
         // search request delay timer
         timer = new() { Interval = TimeSpan.FromMilliseconds(200) };
         timer.Tick += SearchChat;

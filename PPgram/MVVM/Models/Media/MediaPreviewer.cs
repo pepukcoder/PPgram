@@ -71,8 +71,5 @@ internal partial class MediaPreviewer : ObservableObject
         Visible = false;
         Paused = true;
         Description = string.Empty;
-        CurrentFiles = null;
-        CurrentFile = null;
-        Photo = null;
     }
 }

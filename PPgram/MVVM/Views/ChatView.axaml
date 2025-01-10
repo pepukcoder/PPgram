@@ -29,7 +29,7 @@
 			<ColumnDefinition Width="Auto"/>
 		</Grid.ColumnDefinitions>
 		<!--Navigation dock-->
-		<DockPanel VerticalAlignment="Stretch" Margin="0,10" IsVisible="{Binding FoldersVisible}">
+		<DockPanel VerticalAlignment="Stretch" Margin="0,10">
 			<Button Theme="{StaticResource ButtonNav}" DockPanel.Dock="Bottom">
 				<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 					<icons:MaterialIcon Kind="Cog" HorizontalAlignment="Center" Width="28" Height="28" />
@@ -46,8 +46,8 @@
 			<Svg Path="/Assets/logo_round.svg" Height="40" Width="40" DockPanel.Dock="Top" Margin="0,0,0,5"/>
 			<ListBox Padding="0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
 					 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden"
-					 ItemsSource="{Binding Folders}" ItemContainerTheme="{StaticResource Folder}">
-
+					 ItemsSource="{Binding Folders}" ItemContainerTheme="{StaticResource Folder}"
+					 SelectedItem="{Binding SelectedFolder}">	 
 			</ListBox>
 		</DockPanel>
 		<!--Chat list-->
