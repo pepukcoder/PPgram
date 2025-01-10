@@ -13,7 +13,6 @@ internal partial class FileContentModel : MessageContentModel, ITextContent
     public ObservableCollection<FileModel> files = [];
     [ObservableProperty]
     public string text = string.Empty;
-
     [RelayCommand]
     private void InteractFile(FileModel file)
     {
@@ -28,7 +27,7 @@ internal partial class FileContentModel : MessageContentModel, ITextContent
                 // TODO: abort loading thread
                 break;
             case FileStatus.Loaded:
-                // TODO: call previewer
+                if (file is PhotoModel || file is VideoModel) WeakReferenceMessenger.Default.Send(new Msg_OpenPreviewer { content = this, file = file });
                 break;
         }
     }
