@@ -138,7 +138,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                if (m.anchor.Id == 0) return;
+                if (m.anchor.Id == 0 || m.anchor.Id == -1) return;
                 int[] range;
                 if (m.forward) range = [m.anchor.Id + 1, PPAppState.MessagesFetchAmount - 1];
                 else range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
