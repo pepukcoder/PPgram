@@ -12,13 +12,21 @@ internal sealed partial class AppState : ObservableObject
     private static readonly Lazy<AppState> lazy = new(() => new AppState());
     public static AppState Instance => lazy.Value;
     private AppState() { }
-     
+    
+    /// <summary>
+    /// Defines how many messages will be fetched while scrolling chat
+    /// </summary>
+    public int MessagesFetchAmount {get; set; } = 20;
+    /// <summary>
+    /// Defines how many messages need to be left out of scroll viewport to trigger prefetching
+    /// </summary>
+    public int MessagesFetchThreshold {get; set; } = 3;
     /// <summary>
     /// Path to platform-specific downloads folder
     /// </summary>
     public string? DownloadsFolder { get; set; } = null;
     /// <summary>
-    /// Settings for connection to server
+    /// Settings for server connection
     /// </summary>
     public ConnectionOptions ConnectionOptions { get; set; } = new()
     {

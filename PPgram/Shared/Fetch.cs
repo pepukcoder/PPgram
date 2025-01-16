@@ -1,9 +1,11 @@
+using PPgram.MVVM.Models.Message;
+
 namespace PPgram.Shared;
 
 class Msg_FetchMessages
 {
-    public required int chatId;
-    public int[] range = [-1, -99];
+    public bool forward = false;
+    public required MessageModel anchor;
 }
 class Msg_SearchUsers
 {

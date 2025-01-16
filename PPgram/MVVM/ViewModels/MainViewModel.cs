@@ -138,10 +138,14 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.chatId, m.range);
+                if (m.anchor.Id == 0) return;
+                int[] range;
+                if (m.forward) range = [m.anchor.Id + 1, PPAppState.MessagesFetchAmount - 1];
+                else range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
+                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.anchor.Chat, range);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
-                chat_vm.LoadMessages(m.chatId, messages);
+                // write method in chatmodel for upper and lower appending with rechaining
             }
             catch (Exception ex)
             {
@@ -197,7 +201,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                await jsonClient.DeleteMessage(m.chat, m.Id);
+                //await jsonClient.DeleteMessage(m.chat, m.Id);
             }
             catch (Exception ex)
             {

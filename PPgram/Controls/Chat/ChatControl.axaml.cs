@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
@@ -12,6 +11,7 @@ using PPgram.MVVM.Models.Message;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -20,6 +20,7 @@ namespace PPgram.Controls.Chat;
 public partial class ChatControl : UserControl
 {
     private readonly ProfileState profileState = ProfileState.Instance;
+    private readonly AppState appState = AppState.Instance;
     public ChatControl()
     {
         InitializeComponent();
@@ -77,22 +78,47 @@ public partial class ChatControl : UserControl
     private void ChatScrolled(object? sender, ScrollChangedEventArgs e)
     {
         IEnumerable<Control> controls = MessageHistory.GetRealizedContainers();
-        TransformedBounds? globaltransform = MessageHistory.GetTransformedBounds();
-        if (globaltransform == null) return;
-        Rect viewport = globaltransform.Value.Clip;
-        List<MessageModel> readmessages = [];
+        TransformedBounds? chatBounds = MessageHistory.GetTransformedBounds();
+        if (chatBounds == null) return;
+        Rect chatClip = chatBounds.Value.Clip;
+        List<MessageModel> fetchedMessages = MessageHistory.Items.Source.OfType<MessageModel>().ToList();
+        List<MessageModel> screenMessages = [];
+        List<MessageModel> readMessages = [];
+        // detect read messages
         for (int index = 0; index < controls.Count(); index++)
         {
-            TransformedBounds? bounds = controls.ElementAt(index).GetTransformedBounds();
-            if (bounds == null) return;
-            Rect clip = bounds.Value.Clip;
-            if (viewport.Intersects(clip) && MessageHistory.Items.Source[index] is MessageModel message
-                && message.SenderId != profileState.UserId && message.Status == MessageStatus.UnReadInvisible)
+            TransformedBounds? itemBounds = controls.ElementAt(index).GetTransformedBounds();
+            if (itemBounds == null) return;
+            Rect itemClip = itemBounds.Value.Clip;
+            if (chatClip.Intersects(itemClip) && MessageHistory.Items.Source[index] is MessageModel message)
             {
-                message.Status = MessageStatus.ReadInvisible;
-                readmessages.Add(message);
+                screenMessages.Add(message);
+                if (message.SenderId != profileState.UserId && message.Status == MessageStatus.UnReadInvisible)
+                {
+                    message.Status = MessageStatus.ReadInvisible;
+                    readMessages.Add(message);
+                }
             }
+        }        
+        if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
+        // detect prefetch
+        if (fetchedMessages.Count == 0) return;
+        int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
+        int lower_index = fetchedMessages.IndexOf(screenMessages.First());
+        if (fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold)
+        {
+            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
+            { 
+                anchor = fetchedMessages.Last()
+            });
         }
-        if (readmessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readmessages });
+        if (lower_index <= appState.MessagesFetchThreshold)
+        {
+            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
+            { 
+                forward = true,
+                anchor = fetchedMessages.First()
+            });
+        }
     }
 }
