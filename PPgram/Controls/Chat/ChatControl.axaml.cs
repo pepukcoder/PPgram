@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -108,13 +109,14 @@ public partial class ChatControl : UserControl
         }        
         if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         // detect prefetch
-        if (fetchedMessages.Count == 0 && fetchThrottle) return;
+        if (fetchedMessages.Count == 0 || fetchThrottle) return;
         int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
         int lower_index = fetchedMessages.IndexOf(screenMessages.First());
         if (fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
-            { 
+            {
+                forward = false,
                 anchor = fetchedMessages.Last(),
                 index = upper_index,
             });
