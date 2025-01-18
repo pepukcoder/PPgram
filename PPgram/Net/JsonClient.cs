@@ -181,7 +181,6 @@ internal class JsonClient
             },
             to
         };
-        Debug.WriteLine(JsonSerializer.Serialize(payload));
         TaskCompletionSource<(int, int)> tcs = new();
         Send(payload, tcs);
         return await tcs.Task;
@@ -255,6 +254,7 @@ internal class JsonClient
 
     private void HandleResponse(string response)
     {
+        Debug.WriteLine(response);
         JsonNode? rootNode = JsonNode.Parse(response);
         // parse common fields
         string? r_method = rootNode?["method"]?.GetValue<string>();

@@ -5,6 +5,7 @@ namespace PPgram.Shared;
 class Msg_FetchMessages
 {
     public bool forward = false;
+    public required int index; 
     public required MessageModel anchor;
 }
 class Msg_SearchUsers

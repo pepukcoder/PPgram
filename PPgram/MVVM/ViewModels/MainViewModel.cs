@@ -138,10 +138,14 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                if (m.anchor.Id == 0 || m.anchor.Id == -1) return;
+                //Debug.WriteLine("fetching");
+                //Debug.WriteLine("anchor: " + m.anchor.Id);
+                //Debug.WriteLine("index: " + m.index);
+                if (m.anchor.Id == 0 || m.anchor.Id == -1 || m.index < PPAppState.MessagesFetchThreshold) return;
                 int[] range;
                 if (m.forward) range = [m.anchor.Id + 1, PPAppState.MessagesFetchAmount - 1];
                 else range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
+                //Debug.WriteLine($"range: [{range[0]},{range[1]}]");
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.anchor.Chat, range);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
@@ -320,6 +324,7 @@ internal partial class MainViewModel : ViewModelBase
                 ChatModel chat = ConvertChat(chatDTO);
                 chat_vm.Chats.Add(chat);
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
+                //List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -19]);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
                 chat_vm.LoadMessages(chat.Id, messages);

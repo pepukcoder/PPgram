@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
@@ -21,10 +22,15 @@ public partial class ChatControl : UserControl
 {
     private readonly ProfileState profileState = ProfileState.Instance;
     private readonly AppState appState = AppState.Instance;
+    private readonly DispatcherTimer timer;
+    private bool fetchThrottle = false;
     public ChatControl()
     {
         InitializeComponent();
         WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog());
+        timer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesFetchDelay)};
+        timer.Tick += (s, e) => { fetchThrottle = false; };
+        timer.Start();
     }
     private async void OpenFileDialog()
     {
@@ -102,23 +108,27 @@ public partial class ChatControl : UserControl
         }        
         if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         // detect prefetch
-        if (fetchedMessages.Count == 0) return;
+        if (fetchedMessages.Count == 0 && fetchThrottle) return;
         int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
         int lower_index = fetchedMessages.IndexOf(screenMessages.First());
         if (fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
             { 
-                anchor = fetchedMessages.Last()
+                anchor = fetchedMessages.Last(),
+                index = upper_index,
             });
+            fetchThrottle = true;
         }
         if (lower_index <= appState.MessagesFetchThreshold)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
             { 
                 forward = true,
-                anchor = fetchedMessages.First()
+                anchor = fetchedMessages.First(),
+                index = lower_index,
             });
+            fetchThrottle = true;
         }
     }
 }
