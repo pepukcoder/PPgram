@@ -67,7 +67,8 @@ internal abstract partial class ChatModel : ObservableObject
 
     public int Id { get; set; }
     public bool Searched = false;
-
+    private bool draftThrottle = false;
+    private int draftRequests = 0;
     private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     private readonly DispatcherTimer timer;
@@ -75,8 +76,9 @@ internal abstract partial class ChatModel : ObservableObject
     public ChatModel()
     {
         // draft update request delay timer
-        timer = new() { Interval = TimeSpan.FromMilliseconds(100) };
-        timer.Tick += SendDraft;
+        timer = new() { Interval = TimeSpan.FromSeconds(1) };
+        timer.Tick += (s, e) => { draftThrottle = false; draftRequests = 0; };
+        timer.Start();
     }
     protected abstract void UpdateLastMessage();
     protected abstract void UpdateStatus();
@@ -96,11 +98,10 @@ internal abstract partial class ChatModel : ObservableObject
     }
     partial void OnMessageInputChanged(string value)
     {
-        timer.Stop();
-        if (!String.IsNullOrEmpty(value.Trim()) && value.Length <= 2500)
+        if (!Searched && !String.IsNullOrEmpty(value.Trim()) && value.Length <= 2500 && !draftThrottle && draftRequests < 5)
         {
-            // restart delay if draft is valid
-            timer.Start();
+            WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
+            draftRequests++;
         }
     }
     public void AttachFiles(List<FileModel> files)
@@ -161,11 +162,6 @@ internal abstract partial class ChatModel : ObservableObject
             Id = message.Id,
             newContent = editedContent
         });
-    }
-    private void SendDraft(object? sender, EventArgs e)
-    {
-        timer.Stop();
-        if (!Searched) WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {
