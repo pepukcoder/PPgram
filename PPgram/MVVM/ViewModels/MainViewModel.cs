@@ -201,7 +201,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-               // await jsonClient.DeleteMessage(m.chat, m.Id);
+                await jsonClient.DeleteMessage(m.chat, m.Id);
             }
             catch (Exception ex)
             {

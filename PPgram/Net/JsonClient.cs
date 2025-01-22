@@ -204,8 +204,9 @@ internal class JsonClient
         var payload = new
         {
             method = "delete",
+            what = "messages",
             chat_id,
-            message_id
+            message_ids = new int[] { message_id }
         };
         TaskCompletionSource<bool> tcs = new();
         Send(payload, tcs);

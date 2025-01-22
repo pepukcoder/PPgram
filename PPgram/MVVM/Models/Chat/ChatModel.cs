@@ -262,7 +262,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (SelectedMessage != null && SelectedMessage is MessageModel message)
         {
-            //MessageChainer.DeleteChain(message, Messages, this);
+            MessageChainer.DeleteChain(message, Messages, this);
             UpdateLastMessage();
             WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
             {
