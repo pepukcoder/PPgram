@@ -95,6 +95,7 @@ public partial class ChatControl : UserControl
             {
                 sw.Offset = new(0, sw.Extent.Height - sw.Viewport.Height);
                 oldoffset = sw.Offset.Y;
+                fetchThrottle = true;
             }
             if (e.ExtentDelta.Y > 0)
             {
