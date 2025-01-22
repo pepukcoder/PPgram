@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Material.Icons.Avalonia;
 using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
@@ -243,7 +244,7 @@ internal partial class MainViewModel : ViewModelBase
             try 
             { 
                 ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
-                chat_vm.Chats.Add(ConvertChat(chatDTO));
+                chat_vm.AddChat(ConvertChat(chatDTO));
             }
             catch (Exception ex)
             {
@@ -272,7 +273,7 @@ internal partial class MainViewModel : ViewModelBase
         // chat events
         WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
         {
-            if (m.chat != null) chat_vm.Chats.Add(ConvertChat(m.chat));
+            if (m.chat != null) chat_vm.AddChat(ConvertChat(m.chat));
         });
         WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, async (r, m) =>
         {
@@ -318,7 +319,7 @@ internal partial class MainViewModel : ViewModelBase
             foreach (ChatDTO chatDTO in chatDTOs)
             {
                 ChatModel chat = ConvertChat(chatDTO);
-                chat_vm.Chats.Add(chat);
+                chat_vm.AddChat(chat);
                 //List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -19]);
                 List<MessageModel> messages = [];

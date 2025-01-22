@@ -127,7 +127,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (TryFindMessage(id, out var message))
         {
-            //MessageChainer.DeleteChain(message, Messages, this);
+            MessageChainer.DeleteChain(message, Messages, this);
             UpdateLastMessage();
         }
     }
@@ -211,7 +211,7 @@ internal abstract partial class ChatModel : ObservableObject
         }
         else return;
         CloseSecondary();
-        //MessageChainer.AddChain(message, Messages, this);
+        MessageChainer.AddChain([message], Messages, this, true);
         UpdateLastMessage();
         MessageInput = "";
     }

@@ -12,13 +12,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 
 namespace PPgram.MVVM.ViewModels;
 
 partial class ChatViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private ObservableCollection<ChatModel> chats = [];
+    public ObservableCollection<ChatModel> Chats { get; set; } = [];
     [ObservableProperty]
     private ObservableCollection<ChatModel> searchResults = [];
     [ObservableProperty]
@@ -33,7 +33,7 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ChatModel? selectedSearch;
     [ObservableProperty]
-    private FolderModel? selectedFolder;
+    private FolderModel selectedFolder;
     [ObservableProperty]
     private ProfileState profileState = ProfileState.Instance;
     [ObservableProperty]
@@ -90,6 +90,16 @@ partial class ChatViewModel : ViewModelBase
         chat = chat_or_null ?? default!;
         return chat_or_null != null;
     }
+    private void AssignFolder(ChatModel chat)
+    {
+        foreach (FolderModel folder in Folders)
+        {
+            if (folder.IsAll) folder.Chats.Add(chat);
+            if (folder.IsPersonal && chat is UserModel) folder.Chats.Add(chat);
+
+            // TODO: keep each folder and its chat ids in cache, load on lauch and assign chat if present
+        }
+    }
     public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
         SearchResults = resultList;
@@ -99,13 +109,18 @@ partial class ChatViewModel : ViewModelBase
     {
         if (!TryFindChat(chat.Id, out var c))
         {
-            Chats.Add(chat);
+            AddChat(chat);
             chat.Searched = false;
             // setting null to actually update ui property and show selection
             SelectedChat = null;
             SelectedChat = chat;
             ClearSearch();
         }
+    }
+    public void AddChat(ChatModel chat)
+    {
+        Chats.Add(chat);
+        AssignFolder(chat);
     }
     public void LoadMessages(int chat_id, List<MessageModel> messages, bool forward)
     {
