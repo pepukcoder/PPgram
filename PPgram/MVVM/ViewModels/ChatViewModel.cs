@@ -45,6 +45,7 @@ partial class ChatViewModel : ViewModelBase
     public ChatViewModel()
     {
         PlatesVisible = false;
+        SelectedFolder = Folders[1];
         // search request delay timer
         timer = new() { Interval = TimeSpan.FromMilliseconds(200) };
         timer.Tick += SearchChat;
@@ -106,11 +107,15 @@ partial class ChatViewModel : ViewModelBase
             ClearSearch();
         }
     }
-    public void AddMessage(MessageModel message)
+    public void LoadMessages(int chat_id, List<MessageModel> messages, bool forward)
+    {
+        if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages, forward);
+    }
+    public void NewMessage(MessageModel message)
     {
         if (TryFindChat(message.Chat, out var chat))
         {
-            chat.AddMessage(message);
+            chat.LoadMessages([message], true);
             if (SelectedChat != chat) chat.UnreadCount++;
         }
     }
@@ -121,10 +126,6 @@ partial class ChatViewModel : ViewModelBase
     public void DeleteMessage(int chat_id, int message_id)
     {
         if (TryFindChat(chat_id, out var chat)) chat.DeleteMessage(message_id);
-    }
-    public void LoadMessages(int chat_id, List<MessageModel> messages)
-    {
-        if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages);
     }
     public void ChangeChatStatus(int chat_id, ChatStatus status)
     {

@@ -13,7 +13,6 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.MVVM.Models.Chat;
@@ -69,7 +68,6 @@ internal abstract partial class ChatModel : ObservableObject
     public bool Searched = false;
     private bool draftThrottle = false;
     private int draftRequests = 0;
-    private readonly MessageChainManager chainManager = new();
     private readonly ReplyModel reply = new();
     private readonly DispatcherTimer timer;
     protected readonly ProfileState profileState = ProfileState.Instance;
@@ -111,14 +109,9 @@ internal abstract partial class ChatModel : ObservableObject
             Files.Add(file);
         }
     }
-    public void LoadMessages(List<MessageModel> messageList)
+    public void LoadMessages(List<MessageModel> messages, bool forward)
     {
-        Messages = chainManager.GenerateChain(messageList, this);
-        UpdateLastMessage();
-    }
-    public void AddMessage(MessageModel message)
-    {
-        chainManager.AddChain(message, Messages, this);
+        MessageChainer.AddChain(messages, Messages, this, forward);
         UpdateLastMessage();
     }
     public void EditMessage(MessageModel message)
@@ -134,7 +127,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (TryFindMessage(id, out var message))
         {
-            chainManager.DeleteChain(message, Messages, this);
+            //MessageChainer.DeleteChain(message, Messages, this);
             UpdateLastMessage();
         }
     }
@@ -218,7 +211,7 @@ internal abstract partial class ChatModel : ObservableObject
         }
         else return;
         CloseSecondary();
-        chainManager.AddChain(message, Messages, this);
+        //MessageChainer.AddChain(message, Messages, this);
         UpdateLastMessage();
         MessageInput = "";
     }
@@ -230,11 +223,9 @@ internal abstract partial class ChatModel : ObservableObject
             SecondaryVisible = true;
             InEdit = false;
             InReply = true;
-            if (message.SenderId == profileState.UserId) reply.Name = profileState.Name;
-            else reply.Name = Profile?.Name ?? string.Empty;
-
-            if (message.Content is TextContentModel textcontent) reply.Text = textcontent.Text;
-
+            reply.Name = message.Sender.Name;
+            if (message.Content is TextContentModel tc) reply.Text = tc.Text;
+            else if (message.Content is FileContentModel fc) reply.Text = $"{fc.Files.Count} File(s)";
             SecondaryHeader = $"Reply to {reply.Name}";
             SecondaryText = reply.Text;
         }
@@ -271,7 +262,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (SelectedMessage != null && SelectedMessage is MessageModel message)
         {
-            chainManager.DeleteChain(message, Messages, this);
+            //MessageChainer.DeleteChain(message, Messages, this);
             UpdateLastMessage();
             WeakReferenceMessenger.Default.Send(new Msg_DeleteMessage
             {

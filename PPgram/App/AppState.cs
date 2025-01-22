@@ -21,11 +21,11 @@ internal sealed partial class AppState : ObservableObject
     /// <summary>
     /// Defines how many messages will be fetched while scrolling chat
     /// </summary>
-    public int MessagesFetchAmount { get; set; } = 5;
+    public int MessagesFetchAmount { get; set; } = 20;
     /// <summary>
     /// Defines how many messages need to be left out of scroll viewport to trigger prefetching
     /// </summary>
-    public int MessagesFetchThreshold { get; set; } = 3;
+    public int MessagesFetchThreshold { get; set; } = 5;
 #endregion
     /// <summary>
     /// Path to platform-specific downloads folder

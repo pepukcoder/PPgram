@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Specialized;
-using System.Linq;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Threading;
-using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
+using System;
 
 namespace PPgram.Behaviours;
 
@@ -23,18 +19,6 @@ public class ScrollToEndBehavior : Behavior<ListBox>
         {
             AssociatedObject.SizeChanged += AssociatedObjectOnSizeChanged;
             AssociatedObject.TemplateApplied += AssociatedObjectOnTemplateApplied;
-            AssociatedObject.Items.CollectionChanged += Items_CollectionChanged;
-        }
-    }
-    private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.Action == NotifyCollectionChangedAction.Add && AssociatedObject?.Items.Count > 0)
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                ScrollViewer? sc = AssociatedObject?.GetVisualDescendants()?.OfType<ScrollViewer>().FirstOrDefault();
-                if (sc != null) AssociatedObject?.ScrollIntoView(0);
-            }, DispatcherPriority.Background);
         }
     }
     private void AssociatedObjectOnTemplateApplied(object? sender, TemplateAppliedEventArgs e)

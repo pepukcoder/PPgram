@@ -138,18 +138,14 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                //Debug.WriteLine("fetching");
-                //Debug.WriteLine("anchor: " + m.anchor.Id);
-                //Debug.WriteLine("index: " + m.index);
-                if (m.anchor.Id == 0 || m.anchor.Id == -1 || m.index < PPAppState.MessagesFetchThreshold) return;
+                if (m.anchor.Id == 0 || m.anchor.Id == -1) return;
                 int[] range;
                 if (m.forward) range = [m.anchor.Id + 1, PPAppState.MessagesFetchAmount - 1];
                 else range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
-                //Debug.WriteLine($"range: [{range[0]},{range[1]}]");
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.anchor.Chat, range);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
-                // write method in chatmodel for upper and lower appending with rechaining
+                chat_vm.LoadMessages(m.anchor.Chat, messages, m.forward);
             }
             catch (Exception ex)
             {
@@ -205,7 +201,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                //await jsonClient.DeleteMessage(m.chat, m.Id);
+               // await jsonClient.DeleteMessage(m.chat, m.Id);
             }
             catch (Exception ex)
             {
@@ -280,7 +276,7 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, async (r, m) =>
         {
-            if (m.message != null) chat_vm.AddMessage(await ConvertMessage(m.message));        
+            if (m.message != null) chat_vm.NewMessage(await ConvertMessage(m.message));        
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessageEvent>(this, async (r, m) =>
         {
@@ -323,11 +319,11 @@ internal partial class MainViewModel : ViewModelBase
             {
                 ChatModel chat = ConvertChat(chatDTO);
                 chat_vm.Chats.Add(chat);
-                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
-                //List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -19]);
+                //List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
+                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -19]);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
-                chat_vm.LoadMessages(chat.Id, messages);
+                chat_vm.LoadMessages(chat.Id, messages, true);
             }
         }
         catch (Exception ex)
@@ -458,11 +454,11 @@ internal partial class MainViewModel : ViewModelBase
         }
         return new MessageModel
         {
-            Id = messageDTO.Id ?? 0,
-            Chat = messageDTO.ChatId ?? 0,
-            SenderId = messageDTO.From ?? 0,
+            Id = messageDTO.Id ?? -1,
+            Chat = messageDTO.ChatId ?? -1,
+            SenderId = messageDTO.From ?? -1,
             Time = messageDTO.Date ?? 0,
-            ReplyTo = messageDTO.ReplyTo ?? 0,
+            ReplyTo = messageDTO.ReplyTo ?? -1,
             Edited = messageDTO.Edited ?? false,
             Content = content,
             Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
