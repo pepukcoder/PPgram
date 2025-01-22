@@ -13,6 +13,8 @@ using PPgram.MVVM.Models.Message;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Objects;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -24,7 +26,7 @@ public partial class ChatControl : UserControl
     private readonly AppState appState = AppState.Instance;
     private readonly DispatcherTimer timer;
     private bool fetchThrottle = false;
-    private double scrollratio = 1;
+    private double oldoffset = -1;
     public ChatControl()
     {
         InitializeComponent();
@@ -84,14 +86,23 @@ public partial class ChatControl : UserControl
     }
     private void ChatScrolled(object? sender, ScrollChangedEventArgs e)
     {
+        // prevent horizontal resize misdetection
+        if (e.ExtentDelta.X != 0) return;
         // preserve scroll offset
         if (sender is ListBox box && box.Scroll is IScrollable sw)
         {
+            if (oldoffset == -1)
+            {
+                sw.Offset = new(0, sw.Extent.Height - sw.Viewport.Height);
+                oldoffset = sw.Offset.Y;
+            }
             if (e.ExtentDelta.Y > 0)
             {
-                sw.Offset = new(0, (sw.Extent.Height - sw.Viewport.Height) * scrollratio);
+                if (oldoffset < sw.Offset.Y) sw.Offset = new(0, sw.Offset.Y - e.ExtentDelta.Y);
+                else sw.Offset = new(0, sw.Offset.Y + e.ExtentDelta.Y);
+                fetchThrottle = true;
             }
-            scrollratio = sw.Offset.Y / (sw.Extent.Height - sw.Viewport.Height);
+            oldoffset = sw.Offset.Y;
         }
         // get rendered messages and listbox bounds
         IEnumerable<Control> controls = MessageHistory.GetRealizedContainers();
