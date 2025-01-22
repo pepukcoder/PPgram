@@ -27,7 +27,7 @@
 				SelectedItem="{Binding SelectedMessage, Mode=TwoWay}"
 				SelectionMode="Toggle">
 			<Interaction.Behaviors>
-				<bh:ScrollToEndBehavior />
+				<bh:StickToBottomBehavior />
 			</Interaction.Behaviors>
 			<ListBox.ContextMenu>
 				<ContextMenu IsVisible="{Binding ContextVisible}" FontSize="14">

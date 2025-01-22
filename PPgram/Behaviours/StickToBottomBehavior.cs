@@ -8,7 +8,7 @@ namespace PPgram.Behaviours;
 /// <summary>
 /// This behaviour is used to make message history listbox align and stick to bottom when scrolling and resizing
 /// </summary>
-public class ScrollToEndBehavior : Behavior<ListBox>
+public class StickToBottomBehavior : Behavior<ListBox>
 {
     private bool _shouldScrollToEnd = true;
     private bool _scrolling;
