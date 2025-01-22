@@ -125,7 +125,7 @@ public partial class ChatControl : UserControl
         int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
         int lower_index = fetchedMessages.IndexOf(screenMessages.First());
         // check for upper fetch
-        if (fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold)
+        if (fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
             {
@@ -136,7 +136,7 @@ public partial class ChatControl : UserControl
             fetchThrottle = true;
         }
         // check for lower fetch
-        if (lower_index <= appState.MessagesFetchThreshold)
+        if (lower_index <= appState.MessagesFetchThreshold && !fetchThrottle)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
             { 
