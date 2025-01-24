@@ -1,8 +1,7 @@
-using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using PPgram.Shared;
+using System.Threading.Tasks;
 
 namespace PPgram.App;
 
@@ -16,15 +15,14 @@ internal class FSManager
         writer.Write(data);
     }
     public static void CreateFile(string path, string data) => CreateFile(path, Encoding.UTF8.GetBytes(data));
-    public static bool IsHashed(string hash) => File.Exists(Path.Combine(PPPath.FileCacheFolder, hash + ".link"));
     public static void CreateJsonFile(string path, object data)
     {
         string json = JsonSerializer.Serialize(data, options: new() { WriteIndented = true } );
         CreateFile(path, json);
     }
-    public static T LoadFromJsonFile<T>(string path)
+    public static async Task<T> LoadFromJsonFile<T>(string path)
     {
-        string data = File.ReadAllText(path);
+        string data = await File.ReadAllTextAsync(path);
         return JsonSerializer.Deserialize<T>(data) ?? throw new InvalidDataException("Unable to deserialize json file");
     }
     public static void RestoreDirs(string path) => Directory.CreateDirectory(Path.GetDirectoryName(path) ?? string.Empty);

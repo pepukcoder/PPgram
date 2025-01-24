@@ -3,7 +3,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Material.Icons.Avalonia;
 using PPgram.App;
 using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
@@ -341,7 +340,7 @@ internal partial class MainViewModel : ViewModelBase
         if (!File.Exists(PPPath.SessionFile)) return false;
         try
         {
-            AuthDTO credentials = FSManager.LoadFromJsonFile<AuthDTO>(PPPath.SessionFile);
+            AuthDTO credentials = await FSManager.LoadFromJsonFile<AuthDTO>(PPPath.SessionFile);
             return await jsonClient.Auth(credentials.SessionId ?? string.Empty, credentials.UserId ?? 0);
         }
         catch
@@ -355,7 +354,7 @@ internal partial class MainViewModel : ViewModelBase
     {
         // try load settings
         if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateJsonFile(PPPath.ConnectionFile, PPAppState.ConnectionOptions);
-        try { PPAppState.ConnectionOptions = FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
+        try { PPAppState.ConnectionOptions = await FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
         catch { File.Delete(PPPath.ConnectionFile); }
         return await jsonClient.Connect(PPAppState.ConnectionOptions) && await filesClient.Connect(PPAppState.ConnectionOptions);
     }
