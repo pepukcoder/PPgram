@@ -141,13 +141,11 @@ internal partial class MainViewModel : ViewModelBase
             try
             {
                 if (m.anchor.Id == 0 || m.anchor.Id == -1) return;
-                int[] range;
-                if (m.forward) range = [m.anchor.Id + 1, PPAppState.MessagesFetchAmount - 1];
-                else range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
+                int[] range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.anchor.Chat, range);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
-                chat_vm.LoadMessages(m.anchor.Chat, messages, m.forward);
+                chat_vm.LoadMessages(m.anchor.Chat, messages, false);
             }
             catch (Exception ex)
             {

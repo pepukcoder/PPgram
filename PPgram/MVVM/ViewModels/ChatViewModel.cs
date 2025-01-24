@@ -75,7 +75,15 @@ partial class ChatViewModel : ViewModelBase
     }
     partial void OnSelectedChatChanged(ChatModel? oldValue, ChatModel? newValue)
     {
-        if (newValue != null) newValue.UnreadCount = 0;
+        if (oldValue != null)
+        {
+            oldValue.StartUnloadTimer();
+        }
+        if (newValue != null)
+        {
+            newValue.UnreadCount = 0;
+            newValue.StopUnloadTimer();
+        }
     }
     private void SearchChat(object? sender, EventArgs e)
     {

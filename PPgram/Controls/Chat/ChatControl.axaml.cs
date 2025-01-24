@@ -124,7 +124,6 @@ public partial class ChatControl : UserControl
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
             {
-                forward = false,
                 anchor = fetchedMessages.Last(),
                 index = upper_index,
             });

@@ -65,18 +65,23 @@ internal abstract partial class ChatModel : ObservableObject
     private ChatStatus status;
 
     public int Id { get; set; }
-    public bool Searched = false;
-    private bool draftThrottle = false;
+    public bool Searched { get; set; }
+    private bool draftThrottle;
     private int draftRequests = 0;
     private readonly ReplyModel reply = new();
-    private readonly DispatcherTimer timer;
+    private readonly DispatcherTimer draft_timer;
+    private readonly DispatcherTimer unload_timer;
     protected readonly ProfileState profileState = ProfileState.Instance;
+    protected readonly AppState appState = AppState.Instance;
     public ChatModel()
     {
-        // draft update request delay timer
-        timer = new() { Interval = TimeSpan.FromSeconds(1) };
-        timer.Tick += (s, e) => { draftThrottle = false; draftRequests = 0; };
-        timer.Start();
+        // unload timer
+        unload_timer = new() { Interval = TimeSpan.FromSeconds(appState.MessagesUnloadTime) };
+        unload_timer.Tick += (s, e) => UnloadMessages();
+        // draft request delay timer
+        draft_timer = new() { Interval = TimeSpan.FromSeconds(1) };
+        draft_timer.Tick += (s, e) => { draftThrottle = false; draftRequests = 0; };
+        draft_timer.Start();
     }
     protected abstract void UpdateLastMessage();
     protected abstract void UpdateStatus();
@@ -138,6 +143,12 @@ internal abstract partial class ChatModel : ObservableObject
             message.Status = status;
             UpdateLastMessage();
         }
+    }
+    public void StartUnloadTimer() => unload_timer.Start();
+    public void StopUnloadTimer() => unload_timer.Stop();
+    private void UnloadMessages()
+    {
+        MessageChainer.UnloadChain(Messages, this);
     }
     private void SendMessage(MessageModel message)
     {

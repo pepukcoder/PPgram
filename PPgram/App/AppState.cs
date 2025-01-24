@@ -13,7 +13,11 @@ internal sealed partial class AppState : ObservableObject
     public static AppState Instance => lazy.Value;
     private AppState() { }
 
-    #region fetching
+    #region messages
+    /// <summary>
+    /// Defines time before all messages except latest <see cref="MessagesFetchMinimum">minimum</see> will be unloaded from chat (in seconds)
+    /// </summary>
+    public int MessagesUnloadTime { get; set; } = 60;
     /// <summary>
     /// Defines how many messages should always be fetched
     /// </summary>
@@ -27,7 +31,7 @@ internal sealed partial class AppState : ObservableObject
     /// </summary>
     public int MessagesFetchThreshold { get; set; } = 5;
     /// <summary>
-    /// Defines how often fetching requests will be send while scrolling (in milliseconds)
+    /// Defines the delay for fetch requests while scrolling (in milliseconds)
     /// </summary>
     public int MessagesFetchDelay { get; set; } = 200;
     #endregion
