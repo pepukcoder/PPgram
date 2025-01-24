@@ -24,7 +24,6 @@ public partial class ChatControl : UserControl
     private readonly AppState appState = AppState.Instance;
     private readonly DispatcherTimer timer;
     private bool fetchThrottle = false;
-    private double oldoffset = -1;
     public ChatControl()
     {
         InitializeComponent();
@@ -87,21 +86,10 @@ public partial class ChatControl : UserControl
         // prevent horizontal resize misdetection
         if (e.ExtentDelta.X != 0) return;
         // preserve scroll offset
-        if (sender is ListBox box && box.Scroll is IScrollable sw)
+        if (sender is ListBox box && box.Scroll is IScrollable sw && e.ExtentDelta.Y > 0)
         {
-            if (oldoffset == -1)
-            {
-                sw.Offset = new(0, sw.Extent.Height - sw.Viewport.Height);
-                oldoffset = sw.Offset.Y;
-                fetchThrottle = true;
-            }
-            if (e.ExtentDelta.Y > 0)
-            {
-                if (oldoffset < sw.Offset.Y) sw.Offset = new(0, sw.Offset.Y - e.ExtentDelta.Y);
-                else sw.Offset = new(0, sw.Offset.Y + e.ExtentDelta.Y);
-                fetchThrottle = true;
-            }
-            oldoffset = sw.Offset.Y;
+            sw.Offset = new(0, sw.Offset.Y + e.ExtentDelta.Y);
+            fetchThrottle = true;
         }
         // get rendered messages and listbox bounds
         IEnumerable<Control> controls = MessageHistory.GetRealizedContainers();
@@ -131,28 +119,14 @@ public partial class ChatControl : UserControl
         }
         if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         // prefetch detection
-        if (fetchedMessages.Count == 0 || fetchThrottle) return;
         int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
-        int lower_index = fetchedMessages.IndexOf(screenMessages.First());
-        // check for upper fetch
-        if (fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
+        if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
         {
             WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
             {
                 forward = false,
                 anchor = fetchedMessages.Last(),
                 index = upper_index,
-            });
-            fetchThrottle = true;
-        }
-        // check for lower fetch
-        if (lower_index <= appState.MessagesFetchThreshold && !fetchThrottle)
-        {
-            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
-            { 
-                forward = true,
-                anchor = fetchedMessages.First(),
-                index = lower_index,
             });
             fetchThrottle = true;
         }

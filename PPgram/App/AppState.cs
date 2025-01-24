@@ -5,7 +5,7 @@ using System;
 namespace PPgram.App;
 
 /// <summary>
-/// Singleton to keep application state and settings synchronized
+/// Stores application state and settings
 /// </summary>
 internal sealed partial class AppState : ObservableObject
 {
@@ -13,11 +13,11 @@ internal sealed partial class AppState : ObservableObject
     public static AppState Instance => lazy.Value;
     private AppState() { }
 
-#region fetching
+    #region fetching
     /// <summary>
-    /// Defines how often fetching requests will be send while scrolling (in milliseconds)
+    /// Defines how many messages should always be fetched
     /// </summary>
-    public int MessagesFetchDelay { get; set; } = 200;
+    public int MessagesFetchMinimum { get; set; } = 30;
     /// <summary>
     /// Defines how many messages will be fetched while scrolling chat
     /// </summary>
@@ -26,7 +26,11 @@ internal sealed partial class AppState : ObservableObject
     /// Defines how many messages need to be left out of scroll viewport to trigger prefetching
     /// </summary>
     public int MessagesFetchThreshold { get; set; } = 5;
-#endregion
+    /// <summary>
+    /// Defines how often fetching requests will be send while scrolling (in milliseconds)
+    /// </summary>
+    public int MessagesFetchDelay { get; set; } = 200;
+    #endregion
     /// <summary>
     /// Path to platform-specific downloads folder
     /// </summary>

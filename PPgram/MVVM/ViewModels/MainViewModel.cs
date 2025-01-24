@@ -321,8 +321,8 @@ internal partial class MainViewModel : ViewModelBase
     {
         try
         {
-            await LoadFolders();
             CurrentPage = chat_vm;
+            await LoadFolders();
             ProfileDTO self = await jsonClient.FetchSelf();
             profileState.UserId = self.Id ?? 0;
             profileState.Name = self.Name ?? string.Empty;
@@ -333,8 +333,7 @@ internal partial class MainViewModel : ViewModelBase
             {
                 ChatModel chat = ConvertChat(chatDTO);
                 chat_vm.AddChat(chat);
-                //List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -99]);
-                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -19]);
+                List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -1 * (PPAppState.MessagesFetchMinimum - 1)]);
                 List<MessageModel> messages = [];
                 foreach (MessageDTO messageDTO in messageDTOs) messages.Add(await ConvertMessage(messageDTO));
                 chat_vm.LoadMessages(chat.Id, messages, true);
