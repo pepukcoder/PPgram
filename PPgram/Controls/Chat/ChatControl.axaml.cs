@@ -13,8 +13,6 @@ using PPgram.MVVM.Models.Message;
 using PPgram.Shared;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity.Core.Objects;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 

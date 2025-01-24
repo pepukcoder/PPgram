@@ -1,15 +1,14 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-					xmlns:mchat="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
+					xmlns:m="clr-namespace:PPgram.MVVM.Models.Folder;assembly=PPgram"
 					xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
-	<ControlTheme x:Key="Folder" TargetType="ListBoxItem" x:DataType="mchat:FolderModel">
+	<ControlTheme x:Key="Folder" TargetType="ListBoxItem" x:DataType="m:FolderModel">
 		<Setter Property="Foreground" Value="{StaticResource SecondaryText}"/>
 		<Setter Property="Template">
 			<ControlTemplate>
 				<Border x:Name="PART_Back" CornerRadius="10" Padding="10" Background="Transparent">
 					<StackPanel Orientation="Vertical" HorizontalAlignment="Center">
 						<icons:MaterialIcon Kind="Folder"		 Width="28" Height="28" IsVisible="{Binding !IsSpecial}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
-						<icons:MaterialIcon Kind="PackageDown"	 Width="28" Height="28" IsVisible="{Binding IsArchive}"  Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
 						<icons:MaterialIcon Kind="Chat"			 Width="28" Height="28" IsVisible="{Binding IsAll}"		 Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
 						<icons:MaterialIcon Kind="AccountCircle" Width="28" Height="28" IsVisible="{Binding IsPersonal}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
 						<TextBlock Text="{Binding Name}" TextAlignment="Center" TextWrapping="Wrap" FontWeight="Medium" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}"/>

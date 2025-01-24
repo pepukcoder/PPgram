@@ -27,8 +27,8 @@ internal partial class GroupModel : ChatModel
         MessageModel? lastmsg = Messages.OfType<MessageModel>().FirstOrDefault();
         if (lastmsg == null)
         {
-            LastMessage = "";
-            LastSender = "";
+            LastMessage = string.Empty;
+            LastSender = string.Empty;
             LastMessageStatus = MessageStatus.None;
             return;
         }

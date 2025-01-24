@@ -75,7 +75,7 @@
 							ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 							ScrollViewer.VerticalScrollBarVisibility="Hidden"
 							SelectedItem="{Binding SelectedChat, Mode=TwoWay}"
-							ItemsSource="{Binding Chats}">
+							ItemsSource="{Binding SelectedFolder.Chats}">
 					<ListBox.DataTemplates>
 						<DataTemplate DataType="mchat:UserModel">
 							<c:UserEntryControl/>

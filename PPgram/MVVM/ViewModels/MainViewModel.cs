@@ -8,6 +8,7 @@ using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
+using PPgram.MVVM.Models.Folder;
 using PPgram.MVVM.Models.Media;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
@@ -22,6 +23,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -308,6 +310,7 @@ internal partial class MainViewModel : ViewModelBase
     {
         try
         {
+            await LoadFolders();
             CurrentPage = chat_vm;
             ProfileDTO self = await jsonClient.FetchSelf();
             profileState.UserId = self.Id ?? 0;
@@ -333,7 +336,19 @@ internal partial class MainViewModel : ViewModelBase
     }
     private async Task LoadOffline()
     {
+        await LoadFolders();
         // Placeholder for offline app use (probably in future???)
+    }
+    private async Task LoadFolders()
+    {
+        if (!File.Exists(PPPath.FoldersFile)) FSManager.CreateJsonFile(PPPath.FoldersFile, new List<FolderData>());
+        List<FolderData> folderData = await FSManager.LoadFromJsonFile<List<FolderData>>(PPPath.FoldersFile);
+        foreach (FolderData data in folderData)
+        {
+            if (data.Name == null || data.Id == null || data.Chats == null) continue;
+            FolderModel folder = new(data);
+            chat_vm.AddFolder(folder);
+        }
     }
     private async Task<bool> AutoAuth()
     {

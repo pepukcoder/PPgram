@@ -3,9 +3,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
-using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
+using PPgram.MVVM.Models.Folder;
 using PPgram.MVVM.Models.Message;
 using PPgram.Shared;
 using System;
@@ -24,7 +24,6 @@ partial class ChatViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<FolderModel> folders =
     [
-        new FolderModel("Archive", is_archive: true),
         new FolderModel("All", is_all: true),
         new FolderModel("Personal", is_personal: true)
     ];
@@ -45,7 +44,7 @@ partial class ChatViewModel : ViewModelBase
     public ChatViewModel()
     {
         PlatesVisible = false;
-        SelectedFolder = Folders[1];
+        SelectedFolder = Folders[0];
         // search request delay timer
         timer = new() { Interval = TimeSpan.FromMilliseconds(200) };
         timer.Tick += SearchChat;
@@ -90,21 +89,14 @@ partial class ChatViewModel : ViewModelBase
         chat = chat_or_null ?? default!;
         return chat_or_null != null;
     }
-    private void AssignFolder(ChatModel chat)
-    {
-        foreach (FolderModel folder in Folders)
-        {
-            if (folder.IsAll) folder.Chats.Add(chat);
-            if (folder.IsPersonal && chat is UserModel) folder.Chats.Add(chat);
-
-            // TODO: keep each folder and its chat ids in cache, load on lauch and assign chat if present
-        }
-    }
+    #region search
     public void UpdateSearch(ObservableCollection<ChatModel> resultList)
     {
         SearchResults = resultList;
         SelectedSearch = null;
     }
+    #endregion
+    #region chat
     public void AddChatIfNotExists(ChatModel chat)
     {
         if (!TryFindChat(chat.Id, out var c))
@@ -120,8 +112,18 @@ partial class ChatViewModel : ViewModelBase
     public void AddChat(ChatModel chat)
     {
         Chats.Add(chat);
-        AssignFolder(chat);
+        foreach (FolderModel folder in Folders) folder.TryAssign(chat);
     }
+    public void ChangeChatStatus(int chat_id, ChatStatus status)
+    {
+        if (TryFindChat(chat_id, out var chat))
+        {
+            chat.Status = status;
+            // TODO: for group pass a typing user name fetched from id
+        }
+    }
+    #endregion
+    #region message
     public void LoadMessages(int chat_id, List<MessageModel> messages, bool forward)
     {
         if (TryFindChat(chat_id, out var chat)) chat.LoadMessages(messages, forward);
@@ -142,18 +144,18 @@ partial class ChatViewModel : ViewModelBase
     {
         if (TryFindChat(chat_id, out var chat)) chat.DeleteMessage(message_id);
     }
-    public void ChangeChatStatus(int chat_id, ChatStatus status)
-    {
-        if (TryFindChat(chat_id, out var chat))
-        {
-            chat.Status = status;
-            // TODO: for group pass a typing user name fetched from id
-        }
-    }
     public void ChangeMessageStatus(int chat_id, int message_id, MessageStatus status)
     {
         if (TryFindChat(chat_id, out var chat)) chat.ChangeMessageStatus(message_id, status);
     }
+    #endregion
+    #region folder
+    public void AddFolder(FolderModel folder)
+    {
+        Folders.Add(folder);
+    }
+    #endregion
+    #region commands
     [RelayCommand]
     private void OpenNewGroupDialog()
     {
@@ -165,4 +167,5 @@ partial class ChatViewModel : ViewModelBase
     private void CloseChat() => SelectedChat = null;
     [RelayCommand]
     private void Logout() => WeakReferenceMessenger.Default.Send(new Msg_Logout());
+    #endregion
 }

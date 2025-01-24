@@ -22,9 +22,11 @@ internal record PPPath
     // files
     /// <summary> ...local/PPgram/session.sesf </summary>
     public static readonly string SessionFile = Path.Combine(BaseFolder, "session.sesf");
-    /// <summary> ...local/PPgram/settings/connection.sesf </summary>
+    /// <summary> ...local/PPgram/settings/connection.setf </summary>
     public static readonly string ConnectionFile = Path.Combine(SettingsFolder, "connection.setf");
-    /// <summary> ...local/PPgram/settings/app.sesf </summary>
+    /// <summary> ...local/PPgram/settings/folders.setf </summary>
+    public static readonly string FoldersFile = Path.Combine(SettingsFolder, "folders.setf");
+    /// <summary> ...local/PPgram/settings/app.setf </summary>
     public static readonly string AppSettingsFile = Path.Combine(SettingsFolder, "app.setf");
     /// <summary> ...local/PPgram/cache/cachelinks.db </summary>
     public static readonly string CacheDBFile = Path.Combine(CacheFolder, "cachelinks.db");
