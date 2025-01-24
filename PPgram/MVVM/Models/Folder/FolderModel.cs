@@ -8,7 +8,6 @@ namespace PPgram.MVVM.Models.Folder;
 /// <summary>
 /// Represents a chat folder
 /// </summary>
-/// <param name="name">Folder name</param>
 internal partial class FolderModel : ObservableObject
 {
     [ObservableProperty]
