@@ -114,6 +114,12 @@ partial class ChatViewModel : ViewModelBase
         Chats.Add(chat);
         foreach (FolderModel folder in Folders) folder.TryAssign(chat);
     }
+    public void DeleteChat(ChatModel chat)
+    {
+        Chats.Remove(chat);
+        foreach (FolderModel folder in Folders) folder.Remove(chat);
+        WeakReferenceMessenger.Default.Send(new Msg_DeleteChat { chat_id = chat.Id });
+    }
     public void ChangeChatStatus(int chat_id, ChatStatus status)
     {
         if (TryFindChat(chat_id, out var chat))
@@ -163,6 +169,12 @@ partial class ChatViewModel : ViewModelBase
     }
     [RelayCommand]
     private void ClearSearch() => SearchInput = string.Empty;
+    [RelayCommand]
+    private void DeleteChatUI()
+    {
+        if (SelectedChat == null) return;
+        DeleteChat(SelectedChat);
+    }
     [RelayCommand]
     private void CloseChat() => SelectedChat = null;
     [RelayCommand]

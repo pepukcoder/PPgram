@@ -271,6 +271,17 @@ internal partial class MainViewModel : ViewModelBase
                 WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
             }
         });
+        WeakReferenceMessenger.Default.Register<Msg_DeleteChat>(this, async (r, m) => 
+        {
+            try
+            {
+                await jsonClient.DeleteChat(m.chat_id);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
+        });
         // chat events
         WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
         {

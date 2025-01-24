@@ -252,7 +252,18 @@ internal class JsonClient
         Send(payload, tcs);
         return await tcs.Task;
     }
-
+    public async Task<bool> DeleteChat(int chat_id)
+    {
+        var payload = new
+        {
+            method = "delete",
+            what = "chat",
+            chat_id
+        };
+        TaskCompletionSource<bool> tcs = new();
+        Send(payload, tcs);
+        return await tcs.Task;
+    }
     private void HandleResponse(string response)
     {
         Debug.WriteLine(response);
@@ -383,6 +394,13 @@ internal class JsonClient
                         ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
                         if (ok == true && group != null) newgroup_tcs.SetResult(group);
                         else newgroup_tcs.SetException(new Exception(r_error ?? "Create group failed"));
+                    }
+                    break;
+                case "delete_chat":
+                    if (tcs is TaskCompletionSource<bool> deletechat_tcs)
+                    {
+                        if (ok != null) deletechat_tcs.SetResult(ok == true);
+                        else deletechat_tcs.SetException(new Exception(r_error ?? "Delete chat failed"));
                     }
                     break;
             }

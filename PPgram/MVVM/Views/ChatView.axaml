@@ -84,6 +84,30 @@
 							<c:GroupEntryControl/>
 						</DataTemplate>
 					</ListBox.DataTemplates>
+					<ListBox.ContextMenu>
+						<ContextMenu FontSize="14">
+							<MenuItem Header="Pin" Command="" HotKey="Ctrl+E">
+								<MenuItem.Icon>
+									<icons:MaterialIcon Kind="Pin" />
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Unpin" Command="" HotKey="Ctrl+E">
+								<MenuItem.Icon>
+									<icons:MaterialIcon Kind="PinOff" />
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Clear history" Command="" HotKey="Ctrl+Q">
+								<MenuItem.Icon>
+									<icons:MaterialIcon Kind="Broom"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Delete" Command="{Binding DeleteChatUICommand}" HotKey="Ctrl+D" Foreground="PaleVioletRed">
+								<MenuItem.Icon>
+									<icons:MaterialIcon Kind="Delete"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</ContextMenu>
+					</ListBox.ContextMenu>
 					<ListBox.KeyBindings>
 						<KeyBinding Command="{Binding CloseChatCommand}" Gesture="13"/>
 					</ListBox.KeyBindings>

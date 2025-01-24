@@ -19,6 +19,10 @@ class Msg_SendDraft
     public required string draft;
     public required int chat_id;
 }
+class Msg_DeleteChat
+{
+    public required int chat_id;
+}
 public enum ChatType
 {
     Chat,

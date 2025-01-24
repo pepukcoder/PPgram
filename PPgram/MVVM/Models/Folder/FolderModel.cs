@@ -50,6 +50,7 @@ internal partial class FolderModel : ObservableObject
     }
     public void Remove(ChatModel chat)
     {
+        Chats.Remove(chat);
         chat_ids.Remove(chat.Id);
     }
 }
