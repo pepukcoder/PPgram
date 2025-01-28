@@ -195,7 +195,6 @@ internal abstract partial class ChatModel : ObservableObject
         {
             Chat = Id,
             ReplyTo = null,
-            Role = MessageRole.OwnFirst,
             Color = profileState.Color,
             SenderId = profileState.UserId,
             Time = DateTimeOffset.Now.ToUnixTimeSeconds(),

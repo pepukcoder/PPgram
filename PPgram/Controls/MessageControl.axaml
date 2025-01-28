@@ -25,7 +25,7 @@
 			<Setter Property="Template">
 				<ControlTemplate>
 					<Grid ColumnDefinitions="Auto,*">
-						<Ellipse x:Name="PART_Avatar" Grid.Column="0" IsVisible="False" VerticalAlignment="Bottom" Width="35" Height="35" Margin="0,0,10,0">
+						<Ellipse x:Name="PART_Avatar" Grid.Column="0" IsVisible="False" VerticalAlignment="Top" Width="35" Height="35" Margin="0,0,10,0">
 							<Ellipse.Fill>
 								<ImageBrush Source="{Binding Avatar}"/>
 							</Ellipse.Fill>
@@ -98,18 +98,6 @@
 				<Setter Property="Margin" Value="45,0,0,0"/>
 			</Style>
 		</Style>
-		<Style Selector="c|MessageControl[Tag=GroupSingle]">
-			<Setter Property="Margin" Value="0,5,0,1"/>
-			<Style Selector="^ /template/ Button#PART_Sender">
-				<Setter Property="IsVisible" Value="True"/>
-			</Style>
-			<Style Selector="^ /template/ Border#PART_Back">
-				<Setter Property="CornerRadius" Value="15 15 15 5"/>
-			</Style>
-			<Style Selector="^ /template/ Ellipse#PART_Avatar">
-				<Setter Property="IsVisible" Value="True"/>
-			</Style>
-		</Style>
 		<Style Selector="c|MessageControl[Tag=GroupFirst]">
 			<Setter Property="Margin" Value="0,5,0,1"/>
 			<Style Selector="^ /template/ Border#PART_Back">
@@ -119,8 +107,6 @@
 			<Style Selector="^ /template/ Button#PART_Sender">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>
-		</Style>
-		<Style Selector="c|MessageControl[Tag=GroupLast]">
 			<Style Selector="^ /template/ Ellipse#PART_Avatar">
 				<Setter Property="IsVisible" Value="True"/>
 			</Style>

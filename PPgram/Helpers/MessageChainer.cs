@@ -75,7 +75,8 @@ internal static class MessageChainer
     }
     private static void SetSender(MessageModel message, ChatModel chat)
     {
-        if (chat is UserModel user) message.Sender = user.Profile;
+        if (message.SenderId == profileState.UserId) message.Sender = profileState;
+        else if (chat is UserModel user) message.Sender = user.Profile;
         // TODO: assign sender in group from members list
     }
     private static void SetBadge(MessageModel message, ObservableCollection<ChatItem> items)

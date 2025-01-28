@@ -10,9 +10,7 @@ public enum MessageRole
     Own,
     OwnFirst,
     Group,
-    GroupSingle,
     GroupFirst,
-    GroupLast,
 }
 public enum MessageStatus
 {
