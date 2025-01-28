@@ -14,9 +14,9 @@ namespace PPgram.MVVM.Models.Message;
 /// </summary>
 partial class MessageModel : ChatItem
 {
-    public int Id { get; set; }
-    public int Chat { get; set; }
-    public int SenderId { get; set; }
+    public int Id { get; set; } = -1;
+    public int Chat { get; set; } = -1;
+    public int SenderId { get; set; } = -1;
     public int Color { get; set; }
     public long Time { get; set; }
     public int? ReplyTo { get; set; }

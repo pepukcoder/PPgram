@@ -186,6 +186,8 @@ partial class ChatViewModel : ViewModelBase
     [RelayCommand]
     private void CloseChat() => SelectedChat = null;
     [RelayCommand]
-    private void Logout() => WeakReferenceMessenger.Default.Send(new Msg_Logout());
+    private static void OpenSettings() => WeakReferenceMessenger.Default.Send(new Msg_ToSettings());
+    [RelayCommand]
+    private static void Logout() => WeakReferenceMessenger.Default.Send(new Msg_Logout());
     #endregion
 }

@@ -23,7 +23,6 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -47,6 +46,7 @@ internal partial class MainViewModel : ViewModelBase
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
     private readonly ChatViewModel chat_vm = new();
+    private readonly SettingsViewModel settings_vm = new();
     private readonly ProfileViewModel profile_vm = new();
     // network
     private readonly JsonClient jsonClient = new();
@@ -62,6 +62,8 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_OpenPreviewer>(this, (r, m) => MediaPreviewer.Open(m.content, m.file));
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
+        WeakReferenceMessenger.Default.Register<Msg_ToSettings>(this, (r, m) => CurrentPage = settings_vm);
+        WeakReferenceMessenger.Default.Register<Msg_ToChat>(this, (r, m) => CurrentPage = chat_vm);
         WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) =>
         {
             string? exeFile = Process.GetCurrentProcess().MainModule?.FileName;
@@ -181,7 +183,7 @@ internal partial class MainViewModel : ViewModelBase
                 }
                 // get id from response and assign status
                 (int, int) response = await jsonClient.SendMessage(m.to.Id, m.message.ReplyTo, text, hashes);
-                if (m.to.Id == 0) m.to.Id = response.Item2;
+                if (m.to.Id == -1) m.to.Id = response.Item2;
                 if (response.Item1 != -1 && response.Item2 != -1)
                 {
                     m.message.Id = response.Item1;
@@ -326,7 +328,7 @@ internal partial class MainViewModel : ViewModelBase
             profileState.Name = self.Name ?? string.Empty;
             profileState.Username = self.Username ?? string.Empty;
             profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(self.Photo);
-            List<ChatDTO> chatDTOs = await jsonClient.FetchChats();
+            List<ChatDTO> chatDTOs = await jsonClient.FetchChats();    
             foreach (ChatDTO chatDTO in chatDTOs)
             {
                 ChatModel chat = ConvertChat(chatDTO);

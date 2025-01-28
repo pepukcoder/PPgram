@@ -64,10 +64,9 @@ internal abstract partial class ChatModel : ObservableObject
     [ObservableProperty]
     private ChatStatus status;
 
-    public int Id { get; set; }
+    public int Id { get; set; } = -1;
     public bool Searched { get; set; }
     private bool draftThrottle;
-    private int draftRequests = 0;
     private readonly ReplyModel reply = new();
     private readonly DispatcherTimer draft_timer;
     private readonly DispatcherTimer unload_timer;
@@ -79,8 +78,8 @@ internal abstract partial class ChatModel : ObservableObject
         unload_timer = new() { Interval = TimeSpan.FromSeconds(appState.MessagesUnloadTime) };
         unload_timer.Tick += (s, e) => UnloadMessages();
         // draft request delay timer
-        draft_timer = new() { Interval = TimeSpan.FromSeconds(1) };
-        draft_timer.Tick += (s, e) => { draftThrottle = false; draftRequests = 0; };
+        draft_timer = new() { Interval = TimeSpan.FromMilliseconds(200) };
+        draft_timer.Tick += (s, e) => { draftThrottle = false;};
         draft_timer.Start();
     }
     protected abstract void UpdateLastMessage();
@@ -101,10 +100,10 @@ internal abstract partial class ChatModel : ObservableObject
     }
     partial void OnMessageInputChanged(string value)
     {
-        if (!Searched && !String.IsNullOrEmpty(value.Trim()) && value.Length <= 2500 && !draftThrottle && draftRequests < 5)
+        if (!Searched && !String.IsNullOrEmpty(value.Trim()) && value.Length <= 2500 && !draftThrottle)
         {
             WeakReferenceMessenger.Default.Send(new Msg_SendDraft { draft = MessageInput.Trim(), chat_id = Id });
-            draftRequests++;
+            draftThrottle = true;
         }
     }
     public void AttachFiles(List<FileModel> files)

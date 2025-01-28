@@ -19,7 +19,7 @@ internal class JsonClient
     private NetworkStream? stream;
     private CancellationTokenSource cts = new();
     private readonly ConcurrentQueue<object> requests = [];
-    private readonly Mutex mutex = new();
+    private readonly SemaphoreSlim semaphore = new(1, 1);
     public async Task<bool> Connect(ConnectionOptions options)
     {
         try
@@ -35,6 +35,9 @@ internal class JsonClient
         }
         catch { return false; }
     }
+    /// <summary>
+    /// Listens for server response in a loop, handles recieved response in dedicated task
+    /// </summary>
     private void Listen(CancellationToken ct)
     {
         TcpConnection connection = new();
@@ -52,6 +55,9 @@ internal class JsonClient
             catch { Disconnect(); }
         }
     }
+    /// <summary>
+    /// Disconnects from server and resets client socket and requests
+    /// </summary>
     public void Disconnect()
     {
         if (client?.Client.Connected == true) client?.Client.Disconnect(false);
@@ -60,17 +66,34 @@ internal class JsonClient
         client = null;
         cts = new();
     }
-    private void Send(object data, object tcs)
+    /// <summary>
+    /// Sends serialized json to server
+    /// </summary>
+    /// <param name="data">Serializable request payload</param>
+    /// <returns></returns>
+    private async Task Send(object data)
     {
-        mutex.WaitOne();
+        semaphore.Wait();
         try
         {
-            requests.Enqueue(tcs);
             string request = JsonSerializer.Serialize(data);
-            stream?.Write(TcpConnection.BuildJsonRequest(request));
+            if (stream == null) return;
+            await stream.WriteAsync(TcpConnection.BuildJsonRequest(request));
         }
         catch { Disconnect(); }
-        finally { mutex.ReleaseMutex(); }
+        finally { semaphore.Release(); }
+    }
+    /// <summary>
+    /// Sends serialized json to server and enqueues tcs into request queue
+    /// </summary>
+    /// <param name="data">Serializable request payload</param>
+    /// <param name="tcs"></param>
+    /// <returns></returns>
+    private async Task SendQueue(object data, object tcs)
+    {
+        if (stream == null) return;
+        requests.Enqueue(tcs);
+        await Send(data);
     }
     public async Task<bool> Auth(string session_id, int user_id)
     {
@@ -81,7 +104,7 @@ internal class JsonClient
             session_id,
         };
         TaskCompletionSource<bool> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<AuthDTO> Login(string username, string password)
@@ -93,7 +116,7 @@ internal class JsonClient
             password
         };
         TaskCompletionSource<AuthDTO> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<AuthDTO> Register(string username, string name, string password)
@@ -106,7 +129,7 @@ internal class JsonClient
             password
         };
         TaskCompletionSource<AuthDTO> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> CheckUsername(string username)
@@ -118,7 +141,7 @@ internal class JsonClient
             data = username
         };
         TaskCompletionSource<bool> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<ProfileDTO> FetchSelf()
@@ -129,7 +152,7 @@ internal class JsonClient
             what = "self"
         };
         TaskCompletionSource<ProfileDTO> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<List<ChatDTO>> FetchChats()
@@ -140,7 +163,7 @@ internal class JsonClient
             what = "chats"
         };
         TaskCompletionSource<List<ChatDTO>> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<List<ChatDTO>> FetchUsers(string query)
@@ -152,7 +175,7 @@ internal class JsonClient
             query
         };
         TaskCompletionSource<List<ChatDTO>> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<List<MessageDTO>> FetchMessages(int id, int[] range)
@@ -165,7 +188,7 @@ internal class JsonClient
             range
         };
         TaskCompletionSource<List<MessageDTO>> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<(int, int)> SendMessage(int to, int? reply_to, string text, List<string> hashes)
@@ -182,7 +205,7 @@ internal class JsonClient
             to
         };
         TaskCompletionSource<(int, int)> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> EditMessage(int chat_id, int message_id, string new_text)
@@ -196,7 +219,7 @@ internal class JsonClient
             message_id
         };
         TaskCompletionSource<bool> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> DeleteMessage(int chat_id, int message_id)
@@ -209,7 +232,7 @@ internal class JsonClient
             message_ids = new int[] { message_id }
         };
         TaskCompletionSource<bool> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> SendDraft(int chat_id, string draft)
@@ -222,7 +245,7 @@ internal class JsonClient
             draft
         };
         TaskCompletionSource<bool> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<int> SendRead(int chat_id, int[] message_ids)
@@ -235,7 +258,7 @@ internal class JsonClient
             message_ids
         };
         TaskCompletionSource<int> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<ChatDTO> CreateGroup(string name, string username, string avatar_hash)
@@ -249,7 +272,7 @@ internal class JsonClient
             avatar_hash
         };
         TaskCompletionSource<ChatDTO> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> DeleteChat(int chat_id)
@@ -261,7 +284,7 @@ internal class JsonClient
             chat_id
         };
         TaskCompletionSource<bool> tcs = new();
-        Send(payload, tcs);
+        await SendQueue(payload, tcs);
         return await tcs.Task;
     }
     private void HandleResponse(string response)
@@ -274,12 +297,14 @@ internal class JsonClient
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
         // parse specific fields
-        if (r_method != null && requests.TryDequeue(out object? tcs))
+        if (r_method != null)
         {
+            Debug.WriteLine($"before: {requests.Count}");
             switch (r_method)
             {
                 case "login":
                 case "register":
+                    requests.TryDequeue(out object? tcs);
                     if (tcs is TaskCompletionSource<AuthDTO> login_tcs)
                     {
                         AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
@@ -288,6 +313,7 @@ internal class JsonClient
                     }
                     break;
                 case "auth":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<bool> auth_tcs)
                     {
                         if (ok != null) auth_tcs.SetResult(ok == true);
@@ -295,6 +321,7 @@ internal class JsonClient
                     }
                     break;
                 case "check_username":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<bool> check_tcs)
                     {
                         if (ok != null) check_tcs.SetResult(ok != true);
@@ -302,6 +329,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_self":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs)
                     {
                         ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
@@ -310,6 +338,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_chats":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs)
                     {
                         JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
@@ -327,6 +356,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_users":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs)
                     {
                         JsonArray? usersJson = rootNode?["users"]?.AsArray();
@@ -348,6 +378,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_messages":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs)
                     {
                         JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
@@ -365,6 +396,7 @@ internal class JsonClient
                     }
                     break;
                 case "send_message":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<(int, int)> msg_tcs)
                     {
                         int? messageId = rootNode?["message_id"]?.GetValue<int>();
@@ -374,6 +406,7 @@ internal class JsonClient
                     }
                     break;
                 case "edit_draft":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<bool> editdraft_tcs)
                     {
                         if (ok != null) editdraft_tcs.SetResult(ok == true);
@@ -381,6 +414,7 @@ internal class JsonClient
                     }
                     break;
                 case "edit_is_unread":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<int> editread_tcs)
                     {
                         int? chatId = rootNode?["chat_id"]?.GetValue<int>();
@@ -389,6 +423,7 @@ internal class JsonClient
                     }
                     break;
                 case "new_group":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs)
                     {
                         ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
@@ -397,6 +432,7 @@ internal class JsonClient
                     }
                     break;
                 case "delete_chat":
+                    requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<bool> deletechat_tcs)
                     {
                         if (ok != null) deletechat_tcs.SetResult(ok == true);
@@ -404,6 +440,7 @@ internal class JsonClient
                     }
                     break;
             }
+            Debug.WriteLine($"after: {requests.Count}");
         }
         // parse events
         if (r_event != null)

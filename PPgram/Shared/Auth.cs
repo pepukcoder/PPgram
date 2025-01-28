@@ -1,8 +1,5 @@
 namespace PPgram.Shared;
 
-class Msg_ToReg;
-class Msg_ToLogin;
-class Msg_Logout;
 class Msg_Auth
 {
     public string username = string.Empty;
