@@ -299,7 +299,6 @@ internal class JsonClient
         // parse specific fields
         if (r_method != null)
         {
-            Debug.WriteLine($"before: {requests.Count}");
             switch (r_method)
             {
                 case "login":
@@ -440,7 +439,6 @@ internal class JsonClient
                     }
                     break;
             }
-            Debug.WriteLine($"after: {requests.Count}");
         }
         // parse events
         if (r_event != null)

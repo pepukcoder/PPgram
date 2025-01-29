@@ -62,7 +62,7 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_OpenPreviewer>(this, (r, m) => MediaPreviewer.Open(m.content, m.file));
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
-        WeakReferenceMessenger.Default.Register<Msg_ToSettings>(this, (r, m) => CurrentPage = settings_vm);
+        WeakReferenceMessenger.Default.Register<Msg_ToSettings>(this, (r, m) => { settings_vm.Update(); CurrentPage = settings_vm; });
         WeakReferenceMessenger.Default.Register<Msg_ToChat>(this, (r, m) => CurrentPage = chat_vm);
         WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) =>
         {
