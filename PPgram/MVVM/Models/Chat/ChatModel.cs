@@ -231,10 +231,10 @@ internal abstract partial class ChatModel : ObservableObject
             SecondaryVisible = true;
             InEdit = false;
             InReply = true;
-            reply.Name = message.Sender.Name;
+            reply.Sender = message.Sender;
             if (message.Content is TextContentModel tc) reply.Text = tc.Text;
             else if (message.Content is FileContentModel fc) reply.Text = $"{fc.Files.Count} File(s)";
-            SecondaryHeader = $"Reply to {reply.Name}";
+            SecondaryHeader = $"Reply to {reply.Sender.Name}";
             SecondaryText = reply.Text;
         }
     }

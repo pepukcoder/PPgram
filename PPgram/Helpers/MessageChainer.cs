@@ -121,7 +121,7 @@ internal static class MessageChainer
         else text = string.Empty;
         message.Reply = new()
         {
-            Name = origin.Sender.Name,
+            Sender = origin.Sender,
             Text = text
         };
     }

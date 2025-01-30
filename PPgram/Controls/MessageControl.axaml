@@ -32,7 +32,7 @@
 						</Ellipse>
 						<Border x:Name="PART_Back" Grid.Column="1" CornerRadius="5 15 15 5" Background="{StaticResource Surface}" Padding="10,10,0,0" HorizontalAlignment="Left">
 							<StackPanel Orientation="Vertical">
-								<Button x:Name="PART_Sender" Theme="{StaticResource ButtonText}" IsVisible="False" Foreground="{Binding Sender.Color Converter={StaticResource UCConvert}}" Margin="0,0,10,3">
+								<Button x:Name="PART_Sender" Theme="{StaticResource ButtonText}" IsVisible="False" Foreground="{Binding Sender.Color, Converter={StaticResource UCConvert}}" Margin="0,0,10,3">
 									<TextBlock Text="{Binding Sender.Name}" FontWeight="Medium"/>
 								</Button>
 								<c:ReplyControl DataContext="{Binding Reply}" Margin="0,0,10,3" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
