@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
+using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Message;
 using PPgram.MVVM.Models.MessageContent;
 using PPgram.MVVM.Models.User;
@@ -42,6 +43,10 @@ internal partial class SettingsViewModel : ViewModelBase
         PreviewMessage.Reply.Text = "Your previous message";
         PreviewMessage.Role = MessageRole.GroupFirst;
         PreviewMessage.Content = new TextContentModel { Text = "Selected color will be applied to your name and replies to your messages" };
+    }
+    public void SetAvatar(PhotoModel photo)
+    {
+        Profile.Avatar = photo.Preview ?? Profile.Avatar;
     }
     [RelayCommand]
     private void Save()

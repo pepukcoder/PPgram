@@ -17,7 +17,7 @@
 			<Rectangle Opacity="0.1" Fill="{Binding Sender.Color, Converter={StaticResource UCConvert}}"/>
 			<Rectangle Opacity="1" Fill="{Binding Sender.Color, Converter={StaticResource UCConvert}}" Width="3" HorizontalAlignment="Left"/>
 			<StackPanel Orientation="Vertical" Margin="10,3">
-				<TextBlock FontWeight="Medium" Text="{Binding Sender.Name}" Foreground="{Binding Sender.Color, Converter={StaticResource UCConvert}}" Margin="0,0,0,2"/>
+				<TextBlock FontWeight="Medium" Text="{Binding Sender.Name}" TextTrimming="CharacterEllipsis" Foreground="{Binding Sender.Color, Converter={StaticResource UCConvert}}" Margin="0,0,0,2"/>
 				<TextBlock FontWeight="Light" Text="{Binding Text}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource PrimaryText}"/>
 			</StackPanel>
 		</Panel>

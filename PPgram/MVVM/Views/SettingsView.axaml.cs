@@ -15,6 +15,7 @@ public partial class SettingsView : UserControl
     public SettingsView()
     {
         InitializeComponent();
+        picbtn.AddHandler(PointerPressedEvent, OpenFileDialog, RoutingStrategies.Tunnel);
     }
     private async void OpenFileDialog(object? sender, RoutedEventArgs args)
     {
@@ -38,7 +39,7 @@ public partial class SettingsView : UserControl
                     Size = new FileInfo(absolutePath).Length,
                     Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(150, 150), BitmapInterpolationMode.MediumQuality)
                 };
-                
+                settings_vm.SetAvatar(photo);
                 break;
             }
         }

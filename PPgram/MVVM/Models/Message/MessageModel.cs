@@ -22,7 +22,6 @@ partial class MessageModel : ChatItem
     public int? ReplyTo { get; set; }
     public ProfileModel Sender { get; set; } = new();
     public ReplyModel Reply { get; set; } = new();
-    public Bitmap Avatar { get; set; } = new(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
 
     [ObservableProperty]
     private MessageContentModel content = new TextContentModel();
