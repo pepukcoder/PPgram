@@ -10,17 +10,58 @@
 
 	<Application.Resources>
 		<ResourceDictionary>
-			<SolidColorBrush x:Key="UserColor0">#CFCFCF</SolidColorBrush>
-			<SolidColorBrush x:Key="UserColor1">#85E9FF</SolidColorBrush>		
-			<SolidColorBrush x:Key="UserColor2">#CC85FF</SolidColorBrush>
-			<SolidColorBrush x:Key="UserColor3">#85A5FF</SolidColorBrush>
-			<SolidColorBrush x:Key="UserColor4">#FF337A</SolidColorBrush>
-			<SolidColorBrush x:Key="UserColor5">#FFA333</SolidColorBrush>
-			<SolidColorBrush x:Key="UserColor6">#B4E600</SolidColorBrush>
-			
+			<!--Fallback user color-->
+			<SolidColorBrush x:Key="UserColor0" Color="#CFCFCF"/>
+			<!--Standart user colors-->
+			<SolidColorBrush x:Key="UserColor1" Color="#FF5C95"/>
+			<SolidColorBrush x:Key="UserColor2" Color="#CC85FF"/>	
+			<SolidColorBrush x:Key="UserColor3" Color="#85E9FF"/>	
+			<SolidColorBrush x:Key="UserColor4" Color="#7AFF5C"/>	
+			<SolidColorBrush x:Key="UserColor5" Color="#FFF647"/>	
+			<SolidColorBrush x:Key="UserColor6" Color="#FFA333"/>	
+			<SolidColorBrush x:Key="UserColor7" Color="#FF4040"/>	
+			<!--Additional user colors-->
+			<SolidColorBrush x:Key="UserColor8" Color="#FF5C95"/>
+			<SolidColorBrush x:Key="UserColor9" Color="#CC85FF"/>	
+			<SolidColorBrush x:Key="UserColor10" Color="#85E9FF"/>	
+			<SolidColorBrush x:Key="UserColor11" Color="#7AFF5C"/>	
+			<SolidColorBrush x:Key="UserColor12" Color="#FFF647"/>	
+			<SolidColorBrush x:Key="UserColor13" Color="#FFA333"/>	
+			<SolidColorBrush x:Key="UserColor14" Color="#FF4040"/>	
+			<!--Gradient user colors-->
+			<LinearGradientBrush x:Key="UserColor15" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#FF5C95" Offset="0.0"/>
+    			<GradientStop Color="#FF337A" Offset="1.0"/>
+			</LinearGradientBrush>
+			<LinearGradientBrush x:Key="UserColor16" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#CC85FF" Offset="0.0"/>
+    			<GradientStop Color="#B247FF" Offset="1.0"/>
+			</LinearGradientBrush>
+			<LinearGradientBrush x:Key="UserColor17" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#85E9FF" Offset="0.0"/>
+    			<GradientStop Color="#1FD6FF" Offset="1.0"/>
+			</LinearGradientBrush>
+			<LinearGradientBrush x:Key="UserColor18" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#7AFF5C" Offset="0.0"/>
+    			<GradientStop Color="#37FF0A" Offset="1.0"/>
+			</LinearGradientBrush>
+			<LinearGradientBrush x:Key="UserColor19" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#FFF647" Offset="0.0"/>
+    			<GradientStop Color="#F5E900" Offset="1.0"/>
+			</LinearGradientBrush>
+			<LinearGradientBrush x:Key="UserColor20" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#FFA333" Offset="0.0"/>
+    			<GradientStop Color="#F58700" Offset="1.0"/>
+			</LinearGradientBrush>
+			<LinearGradientBrush x:Key="UserColor21" StartPoint="0%,0%" EndPoint="0%,100%">
+    			<GradientStop Color="#FF4040" Offset="0.0"/>
+    			<GradientStop Color="#FF1F1F" Offset="1.0"/>
+			</LinearGradientBrush>
+			<!--Fonts-->
 			<FontFamily x:Key="Montserrat">/Fonts#Montserrat</FontFamily>
 			<FontFamily x:Key="Roboto">/Fonts#Roboto</FontFamily>
 			<FontFamily x:Key="Mono">/Fonts#Roboto Mono</FontFamily>
+			<!--Control themes-->
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceInclude Source="/Styles/ThemeColors.axaml"/>
 				<ResourceInclude Source="/Styles/Button.axaml"/>
@@ -32,15 +73,12 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</Application.Resources>
-	
     <Application.Styles>
 		<SimpleTheme/>
+		<materialIcons:MaterialIconStyles/>
 		<StyleInclude Source="/Styles/ListThemes.axaml"/>
 		<StyleInclude Source="/Styles/TabControl.axaml"/>
 		<StyleInclude Source="/Styles/Menu.axaml"/>
 		<StyleInclude Source="/Styles/Spinner.axaml"/>
-		<materialIcons:MaterialIconStyles/>
 	</Application.Styles>
-
-	
 </Application>

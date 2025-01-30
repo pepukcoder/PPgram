@@ -78,20 +78,21 @@
 					<TextBlock Text="Profile color" FontWeight="Medium" DockPanel.Dock="Top"/>
 					<TextBlock Text="Choose your profile accent color" Foreground="{StaticResource SecondaryText}" Margin="0,0,0,10"/>
 					<ListBox BorderThickness="0" Padding="0" Background="Transparent" ItemsSource="{Binding Colors}"
+							 HorizontalAlignment="Left"
 							 ScrollViewer.VerticalScrollBarVisibility="Disabled"
 							 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-							 SelectedItem="{Binding Profile.Color}" Margin="0,0,0,10">
+							 SelectedItem="{Binding Profile.Color}">
 						<ListBox.ItemsPanel>
 							<ItemsPanelTemplate>
-								<StackPanel Orientation="Horizontal" Spacing="10"/>
+								<UniformGrid Columns="7" Rows="3"/>
 							</ItemsPanelTemplate>
 						</ListBox.ItemsPanel>
 						<ListBox.ItemTemplate>
 							<DataTemplate>
-								<Panel Width="30" Height="30">
-									<Ellipse Fill="{Binding ., Converter={StaticResource ColorC}}" Width="30" Height="30"/>
+								<Panel Width="32" Height="32" Margin="0,0,10,10">
+									<Ellipse Fill="{Binding ., Converter={StaticResource ColorC}}" Width="32" Height="32"/>
 									<Ellipse x:Name="Selector" Stroke="{StaticResource Surface}" Fill="{Binding ., Converter={StaticResource ColorC}}"
-											 Width="26" Height="26" VerticalAlignment="Center" HorizontalAlignment="Center" StrokeThickness="2"/>
+											 Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center" StrokeThickness="2"/>
 								</Panel>
     						</DataTemplate>
 						</ListBox.ItemTemplate>
@@ -104,11 +105,12 @@
 							</Style>
 						</ListBox.Styles>
 					</ListBox>
-					<Border CornerRadius="10" Background="{StaticResource BackgroundWindow}" Padding="10">
+					<Border Grid.Row="1" CornerRadius="10" Background="{StaticResource BackgroundWindow}" Padding="10">
 						<StackPanel Orientation="Vertical">
 							<c:MessageControl DataContext="{Binding PreviewMessage}"/>
 						</StackPanel>
 					</Border>
+					<Border Height="1" Background="{StaticResource Panel}" Margin="0,10"/>
 				</StackPanel>
 			</TabItem>
 			<!--Chats-->

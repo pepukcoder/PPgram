@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -27,7 +28,7 @@ internal partial class SettingsViewModel : ViewModelBase
     public SettingsViewModel()
     {
         // assign default values
-        Colors = [0,1,2,3,4,5,6];
+        Colors = [.. Enumerable.Range(1, 21)];
         Profile = new();
         PreviewMessage = new();
     }
