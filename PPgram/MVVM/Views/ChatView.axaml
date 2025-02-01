@@ -127,7 +127,7 @@
 					<DockPanel Margin="5">
 						<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
 							<Ellipse.Fill>
-								<ImageBrush Source="{Binding ProfileState.Avatar}"/>
+								<ImageBrush Source="{Binding ProfileState.Avatar.Preview}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding LogoutCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">

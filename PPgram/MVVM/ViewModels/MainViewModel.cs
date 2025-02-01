@@ -1,5 +1,6 @@
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -24,6 +25,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -128,7 +130,7 @@ internal partial class MainViewModel : ViewModelBase
                 ObservableCollection<ChatModel> results = [];
                 foreach (ChatDTO dto in dtos)
                 {
-                    ChatModel model = ConvertChat(dto);
+                    ChatModel model = await ConvertChat(dto);
                     model.Searched = true;
                     results.Add(model);
                 }
@@ -246,7 +248,7 @@ internal partial class MainViewModel : ViewModelBase
             try 
             { 
                 ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
-                chat_vm.AddChat(ConvertChat(chatDTO));
+                chat_vm.AddChat(await ConvertChat(chatDTO));
             }
             catch (Exception ex)
             {
@@ -276,10 +278,22 @@ internal partial class MainViewModel : ViewModelBase
                 WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
             }
         });
-        // chat events
-        WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, (r, m) =>
+        WeakReferenceMessenger.Default.Register<Msg_EditSelf>(this, async (r, m) =>
         {
-            if (m.chat != null) chat_vm.AddChat(ConvertChat(m.chat));
+            try
+            {
+                if (m.avatarChanged) await UploadFile(m.profile.Avatar);
+                await jsonClient.EditSelf(m.profile);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
+        });
+        // chat events
+        WeakReferenceMessenger.Default.Register<Msg_NewChatEvent>(this, async(r, m) =>
+        {
+            if (m.chat != null) chat_vm.AddChat(await ConvertChat(m.chat));
         });
         WeakReferenceMessenger.Default.Register<Msg_NewMessageEvent>(this, async (r, m) =>
         {
@@ -321,11 +335,12 @@ internal partial class MainViewModel : ViewModelBase
             profileState.UserId = self.Id ?? 0;
             profileState.Name = self.Name ?? string.Empty;
             profileState.Username = self.Username ?? string.Empty;
-            profileState.Avatar = Base64ToBitmapConverter.ConvertBase64(self.Photo);
+            profileState.Avatar = await DownloadAvatar(self.Photo);
+            PhotoModel avatar = new() { Hash = self.Photo };
             List<ChatDTO> chatDTOs = await jsonClient.FetchChats();    
             foreach (ChatDTO chatDTO in chatDTOs)
             {
-                ChatModel chat = ConvertChat(chatDTO);
+                ChatModel chat = await ConvertChat(chatDTO);
                 chat_vm.AddChat(chat);
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(chat.Id, [-1, -1 * (PPAppState.MessagesFetchMinimum - 1)]);
                 List<MessageModel> messages = [];
@@ -418,13 +433,13 @@ internal partial class MainViewModel : ViewModelBase
         }
         return message;
     }
-    private static ChatModel ConvertChat(ChatDTO chatDTO)
+    private async Task<ChatModel> ConvertChat(ChatDTO chatDTO)
     {
         ProfileModel profile = new()
         {
             Name = chatDTO.Name ?? string.Empty,
             Username = chatDTO.Username ?? string.Empty,
-            Avatar = Base64ToBitmapConverter.ConvertBase64(chatDTO.Photo)
+            Avatar = await DownloadAvatar(chatDTO.Photo)
         };
         if (chatDTO.IsGroup == true)
         {
@@ -521,6 +536,32 @@ internal partial class MainViewModel : ViewModelBase
             file.Path = file_path;
             file.Status = FileStatus.Loaded;
         }
+    }
+    private async Task<PhotoModel> DownloadAvatar(string? hash)
+    {
+        PhotoModel photo = new();
+        if (hash == null)
+        {
+            photo.Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
+            return photo;
+        }
+        if (!CacheManager.IsCached(hash))
+        {
+            (_, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.media_only);
+            if (temp_file == null)
+            {
+                photo.Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
+                return photo;
+            }
+            CacheManager.CacheAvatar(hash, temp_file);  
+        }
+        string? path = CacheManager.GetCachedAvatar(hash);
+        if (path != null)
+        {
+            photo.Path = path;
+            photo.Preview = new(path);
+        }
+        return photo;
     }
     private void ShowDialog(Dialog dialog, int time)
     {

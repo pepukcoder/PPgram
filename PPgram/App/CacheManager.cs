@@ -80,6 +80,23 @@ internal static class CacheManager
         command.Parameters.AddWithValue("$preview_path", preview_path ?? (object)DBNull.Value);
         command.ExecuteNonQuery();
     }
+    public static void CacheAvatar(string hash, string temp_file_path)
+    {
+        string file_path = Path.Combine(PPPath.AvatarCacheFolder, Path.ChangeExtension(Path.GetRandomFileName(), "ppavtr"));
+        FSManager.RestoreDirs(file_path);
+        File.Move(temp_file_path, file_path, true);
+        string query = @"
+        INSERT INTO avatars (hash,file_path)
+        VALUES ($hash,$file_path)
+        ON CONFLICT(hash) DO UPDATE SET
+        file_path = COALESCE(avatars.file_path, excluded.file_path);";
+        using SQLiteConnection connection = Init();
+        connection.Open();
+        using SQLiteCommand command = new(query, connection);
+        command.Parameters.AddWithValue("$hash", hash);
+        command.Parameters.AddWithValue("$file_path", file_path);
+        command.ExecuteNonQuery();
+    }
     public static string? GetCachedFile(string hash, bool preview = false)
     {
         string query = preview ?

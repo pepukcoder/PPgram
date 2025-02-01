@@ -35,7 +35,7 @@
 						<Button x:Name="picbtn" Theme="{StaticResource ButtonText}" HorizontalAlignment="Center" Margin="0,0,10,0" DockPanel.Dock="Left">
 							<Ellipse Height="50" Width="50">
 								<Ellipse.Fill>
-									<ImageBrush Source="{Binding Profile.Avatar}"/>
+									<ImageBrush Source="{Binding Profile.Avatar.Preview}"/>
 								</Ellipse.Fill>
 							</Ellipse>
 						</Button>

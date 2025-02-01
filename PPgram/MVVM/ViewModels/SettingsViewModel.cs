@@ -22,6 +22,7 @@ internal partial class SettingsViewModel : ViewModelBase
 
     private readonly AppState settings = AppState.Instance;
     private readonly ProfileState profileState = ProfileState.Instance;
+    private bool avatarChanged;
     public SettingsViewModel()
     {
         // assign default values
@@ -33,6 +34,7 @@ internal partial class SettingsViewModel : ViewModelBase
     {
         // get current state values
         Profile = profileState;
+        avatarChanged = false;
         // update message preview
         PreviewMessage.Sender = Profile;
         PreviewMessage.Reply.Sender = Profile;
@@ -42,12 +44,17 @@ internal partial class SettingsViewModel : ViewModelBase
     }
     public void SetAvatar(PhotoModel photo)
     {
-        Profile.Avatar = photo.Preview ?? Profile.Avatar;
+        Profile.Avatar = photo;
+        avatarChanged = true;
     }
     [RelayCommand]
     private void SaveProfile()
     {
-        // send updated profile to server && save app settings to FS
+        WeakReferenceMessenger.Default.Send(new Msg_EditSelf
+        {
+            profile = Profile,
+            avatarChanged = avatarChanged
+        });
     }
     [RelayCommand]
     private static void Close() => WeakReferenceMessenger.Default.Send(new Msg_ToChat());

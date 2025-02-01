@@ -27,7 +27,7 @@
 					<Grid ColumnDefinitions="Auto,*">
 						<Ellipse x:Name="PART_Avatar" Grid.Column="0" IsVisible="False" VerticalAlignment="Top" Width="35" Height="35" Margin="0,0,10,0">
 							<Ellipse.Fill>
-								<ImageBrush Source="{Binding Sender.Avatar}"/>
+								<ImageBrush Source="{Binding Sender.Avatar.Preview}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 						<Border x:Name="PART_Back" Grid.Column="1" CornerRadius="5 15 15 5" Background="{StaticResource Surface}" Padding="10,10,0,0" HorizontalAlignment="Left">

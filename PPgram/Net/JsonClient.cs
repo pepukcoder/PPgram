@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using PPgram.MVVM.Models.User;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
@@ -139,6 +140,20 @@ internal class JsonClient
             method = "check",
             what = "username",
             data = username
+        };
+        TaskCompletionSource<bool> tcs = new();
+        await SendQueue(payload, tcs);
+        return await tcs.Task;
+    }
+    public async Task<bool> EditSelf(ProfileModel profile)
+    {
+        var payload = new
+        {
+            method = "edit",
+            what = "self",
+            name = profile.Name,
+            photo = profile.Avatar.Hash,
+            profile_color = profile.Color,
         };
         TaskCompletionSource<bool> tcs = new();
         await SendQueue(payload, tcs);
@@ -419,6 +434,14 @@ internal class JsonClient
                         int? chatId = rootNode?["chat_id"]?.GetValue<int>();
                         if (ok == true && chatId != null) editread_tcs.SetResult(chatId ?? -1);
                         else editread_tcs.SetException(new Exception(r_error ?? "Read message failed"));
+                    }
+                    break;
+                case "edit_self":
+                    requests.TryDequeue(out tcs);
+                    if (tcs is TaskCompletionSource<bool> editself_tcs)
+                    {
+                        if (ok != null) editself_tcs.SetResult(ok == true);
+                        else editself_tcs.SetException(new Exception(r_error ?? "Edit profile failed"));
                     }
                     break;
                 case "new_group":
