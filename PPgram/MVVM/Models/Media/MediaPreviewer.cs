@@ -43,6 +43,7 @@ internal partial class MediaPreviewer : ObservableObject
         CurrentFile = file;
         Index = CurrentFiles.IndexOf(CurrentFile) + 1;
         Photo = new(CurrentFile.Path);
+        Reset();
         Visible = true;
     }
     private void MoveToIndex(int index)

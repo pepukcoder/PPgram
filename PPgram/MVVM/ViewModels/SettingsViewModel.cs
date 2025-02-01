@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
+﻿using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -49,7 +45,7 @@ internal partial class SettingsViewModel : ViewModelBase
         Profile.Avatar = photo.Preview ?? Profile.Avatar;
     }
     [RelayCommand]
-    private void Save()
+    private void SaveProfile()
     {
         // send updated profile to server && save app settings to FS
     }

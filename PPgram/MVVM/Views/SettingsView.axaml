@@ -22,10 +22,6 @@
 				<icons:MaterialIcon Kind="ArrowLeft" Height="24" Width="24"/>
 			</Button>
 			<TextBlock Text="Settings" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-			<Button Theme="{StaticResource ButtonRegular}" VerticalAlignment="Center" HorizontalAlignment="Right"
-				Command="{Binding SaveCommand}">
-				<TextBlock Text="Save" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-			</Button>
 		</Panel>
 		<TabControl Grid.Row="1">
 			<!--General-->
@@ -35,27 +31,31 @@
 			<!--Profile-->
 			<TabItem Header="Profile">
 				<StackPanel Orientation="Vertical">
-					<StackPanel Orientation="Horizontal">
-						<Button x:Name="picbtn" Theme="{StaticResource ButtonText}" HorizontalAlignment="Center" Margin="0,0,10,0">
+					<DockPanel>
+						<Button x:Name="picbtn" Theme="{StaticResource ButtonText}" HorizontalAlignment="Center" Margin="0,0,10,0" DockPanel.Dock="Left">
 							<Ellipse Height="50" Width="50">
 								<Ellipse.Fill>
 									<ImageBrush Source="{Binding Profile.Avatar}"/>
 								</Ellipse.Fill>
 							</Ellipse>
 						</Button>
+						<Button Theme="{StaticResource ButtonRegular}" VerticalAlignment="Center" HorizontalAlignment="Right" DockPanel.Dock="Right"
+							Command="{Binding SaveProfileCommand}">
+							<TextBlock Text="Save" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+						</Button>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 							<TextBlock Text="Profile picture" FontWeight="Medium" DockPanel.Dock="Top"/>
 							<TextBlock Text="Click on the picture to select a new one" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
-					</StackPanel>
+					</DockPanel>
 					<Border Height="1" Background="{StaticResource Panel}" Margin="0,10"/>
 					<Grid ColumnDefinitions="*,*" Margin="0,0,0,10">
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,0,10,0">
 							<TextBlock Text="Display name" FontWeight="Medium" DockPanel.Dock="Top"/>
 							<TextBlock Text="It is visible in your chats" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
-						<Border Grid.Column="1" Padding="5" Background="{StaticResource BackgroundWindow}" CornerRadius="10" 
-								BorderThickness="1" BorderBrush="{StaticResource Panel}">
+						<Border Grid.Column="1" Width="260" Padding="5" Background="{StaticResource BackgroundWindow}" CornerRadius="10" 
+								BorderThickness="1" BorderBrush="{StaticResource Panel}" HorizontalAlignment="Right">
 							<TextBox Background="Transparent" BorderThickness="0"
 									CaretBrush="White" SelectionBrush="{StaticResource Selection}"
 									FontFamily="{StaticResource Mono}" FontWeight="Light"
@@ -69,8 +69,8 @@
 							<TextBlock Text="Username" FontWeight="Medium" DockPanel.Dock="Top"/>
 							<TextBlock Text="Your profile login" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
-						<Border Grid.Column="1" Padding="5" Background="{StaticResource Surface}" CornerRadius="10" 
-								BorderThickness="1" BorderBrush="{StaticResource Panel}">
+						<Border Grid.Column="1" Width="260" Padding="5" Background="{StaticResource Surface}" CornerRadius="10" 
+								BorderThickness="1" BorderBrush="{StaticResource Panel}" HorizontalAlignment="Right">
 							<SelectableTextBlock Text="{Binding Profile.Username}" FontFamily="{StaticResource Mono}" FontWeight="Light"/>
 						</Border>
 					</Grid>
