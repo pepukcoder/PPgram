@@ -395,6 +395,7 @@ internal partial class MainViewModel : ViewModelBase
                 {
                     FileModel file = await DownloadMeta(hash);
                     files.Add(file);
+                    if (PPAppState.FilesAutoDownload && file.Size <= PPAppState.FilesAutoDownloadMaxSize && file.Status == FileStatus.NotLoaded) await DownloadFile(file);
                 }
                 catch (Exception ex)
                 {

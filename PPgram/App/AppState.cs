@@ -35,6 +35,16 @@ internal sealed partial class AppState : ObservableObject
     /// </summary>
     public int MessagesFetchDelay { get; set; } = 200;
     #endregion
+    #region files
+    /// <summary>
+    /// Defines if client should auto download files
+    /// </summary>
+    public bool FilesAutoDownload { get; set; } = false;
+    /// <summary>
+    /// Defines maximum size for auto downloading files (in bytes)
+    /// </summary>
+    public int FilesAutoDownloadMaxSize { get; set; } = 50000;
+    #endregion
     /// <summary>
     /// Path to platform-specific downloads folder
     /// </summary>
