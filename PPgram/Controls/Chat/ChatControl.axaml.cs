@@ -122,15 +122,19 @@ public partial class ChatControl : UserControl
         }
         if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         // prefetch detection
-        int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
-        if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
+        if (this.DataContext is ChatModel chat && !chat.FetchedAllMessages)
         {
-            WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
+            int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
+            if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
             {
-                anchor = fetchedMessages.Last(),
-                index = upper_index,
-            });
-            fetchThrottle = true;
+                WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
+                {
+                    chat = chat,
+                    anchor = fetchedMessages.Last(),
+                    index = upper_index,
+                });
+                fetchThrottle = true;
+            }
         }
     }
 }

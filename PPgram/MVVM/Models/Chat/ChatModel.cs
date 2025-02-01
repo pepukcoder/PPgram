@@ -66,6 +66,7 @@ internal abstract partial class ChatModel : ObservableObject
 
     public int Id { get; set; } = -1;
     public bool Searched { get; set; }
+    public bool FetchedAllMessages { get; set; }
     private bool draftThrottle;
     private readonly ReplyModel reply = new();
     private readonly DispatcherTimer draft_timer;
