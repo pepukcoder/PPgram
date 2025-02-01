@@ -1,4 +1,5 @@
 using Avalonia.Layout;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -95,8 +96,8 @@ internal partial class MainViewModel : ViewModelBase
             AuthDTO auth;
             try
             {
-                if (!String.IsNullOrEmpty(m.name)) auth = await jsonClient.Register(m.username, m.name, m.password);
-                else auth = await jsonClient.Login(m.username, m.password);
+                if (!String.IsNullOrEmpty(m.name)) auth = await jsonClient.AuthRegister(m.username, m.name, m.password);
+                else auth = await jsonClient.AuthLogin(m.username, m.password);
                 FSManager.CreateFile(PPPath.SessionFile, JsonSerializer.Serialize(auth));
                 await LoadOnline();
             }
@@ -170,15 +171,7 @@ internal partial class MainViewModel : ViewModelBase
                 {
                     foreach (FileModel file in fc.Files)
                     {
-                        if (file is VideoModel video) file.Hash = await filesClient.UploadFile(video.Path, true, false);
-                        else if (file is PhotoModel photo) file.Hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
-                        else file.Hash = await filesClient.UploadFile(file.Path, false, false);
-                        if (file.Hash != null)
-                        {
-                            hashes.Add(file.Hash);
-                            file.Status = FileStatus.Loaded;
-                            // auto cache file
-                        }
+                        if (await UploadFile(file) && file.Hash != null) hashes.Add(file.Hash);
                     }
                 }
                 // get id from response and assign status
@@ -226,14 +219,21 @@ internal partial class MainViewModel : ViewModelBase
         });
         WeakReferenceMessenger.Default.Register<Msg_SendDraft>(this, async (r, m) =>
         {
-            await jsonClient.SendDraft(m.chat_id, m.draft);
+            try
+            { 
+                await jsonClient.SendDraft(m.chat_id, m.draft);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
         });
         WeakReferenceMessenger.Default.Register<Msg_SendRead>(this, async (r, m) =>
         {
             try
             {
                 int[] msg_ids = m.messages.Select(message => message.Id).ToArray();
-                await jsonClient.SendRead(m.messages.First().Chat, msg_ids);
+                await jsonClient.ReadMessage(m.messages.First().Chat, msg_ids);
             }
             catch (Exception ex)
             {
@@ -256,18 +256,11 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                if (m.file.Hash == null) throw new InvalidOperationException("Download file failed");
-                (string? preview_temp, string? file_temp) = await filesClient.DownloadFile(m.file.Hash, DownloadMode.media_only);
-                if (file_temp != null)
-                {
-                    CacheManager.CacheFile(m.file.Hash, m.file.Name, preview_temp, file_temp);
-                    string file_path = CacheManager.GetCachedFile(m.file.Hash) ?? throw new SQLiteException("Load cached file failed");
-                    m.file.Path = file_path;
-                    m.file.Status = FileStatus.Loaded;
-                }
+                await DownloadFile(m.file);
             }
             catch (Exception ex)
             {
+                m.file.Status = FileStatus.NotLoaded;
                 WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
             }
         });
@@ -366,18 +359,16 @@ internal partial class MainViewModel : ViewModelBase
         try
         {
             AuthDTO credentials = await FSManager.LoadFromJsonFile<AuthDTO>(PPPath.SessionFile);
-            return await jsonClient.Auth(credentials.SessionId ?? string.Empty, credentials.UserId ?? 0);
+            return await jsonClient.AuthSession(credentials.SessionId ?? string.Empty, credentials.UserId ?? 0);
         }
         catch
         {
-            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = "Auto authentification failed" }, time = 3 });
             File.Delete(PPPath.SessionFile);
             return false;
         }
     }
     private async Task<bool> ConnectToServer()
     {
-        // try load settings
         if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateJsonFile(PPPath.ConnectionFile, PPAppState.ConnectionOptions);
         try { PPAppState.ConnectionOptions = await FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
         catch { File.Delete(PPPath.ConnectionFile); }
@@ -385,99 +376,7 @@ internal partial class MainViewModel : ViewModelBase
     }
     private async Task<MessageModel> ConvertMessage(MessageDTO messageDTO)
     {
-        MessageContentModel content;
-        if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
-        {
-            ObservableCollection<FileModel> files = [];
-            foreach (string hash in messageDTO.MediaHashes)
-            {
-                try
-                {
-                    (string name, long size) = await filesClient.DownloadFileMetadata(hash);
-                    // assign model based on file extension
-                    string extension = Path.GetExtension(name);
-                    if (PPFileExtensions.VideoExtensions.Contains(extension))
-                    {
-                        VideoModel video = new()
-                        {
-                            Name = name,
-                            Size = size,
-                            Hash = hash,
-                        };
-                        if (!CacheManager.IsCached(hash))
-                        {
-                            (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
-                            CacheManager.CacheFile(hash, name, temp_preview, temp_file);
-                        }
-                        string? preview_path = CacheManager.GetCachedFile(hash, true);
-                        string? file_path = CacheManager.GetCachedFile(hash);
-                        if (preview_path != null) video.Preview = new(preview_path);
-                        if (file_path != null)
-                        {
-                            video.Path = new(file_path);
-                            video.Status = FileStatus.Loaded;
-                        }
-                        files.Add(video);
-                    }
-                    else if (PPFileExtensions.PhotoExtensions.Contains(extension))
-                    {
-                        PhotoModel photo = new()
-                        {
-                            Name = name,
-                            Size = size,
-                            Hash = hash,
-                        };
-                        if (!CacheManager.IsCached(hash))
-                        {
-                            (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
-                            CacheManager.CacheFile(hash, name, temp_preview, temp_file);
-                        }
-                        string? preview_path = CacheManager.GetCachedFile(hash, true);
-                        string? file_path = CacheManager.GetCachedFile(hash);
-                        if (preview_path != null) photo.Preview = new(preview_path);
-                        if (file_path != null)
-                        {
-                            photo.Path = new(file_path);
-                            photo.Status = FileStatus.Loaded;
-                        }
-                        files.Add(photo);
-                    }
-                    else
-                    {
-                        FileModel file = new()
-                        {
-                            Name = name,
-                            Size = size,
-                            Hash = hash,
-                        };
-                        string? file_path = CacheManager.GetCachedFile(hash);
-                        if (file_path != null)
-                        {
-                            file.Path = new(file_path);
-                            file.Status = FileStatus.Loaded;
-                        }
-                        files.Add(file);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
-                }
-            }
-            content = new FileContentModel()
-            {
-                Files = files,
-                Text = messageDTO.Text ?? string.Empty
-            };
-        }
-        else
-        {
-            content = new TextContentModel()
-            {
-                Text = messageDTO.Text ?? string.Empty
-            };
-        }
-        return new MessageModel
+        MessageModel message = new()
         {
             Id = messageDTO.Id ?? -1,
             Chat = messageDTO.ChatId ?? -1,
@@ -485,9 +384,37 @@ internal partial class MainViewModel : ViewModelBase
             Time = messageDTO.Date ?? 0,
             ReplyTo = messageDTO.ReplyTo ?? -1,
             Edited = messageDTO.Edited ?? false,
-            Content = content,
             Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
         };
+        if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
+        {
+            ObservableCollection<FileModel> files = [];
+            foreach (string hash in messageDTO.MediaHashes)
+            {
+                try
+                {
+                    FileModel file = await DownloadMeta(hash);
+                    files.Add(file);
+                }
+                catch (Exception ex)
+                {
+                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                }
+            }
+            message.Content = new FileContentModel()
+            {
+                Text = messageDTO.Text ?? string.Empty,
+                Files = files
+            };
+        }
+        else
+        {
+            message.Content = new TextContentModel()
+            {
+                Text = messageDTO.Text ?? string.Empty
+            };
+        }
+        return message;
     }
     private static ChatModel ConvertChat(ChatDTO chatDTO)
     {
@@ -512,6 +439,85 @@ internal partial class MainViewModel : ViewModelBase
                 Id = chatDTO.Id ?? 0,
                 Profile = profile,
             };
+        }
+    }
+    private async Task<bool> UploadFile(FileModel file)
+    {
+        if (file is VideoModel video) file.Hash = await filesClient.UploadFile(video.Path, true, false);
+        else if (file is PhotoModel photo) file.Hash = await filesClient.UploadFile(photo.Path, true, photo.Compress);
+        else file.Hash = await filesClient.UploadFile(file.Path, false, false);
+        if (file.Hash != null)
+        {
+            file.Status = FileStatus.Loaded;
+            return true;
+        }
+        return false;
+    }
+    private async Task<FileModel> DownloadMeta(string hash)
+    {
+        (string name, long size) = await filesClient.DownloadFileMetadata(hash);
+        if (!CacheManager.IsCached(hash))
+        {
+            (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
+            CacheManager.CacheFile(hash, name, temp_preview, temp_file);
+        }
+        string extension = Path.GetExtension(name);
+        FileModel file;
+        if (PPFileExtensions.VideoExtensions.Contains(extension))
+        {
+            Bitmap? preview;
+            string? preview_path = CacheManager.GetCachedFile(hash, true);
+            if (preview_path != null) preview = new(preview_path);
+            else preview = null;
+            file = new VideoModel
+            {
+                Name = name,
+                Size = size,
+                Hash = hash,
+                Preview = preview
+            };
+        }
+        else if (PPFileExtensions.PhotoExtensions.Contains(extension))
+        {
+            Bitmap? preview;
+            string? preview_path = CacheManager.GetCachedFile(hash, true);
+            if (preview_path != null) preview = new(preview_path);
+            else preview = null;
+            file = new PhotoModel
+            {
+                Name = name,
+                Size = size,
+                Hash = hash,
+                Preview = preview
+            };
+        }
+        else
+        {
+            file = new FileModel
+            {
+                Name = name,
+                Size = size,
+                Hash = hash
+            };
+        }
+        string? file_path = CacheManager.GetCachedFile(hash);
+        if (file_path != null)
+        {
+            file.Path = file_path;
+            file.Status = FileStatus.Loaded;
+        }
+        return file;
+    }
+    private async Task DownloadFile(FileModel file)
+    {
+        if (file.Hash == null) throw new InvalidOperationException("Download file failed");
+        (string? preview_temp, string? file_temp) = await filesClient.DownloadFile(file.Hash, DownloadMode.media_only);
+        if (file_temp != null)
+        {
+            CacheManager.CacheFile(file.Hash, file.Name, preview_temp, file_temp);
+            string file_path = CacheManager.GetCachedFile(file.Hash) ?? throw new SQLiteException("Load cached file failed");
+            file.Path = file_path;
+            file.Status = FileStatus.Loaded;
         }
     }
     private void ShowDialog(Dialog dialog, int time)

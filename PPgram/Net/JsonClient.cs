@@ -87,7 +87,7 @@ internal class JsonClient
     /// Sends serialized json to server and enqueues tcs into request queue
     /// </summary>
     /// <param name="data">Serializable request payload</param>
-    /// <param name="tcs"></param>
+    /// <param name="tcs">Completition source</param>
     /// <returns></returns>
     private async Task SendQueue(object data, object tcs)
     {
@@ -95,7 +95,7 @@ internal class JsonClient
         requests.Enqueue(tcs);
         await Send(data);
     }
-    public async Task<bool> Auth(string session_id, int user_id)
+    public async Task<bool> AuthSession(string session_id, int user_id)
     {
         var payload = new
         {
@@ -107,7 +107,7 @@ internal class JsonClient
         await SendQueue(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<AuthDTO> Login(string username, string password)
+    public async Task<AuthDTO> AuthLogin(string username, string password)
     {
         var payload = new
         {
@@ -119,7 +119,7 @@ internal class JsonClient
         await SendQueue(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<AuthDTO> Register(string username, string name, string password)
+    public async Task<AuthDTO> AuthRegister(string username, string name, string password)
     {
         var payload = new
         {
@@ -248,7 +248,7 @@ internal class JsonClient
         await SendQueue(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<int> SendRead(int chat_id, int[] message_ids)
+    public async Task<int> ReadMessage(int chat_id, int[] message_ids)
     {
         var payload = new
         {

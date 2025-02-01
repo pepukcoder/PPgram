@@ -56,6 +56,7 @@ public partial class ChatControl : UserControl
                         Name = file.Name,
                         Path = absolutePath,
                         Size = new FileInfo(absolutePath).Length,
+                        Status = FileStatus.Loaded
                     });
                 }
                 else if (PPFileExtensions.PhotoExtensions.Contains(extension))
@@ -65,6 +66,7 @@ public partial class ChatControl : UserControl
                         Name = file.Name,
                         Path = absolutePath,
                         Size = new FileInfo(absolutePath).Length,
+                        Status = FileStatus.Loaded,
                         Preview = new Bitmap(absolutePath).CreateScaledBitmap(new(150, 150), BitmapInterpolationMode.LowQuality)
                     });
                 }
@@ -74,7 +76,8 @@ public partial class ChatControl : UserControl
                     {
                         Name = file.Name,
                         Path = absolutePath,
-                        Size = new FileInfo(absolutePath).Length
+                        Size = new FileInfo(absolutePath).Length,
+                        Status = FileStatus.Loaded
                     });
                 }
             }
