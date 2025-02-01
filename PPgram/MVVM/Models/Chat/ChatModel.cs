@@ -149,6 +149,7 @@ internal abstract partial class ChatModel : ObservableObject
     private void UnloadMessages()
     {
         MessageChainer.UnloadChain(Messages, this);
+        FetchedAllMessages = false;
     }
     private void SendMessage(MessageModel message)
     {
