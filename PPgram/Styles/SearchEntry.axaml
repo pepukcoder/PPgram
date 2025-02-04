@@ -13,7 +13,7 @@
 					<DockPanel>
 						<Ellipse Height="45" Width="45" VerticalAlignment="Center" Margin="0,0,5,0">
 							<Ellipse.Fill>
-							<ImageBrush Source="{Binding Profile.Avatar}"/>
+							<ImageBrush Source="{Binding Profile.Avatar.Preview}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
