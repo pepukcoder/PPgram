@@ -335,6 +335,7 @@ internal partial class MainViewModel : ViewModelBase
             profileState.UserId = self.Id ?? 0;
             profileState.Name = self.Name ?? string.Empty;
             profileState.Username = self.Username ?? string.Empty;
+            profileState.Color = self.Color ?? 0;
             profileState.Avatar = await DownloadAvatar(self.Photo);
             PhotoModel avatar = new() { Hash = self.Photo };
             List<ChatDTO> chatDTOs = await jsonClient.FetchChats();    
@@ -439,6 +440,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             Name = chatDTO.Name ?? string.Empty,
             Username = chatDTO.Username ?? string.Empty,
+            Color = chatDTO.Color ?? 0,
             Avatar = await DownloadAvatar(chatDTO.Photo)
         };
         if (chatDTO.IsGroup == true)

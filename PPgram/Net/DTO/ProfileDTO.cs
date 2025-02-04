@@ -12,4 +12,6 @@ internal class ProfileDTO
     public int? Id { get; set; }
     [JsonPropertyName("photo")]
     public string? Photo { get; set; }
+    [JsonPropertyName("profile_color")]
+    public int? Color { get; set; }
 }
