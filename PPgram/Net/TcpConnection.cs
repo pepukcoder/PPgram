@@ -24,7 +24,7 @@ internal class TcpConnection {
     public string GetResponseAsString() 
     {
         if (!is_ready) throw new InvalidOperationException("Response not ready yet.");
-        // ñonvert the accumulated bytes to a JSON string
+        // ï¿½onvert the accumulated bytes to a JSON string
         byte[] responseData = [.. response_chunks];
         Reset();
         return Encoding.UTF8.GetString(responseData);
@@ -82,8 +82,10 @@ internal class TcpConnection {
 }
 internal class ConnectionOptions
 {
-    [JsonPropertyName("host")]
-    public required string Host { get; set; }
+    [JsonPropertyName("host_json")]
+    public required string JsonHost { get; set; }
+    [JsonPropertyName("host_files")]
+    public required string FilesHost { get; set; }
     [JsonPropertyName("port_json")]
     public required int JsonPort { get; set; }
     [JsonPropertyName("port_files")]

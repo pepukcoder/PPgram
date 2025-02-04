@@ -29,7 +29,7 @@ internal class FilesClient
         {
             if (client != null) throw new InvalidOperationException("Client is already connected");
             client = new();
-            Task task = client.ConnectAsync(options.Host, options.FilesPort);
+            Task task = client.ConnectAsync(options.FilesHost, options.FilesPort);
             if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
             Thread listenThread = new(() => Listen(cts.Token)) { IsBackground = true };

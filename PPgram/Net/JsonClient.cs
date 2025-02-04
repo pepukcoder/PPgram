@@ -27,7 +27,7 @@ internal class JsonClient
         {
             if (client != null) throw new InvalidOperationException("Client is already connected");
             client = new();
-            Task task = client.ConnectAsync(options.Host, options.JsonPort);
+            Task task = client.ConnectAsync(options.JsonHost, options.JsonPort);
             if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
             Thread listenThread = new(() => Listen(cts.Token)) { IsBackground = true };

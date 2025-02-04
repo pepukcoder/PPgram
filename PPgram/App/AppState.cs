@@ -54,7 +54,8 @@ internal sealed partial class AppState : ObservableObject
     /// </summary>
     public ConnectionOptions ConnectionOptions { get; set; } = new()
     {
-        Host = "127.0.0.1",
+        JsonHost = "127.0.0.1",
+        FilesHost = "127.0.0.1",
         JsonPort = 3000,
         FilesPort = 8080
     };
