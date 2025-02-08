@@ -5,8 +5,8 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Data.Sqlite;
 using PPgram.App;
-using PPgram.Helpers;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
@@ -21,11 +21,9 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -54,7 +52,8 @@ internal partial class MainViewModel : ViewModelBase
     // network
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
-
+    // other
+    private readonly CacheManager cacheManager = new();
     private readonly DispatcherTimer timer = new();
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
@@ -475,17 +474,17 @@ internal partial class MainViewModel : ViewModelBase
     private async Task<FileModel> DownloadMeta(string hash)
     {
         (string name, long size) = await filesClient.DownloadFileMetadata(hash);
-        if (!CacheManager.IsCached(hash))
+        if (!cacheManager.IsCached(hash))
         {
             (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
-            CacheManager.CacheFile(hash, name, temp_preview, temp_file);
+            cacheManager.CacheFile(hash, name, temp_preview, temp_file);
         }
         string extension = Path.GetExtension(name);
         FileModel file;
         if (PPFileExtensions.VideoExtensions.Contains(extension))
         {
             Bitmap? preview;
-            string? preview_path = CacheManager.GetCachedFile(hash, true);
+            string? preview_path = cacheManager.GetCachedFile(hash, true);
             if (preview_path != null) preview = new(preview_path);
             else preview = null;
             file = new VideoModel
@@ -499,7 +498,7 @@ internal partial class MainViewModel : ViewModelBase
         else if (PPFileExtensions.PhotoExtensions.Contains(extension))
         {
             Bitmap? preview;
-            string? preview_path = CacheManager.GetCachedFile(hash, true);
+            string? preview_path = cacheManager.GetCachedFile(hash, true);
             if (preview_path != null) preview = new(preview_path);
             else preview = null;
             file = new PhotoModel
@@ -519,7 +518,7 @@ internal partial class MainViewModel : ViewModelBase
                 Hash = hash
             };
         }
-        string? file_path = CacheManager.GetCachedFile(hash);
+        string? file_path = cacheManager.GetCachedFile(hash);
         if (file_path != null)
         {
             file.Path = file_path;
@@ -533,8 +532,8 @@ internal partial class MainViewModel : ViewModelBase
         (string? preview_temp, string? file_temp) = await filesClient.DownloadFile(file.Hash, DownloadMode.media_only);
         if (file_temp != null)
         {
-            CacheManager.CacheFile(file.Hash, file.Name, preview_temp, file_temp);
-            string file_path = CacheManager.GetCachedFile(file.Hash) ?? throw new SQLiteException("Load cached file failed");
+            cacheManager.CacheFile(file.Hash, file.Name, preview_temp, file_temp);
+            string file_path = cacheManager.GetCachedFile(file.Hash) ?? throw new SqliteException("Load cached file failed", 782);
             file.Path = file_path;
             file.Status = FileStatus.Loaded;
         }
@@ -547,7 +546,7 @@ internal partial class MainViewModel : ViewModelBase
             photo.Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
             return photo;
         }
-        if (!CacheManager.IsCached(hash))
+        if (!cacheManager.IsCached(hash))
         {
             (_, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.media_only);
             if (temp_file == null)
@@ -555,9 +554,9 @@ internal partial class MainViewModel : ViewModelBase
                 photo.Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
                 return photo;
             }
-            CacheManager.CacheAvatar(hash, temp_file);  
+            cacheManager.CacheAvatar(hash, temp_file);  
         }
-        string? path = CacheManager.GetCachedAvatar(hash);
+        string? path = cacheManager.GetCachedAvatar(hash);
         if (path != null)
         {
             photo.Path = path;

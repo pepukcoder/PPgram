@@ -1,22 +1,23 @@
 ﻿using PPgram.Shared;
 using System;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.IO;
 
 namespace PPgram.App;
 
-internal static class CacheManager
+internal class CacheManager
 {
-    private static readonly AppState appState = AppState.Instance;
-    private static SQLiteConnection Init()
+    private readonly AppState appState = AppState.Instance;
+    private readonly SqliteConnection connection;
+    public CacheManager()
     {
         FSManager.RestoreDirs(PPPath.CacheDBFile);
-        string connectionString = @$"Data Source={PPPath.CacheDBFile};New=false";
-        SQLiteConnection connection = new(connectionString);
-        if (!File.Exists(PPPath.CacheDBFile))
+        bool init = !File.Exists(PPPath.CacheDBFile);
+        connection = new(@$"Data Source={PPPath.CacheDBFile}");
+        connection.Open();
+        if (init)
         {
-            connection.Open();
             string query = @"
             CREATE TABLE IF NOT EXISTS files 
             (
@@ -29,27 +30,27 @@ internal static class CacheManager
                 hash TEXT NOT NULL PRIMARY KEY,
                 file_path TEXT NOT NULL
             );";
-            using SQLiteCommand command = new(query, connection);
+            using SqliteCommand command = new(query, connection);
             command.ExecuteNonQuery();
-            connection.Close();
         };
-        return connection;
     }
-    private static string? ReadHash(string query, string hash)
+    ~CacheManager()
+    {
+        connection.Close();
+    }
+    private string? ReadHash(string query, string hash)
     {
         try
         {
-            using SQLiteConnection connection = Init();
-            connection.Open();
-            using SQLiteCommand command = new(query, connection);
+            using SqliteCommand command = new(query, connection);
             command.Parameters.AddWithValue("$hash", hash);
-            SQLiteDataReader reader = command.ExecuteReader();
+            SqliteDataReader reader = command.ExecuteReader();
             if (reader.HasRows && reader.Read()) return reader.IsDBNull(1) ? null : reader.GetString(1);
             else return null;
         }
         catch (Exception ex) { Debug.WriteLine(ex.Message); return null; }
     }
-    public static void CacheFile(string hash, string name, string? temp_preview_path, string? temp_file_path)
+    public void CacheFile(string hash, string name, string? temp_preview_path, string? temp_file_path)
     {
         if (appState.DownloadsFolder == null) return;
         string? preview_path = null;
@@ -72,15 +73,13 @@ internal static class CacheManager
         ON CONFLICT(hash) DO UPDATE SET
         file_path = COALESCE(files.file_path, excluded.file_path),
         preview_path = COALESCE(files.preview_path, excluded.preview_path);";
-        using SQLiteConnection connection = Init();
-        connection.Open();
-        using SQLiteCommand command = new(query, connection);
+        using SqliteCommand command = new(query, connection);
         command.Parameters.AddWithValue("$hash", hash);
         command.Parameters.AddWithValue("$file_path", file_path ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("$preview_path", preview_path ?? (object)DBNull.Value);
         command.ExecuteNonQuery();
     }
-    public static void CacheAvatar(string hash, string temp_file_path)
+    public void CacheAvatar(string hash, string temp_file_path)
     {
         string file_path = Path.Combine(PPPath.AvatarCacheFolder, Path.ChangeExtension(Path.GetRandomFileName(), "ppavtr"));
         FSManager.RestoreDirs(file_path);
@@ -90,14 +89,12 @@ internal static class CacheManager
         VALUES ($hash,$file_path)
         ON CONFLICT(hash) DO UPDATE SET
         file_path = COALESCE(avatars.file_path, excluded.file_path);";
-        using SQLiteConnection connection = Init();
-        connection.Open();
-        using SQLiteCommand command = new(query, connection);
+        using SqliteCommand command = new(query, connection);
         command.Parameters.AddWithValue("$hash", hash);
         command.Parameters.AddWithValue("$file_path", file_path);
         command.ExecuteNonQuery();
     }
-    public static string? GetCachedFile(string hash, bool preview = false)
+    public string? GetCachedFile(string hash, bool preview = false)
     {
         string query = preview ?
         @$"SELECT hash, preview_path 
@@ -111,7 +108,7 @@ internal static class CacheManager
         LIMIT 1;";
         return ReadHash(query, hash);
     }
-    public static string? GetCachedAvatar(string hash)
+    public string? GetCachedAvatar(string hash)
     {
         string query = @$"
         SELECT hash, file_path 
@@ -120,25 +117,21 @@ internal static class CacheManager
         LIMIT 1;";
         return ReadHash(query, hash);
     }
-    public static void DeleteCached(string hash, bool avatar = false)
+    public void DeleteCached(string hash, bool avatar = false)
     {
         string query;
         if (avatar) query = @"DELETE FROM avatars WHERE hash = $hash;";
         else query = @"DELETE FROM files WHERE hash = $hash;";
-        using SQLiteConnection connection = Init();
-        connection.Open();
-        using SQLiteCommand command = new(query, connection);
+        using SqliteCommand command = new(query, connection);
         command.Parameters.AddWithValue("$hash", hash);
         command.ExecuteNonQuery();
     }
-    public static bool IsCached(string hash, bool avatar = false)
+    public bool IsCached(string hash, bool avatar = false)
     {
         string query;
         if (avatar) query = @"SELECT EXISTS(SELECT 1 FROM avatars WHERE hash = $hash);";
         else query = @"SELECT EXISTS(SELECT 1 FROM files WHERE hash = $hash);";
-        using SQLiteConnection connection = Init();
-        connection.Open();
-        using SQLiteCommand command = new(query, connection);
+        using SqliteCommand command = new(query, connection);
         command.Parameters.AddWithValue("$hash", hash);
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
