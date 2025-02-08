@@ -122,7 +122,7 @@ public partial class ChatControl : UserControl
         }
         if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         // prefetch detection
-        if (this.DataContext is ChatModel chat && !chat.FetchedAllMessages)
+        if (this.DataContext is ChatModel chat && chat.Messages.Count > 0 && !chat.FetchedAllMessages)
         {
             int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
             if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
