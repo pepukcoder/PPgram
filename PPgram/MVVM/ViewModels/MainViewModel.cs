@@ -161,8 +161,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                // move chat from search to chatlist if new
-                chat_vm.AddChatIfNotExists(m.to);
+                chat_vm.ResolveNewChat(m.to, m.message);
                 // get message text if set
                 string text;
                 if (m.message.Content is ITextContent tc) text = tc.Text;
