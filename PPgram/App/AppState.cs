@@ -34,6 +34,10 @@ internal sealed partial class AppState : ObservableObject
     /// Defines the delay for fetch requests while scrolling (in milliseconds)
     /// </summary>
     public int MessagesFetchDelay { get; set; } = 200;
+    /// <summary>
+    /// Defines the delay for read requests while scrolling (in milliseconds)
+    /// </summary>
+    public int MessagesReadDelay { get; set; } = 200;
     #endregion
     #region files
     /// <summary>

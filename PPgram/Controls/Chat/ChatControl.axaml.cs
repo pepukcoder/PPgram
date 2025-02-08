@@ -22,15 +22,21 @@ public partial class ChatControl : UserControl
 {
     private readonly ProfileState profileState = ProfileState.Instance;
     private readonly AppState appState = AppState.Instance;
-    private readonly DispatcherTimer timer;
+    private readonly DispatcherTimer fetchTimer;
+    private readonly DispatcherTimer readTimer;
     private bool fetchThrottle = false;
+    private bool readThrottle = false;
     public ChatControl()
     {
         InitializeComponent();
         WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog());
-        timer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesFetchDelay)};
-        timer.Tick += (s, e) => { fetchThrottle = false; };
-        timer.Start();
+        // request delay timers
+        fetchTimer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesFetchDelay)};
+        fetchTimer.Tick += (s, e) => { fetchThrottle = false; };
+        fetchTimer.Start();
+        readTimer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesReadDelay)};
+        readTimer.Tick += (s, e) => { readThrottle = false; };
+        readTimer.Start();
     }
     private async void OpenFileDialog()
     {
@@ -120,7 +126,11 @@ public partial class ChatControl : UserControl
                 }
             }
         }
-        if (readMessages.Count > 0) WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
+        if (readMessages.Count > 0 && !readThrottle)
+        {
+            WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
+            readThrottle = true;
+        }
         // prefetch detection
         if (this.DataContext is ChatModel chat && chat.Messages.Count > 0 && !chat.FetchedAllMessages)
         {
