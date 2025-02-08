@@ -25,12 +25,12 @@
 				ScrollViewer.ScrollChanged="ChatScrolled"
 				ItemsSource="{Binding Messages, Mode=OneWay}"
 				SelectedItem="{Binding SelectedMessage, Mode=TwoWay}"
-				SelectionMode="Toggle">
+				SelectionMode="Toggle" Focusable="False">
 			<Interaction.Behaviors>
 				<bh:StickToBottomBehavior />
 			</Interaction.Behaviors>
 			<ListBox.ContextMenu>
-				<ContextMenu IsVisible="{Binding ContextVisible}" FontSize="14">
+				<ContextMenu IsVisible="{Binding ContextVisible}" FontSize="14" Focusable="False">
 					<MenuItem Header="Reply" Command="{Binding AddReplyCommand}" HotKey="Ctrl+R">
 						<MenuItem.Icon>
 							<icons:MaterialIcon Kind="ArrowLeftTopBold" />
@@ -87,7 +87,7 @@
 					<DockPanel>
 						<icons:MaterialIcon Kind="ArrowLeftTop" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left" IsVisible="{Binding InReply}"/>
 						<icons:MaterialIcon Kind="Edit" Height="18" Width="18" Foreground="{StaticResource ButtonIdle}" Margin="0,0,5,0" DockPanel.Dock="Left" IsVisible="{Binding InEdit}"/>
-						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding CloseSecondaryCommand}">
+						<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" Command="{Binding CloseSecondaryCommand}" Focusable="False">
 							<icons:MaterialIcon Kind="Close" Height="18" Width="18"/>
 						</Button>
 						<TextBlock Text="{Binding SecondaryHeader}" Foreground="{StaticResource SecondaryText}" FontSize="13" FontWeight="Medium" DockPanel.Dock="Top"/>
@@ -156,14 +156,14 @@
 					</DockPanel>
 				</Border>
 				<Button x:Name="AttachButton" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
-						Command="{Binding OpenAttachFilesCommand}" Margin="0,0,0,6">
+						Command="{Binding OpenAttachFilesCommand}" Margin="0,0,0,6" Focusable="False">
 					<Panel>
 						<icons:MaterialIcon Kind="Paperclip" Height="24" Width="24" IsVisible="{Binding !Files.Count}"/>
 						<icons:MaterialIcon Kind="PaperclipPlus" Height="24" Width="24" IsVisible="{Binding Files.Count}"/>
 					</Panel>
 				</Button>
 				<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-						Command="{Binding BuildMessageCommand}" Margin="0,0,0,6">
+						Command="{Binding BuildMessageCommand}" Margin="0,0,0,6" Focusable="False">
 					<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24" />
 				</Button>
 				<Border Padding="5" Background="{StaticResource Panel}"

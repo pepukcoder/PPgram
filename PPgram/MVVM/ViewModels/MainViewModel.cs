@@ -546,7 +546,7 @@ internal partial class MainViewModel : ViewModelBase
             photo.Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
             return photo;
         }
-        if (!cacheManager.IsCached(hash))
+        if (!cacheManager.IsCached(hash, true))
         {
             (_, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.media_only);
             if (temp_file == null)
