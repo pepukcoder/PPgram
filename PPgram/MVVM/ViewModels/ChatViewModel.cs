@@ -105,7 +105,7 @@ partial class ChatViewModel : ViewModelBase
     }
     #endregion
     #region chat
-    public void AddChatIfNotExists(ChatModel chat)
+    public void ResolveNewChat(ChatModel chat, MessageModel message)
     {
         if (!TryFindChat(chat.Id, out var c))
         {
@@ -114,8 +114,14 @@ partial class ChatViewModel : ViewModelBase
             // setting null to actually update ui property and show selection
             SelectedChat = null;
             SelectedChat = chat;
-            ClearSearch();
         }
+        else
+        {
+            SelectedChat = c;
+            // redirect message to already created chat
+            c.LoadMessages([message], true);
+        }
+        ClearSearch();
     }
     public void AddChat(ChatModel chat)
     {
