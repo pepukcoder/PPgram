@@ -20,15 +20,20 @@ partial class MessageModel : ChatItem
     public int Color { get; set; }
     public long Time { get; set; }
     public int? ReplyTo { get; set; }
-    public ProfileModel Sender { get; set; } = new();
-    public ReplyModel Reply { get; set; } = new();
 
     [ObservableProperty]
-    private MessageContentModel content = new TextContentModel();
+    public partial ProfileModel Sender { get; set; } = new();
     [ObservableProperty]
-    private bool edited;
+    public partial ReplyModel Reply { get; set; } = new();
     [ObservableProperty]
-    private MessageRole role;
+    public partial MessageContentModel Content { get; set; } = new TextContentModel();
+
     [ObservableProperty]
-    private MessageStatus status;
+    public partial bool Edited { get; set; }
+
+    [ObservableProperty]
+    public partial MessageRole Role { get; set; }
+
+    [ObservableProperty]
+    public partial MessageStatus Status { get; set; }
 }

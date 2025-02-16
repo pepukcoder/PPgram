@@ -123,6 +123,7 @@
 						<KeyBinding Command="{Binding ClearSearchCommand}" Gesture="13"/>
 					</ListBox.KeyBindings>
 				</ListBox>
+				<!--account badge-->
 				<Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Panel}">
 					<DockPanel Margin="5">
 						<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
@@ -132,6 +133,9 @@
 						</Ellipse>
 						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding LogoutCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
 							<icons:MaterialIcon Kind="AccountArrowRight" Height="24" Width="24"/>
+						</Button>
+						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding OpenProfileSettingsCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
+							<icons:MaterialIcon Kind="AccountEdit" Height="24" Width="24"/>
 						</Button>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
 							<TextBlock Text="{Binding ProfileState.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>

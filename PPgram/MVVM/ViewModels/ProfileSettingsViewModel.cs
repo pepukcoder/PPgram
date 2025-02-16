@@ -11,29 +11,23 @@ using PPgram.Shared;
 
 namespace PPgram.MVVM.ViewModels;
 
-internal partial class SettingsViewModel : ViewModelBase
+internal partial class ProfileSettingsViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private ProfileModel profile;
+    public partial ProfileModel Profile { get; set; } = new();
     [ObservableProperty]
-    private int[] colors;
+    public partial string Description { get; set; } = string.Empty;
     [ObservableProperty]
-    private MessageModel previewMessage;
+    public partial int[] Colors { get; set; } = [.. Enumerable.Range(1, 21)];
+    [ObservableProperty]
+    public partial MessageModel PreviewMessage { get; set; } = new();
 
     private readonly AppState settings = AppState.Instance;
     private readonly ProfileState profileState = ProfileState.Instance;
     private bool avatarChanged;
-    public SettingsViewModel()
-    {
-        // assign default values
-        Colors = [.. Enumerable.Range(1, 21)];
-        Profile = new();
-        PreviewMessage = new();
-    }
-    public void Update()
+    public void Load()
     {
         // get current state values
-        Profile = profileState;
         avatarChanged = false;
         // update message preview
         PreviewMessage.Sender = Profile;

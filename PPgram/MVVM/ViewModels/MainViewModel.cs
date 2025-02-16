@@ -32,22 +32,22 @@ namespace PPgram.MVVM.ViewModels;
 internal partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private ViewModelBase currentPage;
+    public partial ViewModelBase CurrentPage { get; set; }
     [ObservableProperty]
-    private Dialog? dialog;
+    public partial Dialog? Dialog { get; set; }
     [ObservableProperty]
-    private bool dialogPanelVisible = false;
+    public partial bool DialogPanelVisible { get; set; } = false;
     [ObservableProperty]
-    private VerticalAlignment dialogPosition = VerticalAlignment.Center;
+    public partial VerticalAlignment DialogPosition { get; set; } = VerticalAlignment.Center;
     [ObservableProperty]
-    private MediaPreviewer mediaPreviewer = new();
+    public partial MediaPreviewer MediaPreviewer { get; set; } = new();
     [ObservableProperty]
-    private AppState pPAppState = AppState.Instance;
+    public partial AppState PPAppState { get; set; } = AppState.Instance;
     // pages
     private readonly RegViewModel reg_vm = new();
     private readonly LoginViewModel login_vm = new();
     private readonly ChatViewModel chat_vm = new();
-    private readonly SettingsViewModel settings_vm = new();
+    private readonly ProfileSettingsViewModel profile_settings_vm = new();
     private readonly ProfileViewModel profile_vm = new();
     // network
     private readonly JsonClient jsonClient = new();
@@ -64,7 +64,7 @@ internal partial class MainViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<Msg_OpenPreviewer>(this, (r, m) => MediaPreviewer.Open(m.content, m.file));
         WeakReferenceMessenger.Default.Register<Msg_ToLogin>(this, (r, m) => CurrentPage = login_vm);
         WeakReferenceMessenger.Default.Register<Msg_ToReg>(this, (r, m) => CurrentPage = reg_vm);
-        WeakReferenceMessenger.Default.Register<Msg_ToSettings>(this, (r, m) => { settings_vm.Update(); CurrentPage = settings_vm; });
+        WeakReferenceMessenger.Default.Register<Msg_ToProfileSettings>(this, (r, m) => { profile_settings_vm.Load(); CurrentPage = profile_settings_vm; });
         WeakReferenceMessenger.Default.Register<Msg_ToChat>(this, (r, m) => CurrentPage = chat_vm);
         WeakReferenceMessenger.Default.Register<Msg_Logout>(this, (r, m) =>
         {

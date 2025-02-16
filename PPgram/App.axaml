@@ -77,7 +77,6 @@
 		<SimpleTheme/>
 		<materialIcons:MaterialIconStyles/>
 		<StyleInclude Source="/Styles/ListThemes.axaml"/>
-		<StyleInclude Source="/Styles/TabControl.axaml"/>
 		<StyleInclude Source="/Styles/Menu.axaml"/>
 		<StyleInclude Source="/Styles/Spinner.axaml"/>
 	</Application.Styles>

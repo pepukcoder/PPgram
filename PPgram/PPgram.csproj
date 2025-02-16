@@ -139,6 +139,9 @@
     <Compile Update="Controls\GroupEntryControl.axaml.cs">
       <DependentUpon>GroupEntryControl.axaml</DependentUpon>
     </Compile>
+    <Compile Update="MVVM/Views/ProfileSettingsView.axaml.cs">
+      <DependentUpon>ProfileSettingsView.axaml</DependentUpon>
+    </Compile>
     <Compile Update="MVVM\MobileViews\ChatMobileView.axaml.cs">
       <DependentUpon>ChatMobileView.axaml</DependentUpon>
     </Compile>

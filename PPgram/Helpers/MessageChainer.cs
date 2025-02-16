@@ -1,6 +1,4 @@
-﻿using Avalonia.Remote.Protocol.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using PPgram.App;
+﻿using PPgram.App;
 using PPgram.MVVM.Models.Chat;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
@@ -9,7 +7,6 @@ using PPgram.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace PPgram.Helpers;

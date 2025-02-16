@@ -50,7 +50,7 @@ internal class JsonClient
                 if (connection.IsReady)
                 {
                     string response = connection.GetResponseAsString();
-                    Task.Run(() => HandleResponse(response), ct);
+                    HandleResponse(response);
                 }
             }
             catch { Disconnect(); }
@@ -78,6 +78,7 @@ internal class JsonClient
         try
         {
             string request = JsonSerializer.Serialize(data);
+            Debug.WriteLine(request);
             if (stream == null) return;
             await stream.WriteAsync(TcpConnection.BuildJsonRequest(request));
         }

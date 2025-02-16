@@ -85,9 +85,7 @@
 		<Setter Property="FontWeight" Value="Medium"/>
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Border CornerRadius="5" Background="Transparent" Cursor="Hand">
-					<ContentPresenter Content="{TemplateBinding Content}"/>
-				</Border>
+				<ContentPresenter Content="{TemplateBinding Content}" Cursor="Hand"/>
 			</ControlTemplate>
 		</Setter>
 	</ControlTheme>

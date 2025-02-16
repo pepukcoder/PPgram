@@ -10,9 +10,9 @@ using PPgram.MVVM.ViewModels;
 
 namespace PPgram.MVVM.Views;
 
-public partial class SettingsView : UserControl
+public partial class ProfileSettingsView : UserControl
 {
-    public SettingsView()
+    public ProfileSettingsView()
     {
         InitializeComponent();
         picbtn.AddHandler(PointerPressedEvent, OpenFileDialog, RoutingStrategies.Tunnel);
@@ -27,7 +27,7 @@ public partial class SettingsView : UserControl
             AllowMultiple = false, 
             FileTypeFilter = [FilePickerFileTypes.ImageAll]
         });
-        if (this.DataContext is SettingsViewModel settings_vm)
+        if (this.DataContext is ProfileSettingsViewModel settings_vm)
         {
             foreach (IStorageFile file in files)
             {
