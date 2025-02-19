@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace PPgram.Net;
 
@@ -79,15 +78,4 @@ internal class TcpConnection {
         Array.Copy(messageBytes, 0, request_bytes, 4, messageBytes.Length);
         return request_bytes;
     }
-}
-internal class ConnectionOptions
-{
-    [JsonPropertyName("host_json")]
-    public required string JsonHost { get; set; }
-    [JsonPropertyName("host_files")]
-    public required string FilesHost { get; set; }
-    [JsonPropertyName("port_json")]
-    public required int JsonPort { get; set; }
-    [JsonPropertyName("port_files")]
-    public required int FilesPort { get; set; }
 }
