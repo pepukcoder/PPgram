@@ -1,3 +1,5 @@
+using PPgram.MVVM.Models.Dialog;
+
 namespace PPgram.Shared;
 
 class Msg_Auth
@@ -10,4 +12,9 @@ class Msg_Auth
 class Msg_CheckUsername
 {
     public required string username;
+}
+class Msg_CheckGroupTag
+{
+    public required NewGroupDialog dialog;
+    public required string tag;
 }

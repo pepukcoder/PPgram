@@ -17,6 +17,10 @@ public partial class NewGroupDialogControl : UserControl
         InitializeComponent();
         picbtn.AddHandler(PointerPressedEvent, OpenFileDialog, RoutingStrategies.Tunnel);
     }
+    private void TextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox tb) tb.Text = tb.Text?.ToLower();
+    }
     private async void OpenFileDialog(object? sender, RoutedEventArgs args)
     {
         TopLevel? topLevel = TopLevel.GetTopLevel(this);

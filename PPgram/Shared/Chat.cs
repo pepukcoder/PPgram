@@ -7,7 +7,7 @@ namespace PPgram.Shared;
 class Msg_CreateGroup
 {
     public required string name;
-    public string username = string.Empty;
+    public string tag = string.Empty;
     public required PhotoModel photo;
 }
 class Msg_SendRead

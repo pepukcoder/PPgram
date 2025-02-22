@@ -48,7 +48,7 @@ internal partial class MainViewModel : ViewModelBase
     private readonly LoginViewModel login_vm = new();
     private readonly ChatViewModel chat_vm = new();
     private readonly ProfileSettingsViewModel profile_settings_vm = new();
-    private readonly ProfileViewModel profile_vm = new();
+    //private readonly ProfileViewModel profile_vm = new();
     // network
     private readonly JsonClient jsonClient = new();
     private readonly FilesClient filesClient = new();
@@ -115,6 +115,18 @@ internal partial class MainViewModel : ViewModelBase
             {
                 bool available = await jsonClient.CheckUsername(m.username);
                 reg_vm.ShowUsernameStatus(available ? "Username is available" : "Username is already taken", available);
+            }
+            catch (Exception ex)
+            {
+                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            }
+        });
+        WeakReferenceMessenger.Default.Register<Msg_CheckGroupTag>(this, async (r, m) =>
+        {
+            try
+            {
+                bool available = await jsonClient.CheckUsername(m.tag);
+                m.dialog.ShowTagStatus(available ? "Tag is available" : "Tag is already taken", available);
             }
             catch (Exception ex)
             {
@@ -245,7 +257,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try 
             { 
-                ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.username, String.Empty);
+                ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.tag, String.Empty);
                 chat_vm.AddChat(await ConvertChat(chatDTO));
             }
             catch (Exception ex)

@@ -9,40 +9,59 @@
              x:Class="PPgram.Controls.DialogContent.NewGroupDialogControl"
 			 x:DataType="md:NewGroupDialog"
 			 FontSize="14">
-	<StackPanel Orientation="Vertical" Width="300">
+	<StackPanel Orientation="Vertical">
 		<TextBlock Text="Create new group" FontSize="16" FontWeight="Medium"/>
-		<Button x:Name="picbtn" Theme="{StaticResource ButtonText}" HorizontalAlignment="Center" DockPanel.Dock="Left" Margin="0,10">
-			<Ellipse Height="80" Width="80">
-				<Ellipse.Fill>
-					<ImageBrush Source="{Binding Photo.Preview}"/>
-				</Ellipse.Fill>
-			</Ellipse>
+		<Button x:Name="picbtn" Theme="{StaticResource ButtonText}" HorizontalAlignment="Center">
+			<Panel>
+				<Ellipse Height="80" Width="80" Fill="Black"/>
+				<Ellipse Height="80" Width="80">
+					<Ellipse.Fill>
+						<ImageBrush Source="{Binding Photo.Preview}"/>
+					</Ellipse.Fill>
+				</Ellipse>
+				<Panel x:Name="overlaypen">
+					<Ellipse Opacity="0.8" Fill="{StaticResource BackgroundSemi}"/>
+					<icons:MaterialIcon Kind="Pencil" Height="20" Width="20" Foreground="White"/>
+				</Panel>
+				<Panel.Styles>
+					<Style Selector="Panel Panel#overlaypen">
+						<Setter Property="IsVisible" Value="False"/>
+					</Style>
+					<Style Selector="Panel:pointerover Panel#overlaypen">
+						<Setter Property="IsVisible" Value="True"/>
+					</Style>
+				</Panel.Styles>
+			</Panel>
 		</Button>
-		<TextBlock Text="Name" Foreground="{StaticResource SecondaryText}"/>
-		<Border CornerRadius="10" Padding="5" Background="{StaticResource Panel}" Margin="0,5" HorizontalAlignment="Stretch">
-			<TextBox Background="Transparent" Padding="0" BorderThickness="0"
-				CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-				ScrollViewer.VerticalScrollBarVisibility="Hidden"
-				FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
-				TextWrapping="Wrap" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-				Margin="5,0">
-			</TextBox>
-		</Border>
-		<TextBlock Text="Username (optional)" Foreground="{StaticResource SecondaryText}"/>
-		<Border CornerRadius="10" Padding="5" Background="{StaticResource Panel}" Margin="0,5,0,10" HorizontalAlignment="Stretch">
+		<TextBlock Text="Set group name" FontWeight="Medium"/>
+		<Border Padding="8" Background="{StaticResource Panel}" CornerRadius="10" Margin="0,5,0,10">
 			<DockPanel>
-				<icons:MaterialIcon Kind="At" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left"/>
-				<TextBox Background="Transparent" Padding="0" BorderThickness="0"
-						CaretBrush="White" SelectionBrush="{StaticResource Selection}"
-						ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-						ScrollViewer.VerticalScrollBarVisibility="Hidden"
-						FontFamily="{StaticResource Mono}" MaxLength="30"
-						FontWeight="Light" ContextFlyout="{StaticResource RegularFlyout}"
-						Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5,0">
-				</TextBox>
+				<icons:MaterialIcon Kind="AccountMultiple" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
+				<TextBox Background="Transparent" BorderThickness="0"
+							Watermark="e.g. Linux Enjoyers"
+							CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+							FontFamily="{StaticResource Mono}" FontWeight="Light"
+							MaxLength="30" MinWidth="265" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+							ContextFlyout="{StaticResource RegularFlyout}"/>
 			</DockPanel>
-			
+		</Border>
+		<TextBlock Text="Set group tag (to make public)" FontWeight="Medium"/>
+		<TextBlock Text="a-z, 0-9, underscore, at least 3 characters"
+					Foreground="{StaticResource SecondaryText}"
+					FontWeight="SemiBold" FontSize="13"/>
+		<Border Background="{StaticResource SurfaceLight}" CornerRadius="10" Margin="0,5,0,10">
+			<Grid RowDefinitions="Auto,Auto">
+				<Border Padding="8" Background="{StaticResource Panel}" CornerRadius="10">
+					<DockPanel>
+						<icons:MaterialIcon Kind="At" Foreground="{StaticResource PanelAccent}" DockPanel.Dock="Left" Height="24" Width="24" Margin="0,0,5,0"/>
+						<TextBox Background="Transparent" BorderThickness="0" CaretBrush="White" SelectionBrush="{StaticResource Selection}"
+								 FontFamily="{StaticResource Mono}" FontWeight="Light" TextChanged="TextBox_TextChanged"
+								 MaxLength="30" MinWidth="265" Text="{Binding Tag, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+								 ContextFlyout="{StaticResource RegularFlyout}" Watermark="e.g. group_123"/>
+					</DockPanel>
+				</Border>
+				<TextBlock Grid.Row="1" Text="{Binding TagStatus}" FontSize="13" FontWeight="Regular" HorizontalAlignment="Center" Margin="0,5"/>
+			</Grid>				
 		</Border>
 		<DockPanel>
 			<Button Classes="secondary" Theme="{StaticResource ButtonRegular}" DockPanel.Dock="Left" HorizontalAlignment="Left"

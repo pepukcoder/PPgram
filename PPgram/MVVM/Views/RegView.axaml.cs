@@ -8,13 +8,8 @@ public partial class RegView : UserControl
     {
         InitializeComponent();
     }
-
     private void TextBox_TextChanged(object? sender, TextChangedEventArgs e)
     {
-        if (sender != null)
-        {
-            TextBox tb = (TextBox)sender;
-            tb.Text = tb.Text?.ToLower();
-        }
+        if (sender is TextBox tb) tb.Text = tb.Text?.ToLower();
     }
 }
