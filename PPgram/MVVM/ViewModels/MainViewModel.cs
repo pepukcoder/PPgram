@@ -257,7 +257,8 @@ internal partial class MainViewModel : ViewModelBase
         {
             try 
             { 
-                ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.tag, String.Empty);
+                if (m.photo.Path != null) await UploadFile(m.photo);
+                ChatDTO chatDTO = await jsonClient.CreateGroup(m.name, m.tag, m.photo.Hash);
                 chat_vm.AddChat(await ConvertChat(chatDTO));
             }
             catch (Exception ex)

@@ -23,7 +23,7 @@ internal partial class NewGroupDialog : Dialog
     { 
         Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar_group.png", UriKind.Absolute)))
     };
-    private bool tagOk;
+    private bool tagOk = true;
     private readonly DispatcherTimer timer;
     public NewGroupDialog()
     {
@@ -80,7 +80,7 @@ internal partial class NewGroupDialog : Dialog
     [RelayCommand]
     private void CreateGroup()
     {
-        if (string.IsNullOrEmpty(Name)) return;
+        if (string.IsNullOrEmpty(Name) || !tagOk) return;
         WeakReferenceMessenger.Default.Send(new Msg_CreateGroup { name = Name, tag = $"@{Tag}", photo = Photo });
         Close();
     }

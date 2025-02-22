@@ -277,7 +277,7 @@ internal class JsonClient
         await SendQueue(payload, tcs);
         return await tcs.Task;
     }
-    public async Task<ChatDTO> CreateGroup(string name, string username, string avatar_hash)
+    public async Task<ChatDTO> CreateGroup(string name, string? username, string? avatar_hash)
     {
         var payload = new
         {
@@ -449,8 +449,13 @@ internal class JsonClient
                     requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs)
                     {
-                        ChatDTO? group = rootNode?["chat"]?.Deserialize<ChatDTO>();
-                        if (ok == true && group != null) newgroup_tcs.SetResult(group);
+                        JsonNode? chatNode = rootNode?["chat"];
+                        ChatDTO? group = chatNode.Deserialize<ChatDTO>();
+                        if (ok == true && group != null)
+                        {
+                            group.Username = chatNode?["tag"]?.GetValue<string>();
+                            newgroup_tcs.SetResult(group);
+                        }
                         else newgroup_tcs.SetException(new Exception(r_error ?? "Create group failed"));
                     }
                     break;
