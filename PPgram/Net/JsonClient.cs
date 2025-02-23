@@ -441,7 +441,7 @@ internal class JsonClient
                     requests.TryDequeue(out tcs);
                     if (tcs is TaskCompletionSource<bool> editself_tcs)
                     {
-                        if (ok != null) editself_tcs.SetResult(ok == true);
+                        if (ok == true) editself_tcs.SetResult(true);
                         else editself_tcs.SetException(new Exception(r_error ?? "Edit profile failed"));
                     }
                     break;

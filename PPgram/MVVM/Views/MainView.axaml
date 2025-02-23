@@ -48,22 +48,18 @@
 						<DataTemplate DataType="md:AttachFileDialog">
 							<cd:AttachFileDialogControl/>
 						</DataTemplate>
-						<DataTemplate DataType="md:RegularDialog">
-							<cd:RegularDialogControl/>
-						</DataTemplate>
 						<DataTemplate DataType="md:ConnectionDialog">
 							<cd:ConnectionDialogControl/>
 						</DataTemplate>
 						<DataTemplate DataType="md:NewGroupDialog">
 							<cd:NewGroupDialogControl/>
 						</DataTemplate>
-						<DataTemplate DataType="md:ErrorDialog">
-							<cd:ErrorDialogControl/>
+						<DataTemplate DataType="md:Dialog">
+							<cd:DialogControl/>
 						</DataTemplate>
 					</ContentControl.DataTemplates>
 				</ContentControl>
 			</Border>
 		</Viewbox>
-		
 	</Grid>
 </UserControl>

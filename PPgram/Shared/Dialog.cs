@@ -14,3 +14,11 @@ class Msg_RegularDialogResult
 {
     public required string action;
 }
+public enum DialogIcons
+{
+    None,
+    Error,
+    Check,
+    Info,
+    Notify
+}

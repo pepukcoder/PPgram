@@ -9,9 +9,6 @@
              x:Class="PPgram.MVVM.Views.ProfileSettingsView"
 			 x:DataType="vm:ProfileSettingsViewModel"
 			 FontSize="14">
-	<Design.DataContext>
-		<vm:SettingsViewModel/>
-	</Design.DataContext>
 	<UserControl.Resources>
 		<helpers:UserColorConverter x:Key="ColorC"/>
 	</UserControl.Resources>

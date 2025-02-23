@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace PPgram.Controls.DialogContent;
 
-public partial class RegularDialogControl : UserControl
+public partial class DialogControl : UserControl
 {
-    public RegularDialogControl()
+    public DialogControl()
     {
         InitializeComponent();
     }

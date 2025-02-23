@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="PPgram.Controls.DialogContent.DialogControl"
+			 x:DataType="md:Dialog">
+	<UserControl.Resources>
+		<helpers:EnumMatchConverter x:Key="EnumConvert"/>
+	</UserControl.Resources>
+	<StackPanel Orientation="Horizontal">
+		<icons:MaterialIcon Kind="AlertCircle" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"
+							IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Error}"/>
+		<icons:MaterialIcon Kind="CheckCircle" Foreground="LightGreen"	  Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"
+							IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Check}"/>
+		<icons:MaterialIcon Kind="InfoCircle"  Foreground="SkyBlue"		  Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"
+							IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Info}"/>
+		<icons:MaterialIcon Kind="BellCircle"  Foreground="PaleGoldenrod" Width="24" Height="24" Margin="0,0,10,0" VerticalAlignment="Center"
+							IsVisible="{Binding Icon, Converter={StaticResource EnumConvert}, ConverterParameter=Notify}"/>
+		<TextBlock FontSize="14" Text="{Binding Text}" HorizontalAlignment="Left" VerticalAlignment="Center"
+				   TextWrapping="Wrap" MaxWidth="300"/>
+	</StackPanel>
+</UserControl>

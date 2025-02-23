@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -88,7 +89,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
                 await LoadOffline();
             }
         });
@@ -104,7 +105,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
                 await LoadOffline();
             }
         });
@@ -118,7 +119,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_CheckGroupTag>(this, async (r, m) =>
@@ -130,7 +131,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_SearchUsers>(this, async (r, m) =>
@@ -149,7 +150,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = "Failed to fetch search results" }, time = 3 });
+                ShowError("Failed to fetch search results");
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_FetchMessages>(this, async (r, m) =>
@@ -166,7 +167,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_SendMessage>(this, async (r, m) =>
@@ -202,7 +203,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async (r, m) =>
@@ -213,7 +214,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_EditMessage>(this, async (r, m) =>
@@ -227,7 +228,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_SendDraft>(this, async (r, m) =>
@@ -238,7 +239,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_SendRead>(this, async (r, m) =>
@@ -250,7 +251,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_CreateGroup>(this, async (r, m) =>
@@ -263,7 +264,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_DownloadFile>(this, async (r, m) =>
@@ -275,7 +276,7 @@ internal partial class MainViewModel : ViewModelBase
             catch (Exception ex)
             {
                 m.file.Status = FileStatus.NotLoaded;
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_DeleteChat>(this, async (r, m) => 
@@ -286,7 +287,7 @@ internal partial class MainViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         WeakReferenceMessenger.Default.Register<Msg_EditSelf>(this, async (r, m) =>
@@ -294,14 +295,22 @@ internal partial class MainViewModel : ViewModelBase
             try
             {
                 if (m.avatarChanged) await UploadFile(m.profile.Avatar);
+                Dialog editDialog;
                 if (await jsonClient.EditSelf(m.profile))
                 {
-
+                    editDialog = new()
+                    {
+                        Icon = DialogIcons.Check,
+                        Position = VerticalAlignment.Top,
+                        backpanel = false,
+                        Text = "Profile settings updated"
+                    };
+                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = editDialog, time = 3 });
                 }
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                ShowError(ex.Message);
             }
         });
         // chat events
@@ -365,7 +374,7 @@ internal partial class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+            ShowError(ex.Message);
         }
     }
     private async Task LoadOffline()
@@ -430,7 +439,7 @@ internal partial class MainViewModel : ViewModelBase
                 }
                 catch (Exception ex)
                 {
-                    WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = new ErrorDialog { Text = ex.Message }, time = 3 });
+                    ShowError(ex.Message);
                 }
             }
             message.Content = new FileContentModel()
@@ -578,6 +587,17 @@ internal partial class MainViewModel : ViewModelBase
             photo.Preview = new(path);
         }
         return photo;
+    }
+    private static void ShowError(string text)
+    {
+        Dialog errorDialog = new()
+        {
+            Icon = DialogIcons.Error,
+            Position = VerticalAlignment.Top,
+            backpanel = false,
+            Text = text
+        };
+        WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = errorDialog, time = 3 });
     }
     private void ShowDialog(Dialog dialog, int time)
     {

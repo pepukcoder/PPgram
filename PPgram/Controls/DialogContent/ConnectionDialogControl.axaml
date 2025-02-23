@@ -5,15 +5,14 @@
              xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
 			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PPgram.Controls.DialogContent.ConnectionDialogControl"
              x:DataType="md:ConnectionDialog"
              FontSize="14">
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
         <icons:MaterialIcon Kind="WebRemove" Foreground="PaleVioletRed" Width="24" Height="24" Margin="0,0,5,0" VerticalAlignment="Center"/>
         <TextBlock Text="Unable to connect to the server" VerticalAlignment="Center"/>
-        <Button Theme = "{StaticResource ButtonIcon}" Margin="10,0,0,0" Command="{Binding ReconnectCommand}">
-            <icons:MaterialIcon Kind="Refresh" Width="24" Height="24"/>
+        <Button Theme="{StaticResource ButtonIcon}" Margin="10,0,0,0" Command="{Binding ReconnectCommand}">
+            <icons:MaterialIcon Classes="spinner" Kind="Refresh" Width="24" Height="24"/>
         </Button>
     </StackPanel>
 </UserControl>
