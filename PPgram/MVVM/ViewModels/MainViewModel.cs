@@ -294,7 +294,10 @@ internal partial class MainViewModel : ViewModelBase
             try
             {
                 if (m.avatarChanged) await UploadFile(m.profile.Avatar);
-                await jsonClient.EditSelf(m.profile);
+                if (await jsonClient.EditSelf(m.profile))
+                {
+
+                }
             }
             catch (Exception ex)
             {

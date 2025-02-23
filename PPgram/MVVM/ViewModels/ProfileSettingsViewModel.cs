@@ -29,6 +29,11 @@ internal partial class ProfileSettingsViewModel : ViewModelBase
     {
         // get current state values
         avatarChanged = false;
+        Profile.Name = profileState.Name;
+        Profile.Username = profileState.Username;
+        Profile.Color = profileState.Color;
+        Profile.Avatar = profileState.Avatar;
+
         // update message preview
         PreviewMessage.Sender = Profile;
         PreviewMessage.Reply.Sender = Profile;
@@ -49,6 +54,10 @@ internal partial class ProfileSettingsViewModel : ViewModelBase
             profile = Profile,
             avatarChanged = avatarChanged
         });
+        profileState.Name = Profile.Name;
+        profileState.Username = Profile.Username;
+        profileState.Color = Profile.Color;
+        profileState.Avatar = Profile.Avatar;
     }
     [RelayCommand]
     private static void Close() => WeakReferenceMessenger.Default.Send(new Msg_ToChat());
