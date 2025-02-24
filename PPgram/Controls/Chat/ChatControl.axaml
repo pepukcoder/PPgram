@@ -78,7 +78,11 @@
 				</Style>
 			</ListBox.Styles>
 		</ListBox>
-		
+		<Panel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding Fetching}">
+			<Border Opacity="0.5" CornerRadius="26" Background="{StaticResource Surface}"/>
+			<icons:MaterialIcon Classes="spinnerlinear" Kind="Loading" Height="52" Width="52"/>
+			<icons:MaterialIcon Kind="Chat" Height="20" Width="20"/>
+		</Panel>
 		<Border Background="{StaticResource Surface}" CornerRadius="20"
 				Padding="5" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource Panel}">
 			<DockPanel>

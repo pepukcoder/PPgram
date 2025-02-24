@@ -93,7 +93,7 @@ partial class ChatViewModel : ViewModelBase
     }
     private bool TryFindChat(int id, out ChatModel chat)
     {
-        ChatModel? chat_or_null = Chats.FirstOrDefault(c => c.Id == id);
+        ChatModel? chat_or_null = Chats.Where(c => c.Id == id).First();
         chat = chat_or_null ?? default!;
         return chat_or_null != null;
     }

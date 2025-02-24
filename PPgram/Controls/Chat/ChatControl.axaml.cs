@@ -22,18 +22,13 @@ public partial class ChatControl : UserControl
 {
     private readonly ProfileState profileState = ProfileState.Instance;
     private readonly AppState appState = AppState.Instance;
-    private readonly DispatcherTimer fetchTimer;
     private readonly DispatcherTimer readTimer;
-    private bool fetchThrottle = false;
     private bool readThrottle = false;
     public ChatControl()
     {
         InitializeComponent();
         WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog());
-        // request delay timers
-        fetchTimer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesFetchDelay)};
-        fetchTimer.Tick += (s, e) => { fetchThrottle = false; };
-        fetchTimer.Start();
+        // request delay timer
         readTimer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesReadDelay)};
         readTimer.Tick += (s, e) => { readThrottle = false; };
         readTimer.Start();
@@ -98,7 +93,6 @@ public partial class ChatControl : UserControl
         if (sender is ListBox box && box.Scroll is IScrollable sw && e.ExtentDelta.Y > 0)
         {
             sw.Offset = new(0, sw.Offset.Y + e.ExtentDelta.Y);
-            fetchThrottle = true;
         }
         // get rendered messages and listbox bounds
         IEnumerable<Control> controls = MessageHistory.GetRealizedContainers();
@@ -128,22 +122,24 @@ public partial class ChatControl : UserControl
         }
         if (readMessages.Count > 0 && !readThrottle)
         {
-            WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
             readThrottle = true;
+            WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         }
         // prefetch detection
-        if (this.DataContext is ChatModel chat && chat.Messages.Count > 0 && !chat.FetchedAllMessages)
+        if (this.DataContext is ChatModel chat && chat.Messages.Count > 0 && !chat.FetchedAllMessages && !chat.Fetching)
         {
             int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
-            if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold && !fetchThrottle)
+            if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold)
             {
+                MessageModel anchor = fetchedMessages.Last();
+                if (anchor.Id < 1) return;
+                chat.Fetching = true;
                 WeakReferenceMessenger.Default.Send(new Msg_FetchMessages
                 {
                     chat = chat,
-                    anchor = fetchedMessages.Last(),
+                    anchor = anchor,
                     index = upper_index,
                 });
-                fetchThrottle = true;
             }
         }
     }

@@ -157,7 +157,6 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                if (m.anchor.Id == 0 || m.anchor.Id == -1) return;
                 int[] range = [m.anchor.Id - 1, (PPAppState.MessagesFetchAmount - 1) * -1];
                 List<MessageDTO> messageDTOs = await jsonClient.FetchMessages(m.anchor.Chat, range);
                 if (messageDTOs.Count == 0) m.chat.FetchedAllMessages = true;

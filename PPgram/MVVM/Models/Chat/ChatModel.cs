@@ -22,47 +22,45 @@ namespace PPgram.MVVM.Models.Chat;
 internal abstract partial class ChatModel : ObservableObject
 {
     [ObservableProperty]
-    private ProfileModel profile = new();
+    public partial ProfileModel Profile { get; set; } = new();
     [ObservableProperty]
-    private ChatItem? selectedMessage;
+    public partial ChatItem? SelectedMessage { get; set; }
     [ObservableProperty]
-    private string lastMessage = string.Empty;
+    public partial string LastMessage { get; set; } = string.Empty;
     [ObservableProperty]
-    private long lastMessageTime;
+    public partial long LastMessageTime { get; set; }
     [ObservableProperty]
-    private MessageStatus lastMessageStatus;
+    public partial MessageStatus LastMessageStatus { get; set; }
     [ObservableProperty]
-    private ObservableCollection<ChatItem> messages = [];
+    public partial ObservableCollection<ChatItem> Messages { get; set; } = [];
     [ObservableProperty]
-    private ObservableCollection<FileModel> files = [];
-
+    public partial ObservableCollection<FileModel> Files { get; set; } = [];
     [ObservableProperty]
-    private string messageInput = string.Empty;
+    public partial string MessageInput { get; set; } = string.Empty;
     [ObservableProperty]
-    private string secondaryText = string.Empty;
+    public partial string SecondaryText { get; set; } = string.Empty;
     [ObservableProperty]
-    private string secondaryHeader = string.Empty;
+    public partial string SecondaryHeader { get; set; } = string.Empty;
     [ObservableProperty]
-    private bool secondaryVisible;
-
+    public partial bool SecondaryVisible { get; set; }
     [ObservableProperty]
-    private bool inReply;
+    public partial bool InReply { get; set; }
     [ObservableProperty]
-    private bool inEdit;
-
+    public partial bool InEdit { get; set; }
     [ObservableProperty]
-    private bool canReply;
+    public partial bool CanReply { get; set; }
     [ObservableProperty]
-    private bool canEdit;
+    public partial bool CanEdit { get; set; }
     [ObservableProperty]
-    private bool canDelete;
+    public partial bool CanDelete { get; set; }
     [ObservableProperty]
-    private bool contextVisible;
-
+    public partial bool ContextVisible { get; set; }
     [ObservableProperty]
-    private int unreadCount;
+    public partial int UnreadCount { get; set; }
     [ObservableProperty]
-    private ChatStatus status;
+    public partial ChatStatus Status { get; set; }
+    [ObservableProperty]
+    public partial bool Fetching { get; set; }
 
     public int Id { get; set; } = -1;
     public bool Searched { get; set; }
@@ -116,6 +114,7 @@ internal abstract partial class ChatModel : ObservableObject
     }
     public void LoadMessages(List<MessageModel> messages, bool forward)
     {
+        Fetching = false;
         MessageChainer.AddChain(messages, Messages, this, forward);
         UpdateLastMessage();
     }
@@ -170,7 +169,7 @@ internal abstract partial class ChatModel : ObservableObject
     }
     private bool TryFindMessage(int id, out MessageModel message)
     {
-        MessageModel? msg_or_null = Messages.OfType<MessageModel>().FirstOrDefault(m => m.Id == id);
+        MessageModel? msg_or_null = Messages.OfType<MessageModel>().Where(m => m.Id == id).First();
         message = msg_or_null ?? default!;
         return msg_or_null != null;
     }
