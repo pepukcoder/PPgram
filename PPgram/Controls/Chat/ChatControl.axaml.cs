@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
 using PPgram.MVVM.Models.Chat;
@@ -15,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Avalonia.Input;
 
 namespace PPgram.Controls.Chat;
 
@@ -24,14 +26,23 @@ public partial class ChatControl : UserControl
     private readonly AppState appState = AppState.Instance;
     private readonly DispatcherTimer readTimer;
     private bool readThrottle = false;
+    private bool autoScrolling = false;
     public ChatControl()
     {
         InitializeComponent();
+        btn_toend.AddHandler(PointerPressedEvent, ScrolltoEnd, RoutingStrategies.Tunnel);
         WeakReferenceMessenger.Default.Register<Msg_OpenAttachFiles>(this, (r, e) => OpenFileDialog());
         // request delay timer
         readTimer = new() { Interval = TimeSpan.FromMilliseconds(appState.MessagesReadDelay)};
         readTimer.Tick += (s, e) => { readThrottle = false; };
         readTimer.Start();
+    }
+    private void ScrolltoEnd(object? sender, PointerPressedEventArgs e)
+    {
+        autoScrolling = true;
+        if (this.DataContext is ChatModel chat) chat.ToEndVisible = false;
+        MessageHistory.ScrollIntoView(0);
+        autoScrolling = false;
     }
     private async void OpenFileDialog()
     {
@@ -87,20 +98,21 @@ public partial class ChatControl : UserControl
     }
     private void ChatScrolled(object? sender, ScrollChangedEventArgs e)
     {
-        // prevent horizontal resize misdetection
-        if (e.ExtentDelta.X != 0) return;
+        // prevent any misdetection
+        if (e.ExtentDelta.X != 0 || autoScrolling || this.DataContext is not ChatModel chat || sender is not ListBox box || box.Scroll is not IScrollable sw) return;
         // preserve scroll offset
-        if (sender is ListBox box && box.Scroll is IScrollable sw && e.ExtentDelta.Y > 0)
+        if (e.ExtentDelta.Y > 0)
         {
             sw.Offset = new(0, sw.Offset.Y + e.ExtentDelta.Y);
         }
+        chat.ToEndVisible = Math.Abs(sw.Offset.Y - sw.Extent.Height + sw.Viewport.Height) > 36;
         // get rendered messages and listbox bounds
         IEnumerable<Control> controls = MessageHistory.GetRealizedContainers();
         TransformedBounds? chatBounds = MessageHistory.GetTransformedBounds();
         if (chatBounds == null) return;
         Rect chatClip = chatBounds.Value.Clip;
         // message detection
-        List<MessageModel> fetchedMessages = MessageHistory.Items.Source.OfType<MessageModel>().ToList();
+        List<MessageModel> fetchedMessages = [.. MessageHistory.Items.Source.OfType<MessageModel>()];
         List<MessageModel> screenMessages = [];
         List<MessageModel> readMessages = [];
         for (int index = 0; index < controls.Count(); index++)
@@ -126,7 +138,7 @@ public partial class ChatControl : UserControl
             WeakReferenceMessenger.Default.Send(new Msg_SendRead { messages = readMessages });
         }
         // prefetch detection
-        if (this.DataContext is ChatModel chat && chat.Messages.Count > 0 && !chat.FetchedAllMessages && !chat.Fetching)
+        if (chat.Messages.Count > 0 && !chat.FetchedAllMessages && !chat.Fetching)
         {
             int upper_index = fetchedMessages.IndexOf(screenMessages.Last());
             if (fetchedMessages.Count > 0 && fetchedMessages.Count - (upper_index + 1) <= appState.MessagesFetchThreshold)

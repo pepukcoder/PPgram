@@ -44,6 +44,8 @@ internal abstract partial class ChatModel : ObservableObject
     [ObservableProperty]
     public partial bool SecondaryVisible { get; set; }
     [ObservableProperty]
+    public partial bool ToEndVisible { get; set; }
+    [ObservableProperty]
     public partial bool InReply { get; set; }
     [ObservableProperty]
     public partial bool InEdit { get; set; }

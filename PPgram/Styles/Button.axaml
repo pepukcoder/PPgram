@@ -16,7 +16,6 @@
 				</Border>
 			</ControlTemplate>
 		</Setter>
-
 		<Style Selector="^:pointerover">
 			<Setter Property="Background" Value="{StaticResource PPgramAccentLight}"/>
 		</Style>
@@ -48,7 +47,6 @@
 				</Border>
 			</ControlTemplate>
 		</Setter>
-
 		<Style Selector="^:pointerover">
 			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
 		</Style>
@@ -121,6 +119,41 @@
 			<Style Selector="^ /template/ Border#PART_Back">
 				<Setter Property="Background" Value="{StaticResource Surface}"/>
 			</Style>
+		</Style>
+	</ControlTheme>
+	<ControlTheme x:Key="ButtonScrollDown" TargetType="Button">
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Foreground" Value="{StaticResource ButtonIdle}"/>
+		<Setter Property="Padding" Value="8"/>
+		<Setter Property="BorderThickness" Value="0"/>
+		<Setter Property="FontFamily" Value="{StaticResource Roboto}"/>
+		<Setter Property="FontSize" Value="14"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Panel Background="Transparent" Cursor="Hand">
+					<Ellipse Fill="{StaticResource Surface}" Stroke="{StaticResource Panel}" StrokeThickness="1"/>
+					<ContentPresenter Content="{TemplateBinding Content}" Margin="5"/>
+				</Panel>
+			</ControlTemplate>
+		</Setter>
+		<Setter Property="Transitions">
+        	<Setter.Value>
+            	<Transitions> 
+                	<TransformOperationsTransition Easing="QuadraticEaseInOut" Property="RenderTransform" Duration="0:0:0.3"/>
+            	</Transitions>
+        	</Setter.Value>
+    	</Setter>  
+		<Style Selector="^:pointerover">
+			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
+		</Style>
+		<Style Selector="^:pressed">
+			<Setter Property="Foreground" Value="{StaticResource ButtonHover}"/>
+		</Style>
+		<Style Selector="^.active">
+			<Setter Property="RenderTransform" Value="translateY(0px)" /> 
+		</Style>
+		<Style Selector="^.inactive">
+			<Setter Property="RenderTransform" Value="translateY(56px)" /> 
 		</Style>
 	</ControlTheme>
 </ResourceDictionary>
