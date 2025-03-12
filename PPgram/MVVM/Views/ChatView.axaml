@@ -128,7 +128,7 @@
 					<DockPanel Margin="5">
 						<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
 							<Ellipse.Fill>
-								<ImageBrush Source="{Binding ProfileState.Avatar.Preview}"/>
+								<ImageBrush Source="{Binding ProfileState.Profile.Avatar.Preview}"/>
 							</Ellipse.Fill>
 						</Ellipse>
 						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding LogoutCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
@@ -138,8 +138,8 @@
 							<icons:MaterialIcon Kind="AccountEdit" Height="24" Width="24"/>
 						</Button>
 						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-							<TextBlock Text="{Binding ProfileState.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
-							<TextBlock Text="{Binding ProfileState.Username}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
+							<TextBlock Text="{Binding ProfileState.Profile.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+							<TextBlock Text="{Binding ProfileState.Profile.Username}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
 						</StackPanel>
 					</DockPanel>
 				</Border>

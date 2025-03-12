@@ -14,7 +14,7 @@
 	<UserControl.Resources>
 		<helpers:UserColorConverter x:Key="ColorC"/>
 	</UserControl.Resources>
-	<Grid Background="{Binding Profile.Color, Converter={StaticResource ColorC}}">
+	<Grid Background="{Binding ProfileState.Profile.Color, Converter={StaticResource ColorC}}">
 		<Border Background="{StaticResource Surface}" BorderThickness="1" BorderBrush="{StaticResource Panel}"
 				CornerRadius="20" Padding="10" VerticalAlignment="Center" HorizontalAlignment="Center"
 				BoxShadow="0 6 10 0 #1c1c1c">

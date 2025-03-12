@@ -72,7 +72,7 @@ internal static class MessageChainer
     }
     private static void SetSender(MessageModel message, ChatModel chat)
     {
-        if (message.SenderId == profileState.UserId) message.Sender = profileState;
+        if (message.SenderId == profileState.UserId && profileState.Profile != null) message.Sender = profileState.Profile;
         else if (chat is UserModel user) message.Sender = user.Profile;
         // TODO: assign sender in group from members list
     }

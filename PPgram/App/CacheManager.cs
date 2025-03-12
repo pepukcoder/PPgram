@@ -3,6 +3,8 @@ using System;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.IO;
+using System.Collections.Generic;
+using PPgram.MVVM.Models.User;
 
 namespace PPgram.App;
 
@@ -10,6 +12,7 @@ internal class CacheManager
 {
     private readonly AppState appState = AppState.Instance;
     private readonly SqliteConnection connection;
+    private readonly Dictionary<int, ProfileModel> cachedProfiles = new();
     public CacheManager()
     {
         FSManager.RestoreDirs(PPPath.CacheDBFile);
@@ -94,6 +97,7 @@ internal class CacheManager
         command.Parameters.AddWithValue("$file_path", file_path);
         command.ExecuteNonQuery();
     }
+    public void CacheProfile(int id, ProfileModel profile) => cachedProfiles.Add(id, profile);
     public string? GetCachedFile(string hash, bool preview = false)
     {
         string query = preview ?
@@ -117,7 +121,8 @@ internal class CacheManager
         LIMIT 1;";
         return ReadHash(query, hash);
     }
-    public void DeleteCached(string hash, bool avatar = false)
+    public ProfileModel GetCachedProfile(int id) => cachedProfiles[id];
+    public void DeleteCachedFile(string hash, bool avatar = false)
     {
         string query;
         if (avatar) query = @"DELETE FROM avatars WHERE hash = $hash;";
@@ -126,7 +131,7 @@ internal class CacheManager
         command.Parameters.AddWithValue("$hash", hash);
         command.ExecuteNonQuery();
     }
-    public bool IsCached(string hash, bool avatar = false)
+    public bool IsFileCached(string hash, bool avatar = false)
     {
         string query;
         if (avatar) query = @"SELECT EXISTS(SELECT 1 FROM avatars WHERE hash = $hash);";
@@ -135,4 +140,5 @@ internal class CacheManager
         command.Parameters.AddWithValue("$hash", hash);
         return Convert.ToInt32(command.ExecuteScalar()) == 1;
     }
+    public bool IsProfileCached(int id) => cachedProfiles.ContainsKey(id);
 }

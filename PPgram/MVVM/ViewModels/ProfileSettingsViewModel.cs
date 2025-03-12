@@ -27,12 +27,13 @@ internal partial class ProfileSettingsViewModel : ViewModelBase
     private bool avatarChanged;
     public void Load()
     {
+        if (profileState.Profile == null) return;
         // get current state values
         avatarChanged = false;
-        Profile.Name = profileState.Name;
-        Profile.Username = profileState.Username;
-        Profile.Color = profileState.Color;
-        Profile.Avatar = profileState.Avatar;
+        Profile.Name = profileState.Profile.Name;
+        Profile.Username = profileState.Profile.Username;
+        Profile.Color = profileState.Profile.Color;
+        Profile.Avatar = profileState.Profile.Avatar;
 
         // update message preview
         PreviewMessage.Sender = Profile;
@@ -49,15 +50,16 @@ internal partial class ProfileSettingsViewModel : ViewModelBase
     [RelayCommand]
     private void SaveProfile()
     {
+        if (profileState.Profile == null) return;
         WeakReferenceMessenger.Default.Send(new Msg_EditSelf
         {
             profile = Profile,
             avatarChanged = avatarChanged
         });
-        profileState.Name = Profile.Name;
-        profileState.Username = Profile.Username;
-        profileState.Color = Profile.Color;
-        profileState.Avatar = Profile.Avatar;
+        profileState.Profile.Name = Profile.Name;
+        profileState.Profile.Username = Profile.Username;
+        profileState.Profile.Color = Profile.Color;
+        profileState.Profile.Avatar = Profile.Avatar;
     }
     [RelayCommand]
     private static void Close() => WeakReferenceMessenger.Default.Send(new Msg_ToChat());

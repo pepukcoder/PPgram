@@ -10,10 +10,6 @@ class Msg_ShowDialog
 class Msg_CloseDialog;
 class Msg_Reconnect;
 class Msg_OpenAttachFiles;
-class Msg_RegularDialogResult
-{
-    public required string action;
-}
 public enum DialogIcons
 {
     None,

@@ -6,9 +6,9 @@ namespace PPgram.MVVM.ViewModels;
 internal partial class ProfileViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private ProfileState profile = ProfileState.Instance;
+    public partial ProfileState ProfileState {get; set; } = ProfileState.Instance;
     public ProfileViewModel()
     {
-        profile.Color = 4;
+
     }
 }

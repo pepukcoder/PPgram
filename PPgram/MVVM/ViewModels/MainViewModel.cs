@@ -26,7 +26,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -354,11 +353,16 @@ internal partial class MainViewModel : ViewModelBase
             CurrentPage = chat_vm;
             await LoadFolders();
             ProfileDTO self = await jsonClient.FetchSelf();
+            ProfileModel profile = new()
+            {
+                Name = self.Name ?? string.Empty,
+                Username = self.Username ?? string.Empty,
+                Color = self.Color ?? 0,
+                Avatar = await DownloadAvatar(self.Photo)
+            };
+            cacheManager.CacheProfile(self.Id ?? 0, profile);
             profileState.UserId = self.Id ?? 0;
-            profileState.Name = self.Name ?? string.Empty;
-            profileState.Username = self.Username ?? string.Empty;
-            profileState.Color = self.Color ?? 0;
-            profileState.Avatar = await DownloadAvatar(self.Photo);
+            profileState.Profile = profile;
             PhotoModel avatar = new() { Hash = self.Photo };
             List<ChatDTO> chatDTOs = await jsonClient.FetchChats();    
             foreach (ChatDTO chatDTO in chatDTOs)
@@ -458,13 +462,23 @@ internal partial class MainViewModel : ViewModelBase
     }
     private async Task<ChatModel> ConvertChat(ChatDTO chatDTO)
     {
-        ProfileModel profile = new()
+        if (chatDTO.Id == null) throw new JsonException("Invalid chat data");
+        ProfileModel profile;
+        if (!cacheManager.IsProfileCached(chatDTO.Id ?? -1))
         {
-            Name = chatDTO.Name ?? string.Empty,
-            Username = chatDTO.Username ?? string.Empty,
-            Color = chatDTO.Color ?? 0,
-            Avatar = await DownloadAvatar(chatDTO.Photo)
-        };
+            profile = new()
+            {
+                Name = chatDTO.Name ?? string.Empty,
+                Username = chatDTO.Username ?? string.Empty,
+                Color = chatDTO.Color ?? 0,
+                Avatar = await DownloadAvatar(chatDTO.Photo)
+            };
+            cacheManager.CacheProfile(chatDTO.Id ?? -1, profile);
+        }
+        else
+        {
+            profile = cacheManager.GetCachedProfile(chatDTO.Id ?? -1);
+        }
         if (chatDTO.IsGroup == true)
         {
             return new GroupModel()
@@ -497,7 +511,7 @@ internal partial class MainViewModel : ViewModelBase
     private async Task<FileModel> DownloadMeta(string hash)
     {
         (string name, long size) = await filesClient.DownloadFileMetadata(hash);
-        if (!cacheManager.IsCached(hash))
+        if (!cacheManager.IsFileCached(hash))
         {
             (string? temp_preview, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.preview_only);
             cacheManager.CacheFile(hash, name, temp_preview, temp_file);
@@ -569,7 +583,7 @@ internal partial class MainViewModel : ViewModelBase
             photo.Preview = new Bitmap(AssetLoader.Open(new("avares://PPgram/Assets/default_avatar.png", UriKind.Absolute)));
             return photo;
         }
-        if (!cacheManager.IsCached(hash, true))
+        if (!cacheManager.IsFileCached(hash, true))
         {
             (_, string? temp_file) = await filesClient.DownloadFile(hash, DownloadMode.media_only);
             if (temp_file == null)
