@@ -2,8 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
 			 xmlns:m="clr-namespace:PPgram.MVVM.Models.MessageContent;assembly=PPgram"
              x:Class="PPgram.Controls.MessageContent.TextContentControl"
 			 x:DataType="m:TextContentModel">
-  <TextBlock Text="{Binding Text}" Margin="0,0,10,0" TextWrapping="Wrap"/>
+    <UserControl.Resources>
+        <helpers:TextFormatConverter x:Key="FC"/>
+    </UserControl.Resources>
+    <TextBlock Inlines="{Binding Text,Converter={StaticResource FC}}" Margin="0,0,10,0" TextWrapping="Wrap"/>
 </UserControl>

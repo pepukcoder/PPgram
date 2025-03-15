@@ -12,6 +12,7 @@
 		<helpers:SizeConverter x:Key="SConvert"/>
 		<helpers:EnumMatchConverter x:Key="EConvert"/>
 		<helpers:DurationConverter x:Key="DConvert"/>
+        <helpers:TextFormatConverter x:Key="FC"/>
 	</UserControl.Resources>
 	<StackPanel Orientation="Vertical" Margin="0,0,10,0">
 		<ListBox x:Name="FilesList" Margin="0,0,0,3" Padding="0" Background="Transparent" ItemsSource="{Binding Files}" BorderThickness="0" Cursor="Hand">
@@ -92,6 +93,6 @@
 				</DataTemplate>
 			</ListBox.DataTemplates>
 		</ListBox>
-		<TextBlock Text="{Binding Text}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap"/>
+		<TextBlock Inlines="{Binding Text, Converter={StaticResource FC}}" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap"/>
 	</StackPanel>
 </UserControl>
