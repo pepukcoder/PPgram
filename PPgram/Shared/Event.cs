@@ -32,3 +32,7 @@ class Msg_IsTypingEvent
     public required int chat;
     public required int user;
 }
+class Msg_EditProfileEvent
+{
+    public required ProfileDTO profile;
+}

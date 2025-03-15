@@ -338,6 +338,17 @@ internal partial class MainViewModel : ViewModelBase
             if (m.typing) chat_vm.ChangeChatStatus(m.chat, ChatStatus.Typing);
             else chat_vm.ChangeChatStatus(m.chat, ChatStatus.None);
         });
+        WeakReferenceMessenger.Default.Register<Msg_EditProfileEvent>(this, async (r, m) =>
+        {
+            ProfileModel profile = new()
+            {
+                Name = m.profile.Name ?? string.Empty,
+                Username = m.profile.Username ?? string.Empty,
+                Color = m.profile.Color ?? 0,
+                Avatar = await DownloadAvatar(m.profile.Photo)
+            };
+            cacheManager.UpdateProfile(m.profile.Id ?? -1, profile);
+        });
         // connection
         CurrentPage = login_vm;
         Task.Run(async() =>

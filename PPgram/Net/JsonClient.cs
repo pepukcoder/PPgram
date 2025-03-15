@@ -517,6 +517,11 @@ internal class JsonClient
                     }
                     WeakReferenceMessenger.Default.Send(new Msg_MarkAsReadEvent { chat = chat ?? -1, ids = [.. ids] });
                     break;
+                case "edit_self":
+                    ProfileDTO? profile = rootNode?["new_profile"]?.Deserialize<ProfileDTO>();
+                    if (profile == null ) return;
+                    WeakReferenceMessenger.Default.Send(new Msg_EditProfileEvent { profile = profile });
+                    break;                    
             }
         }
     }

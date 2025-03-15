@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using PPgram.MVVM.Models.User;
+using System.Collections.Concurrent;
 
 namespace PPgram.App;
 
@@ -12,7 +13,7 @@ internal class CacheManager
 {
     private readonly AppState appState = AppState.Instance;
     private readonly SqliteConnection connection;
-    private readonly Dictionary<int, ProfileModel> cachedProfiles = new();
+    private readonly ConcurrentDictionary<int, ProfileModel> cachedProfiles = new();
     public CacheManager()
     {
         FSManager.RestoreDirs(PPPath.CacheDBFile);
@@ -97,7 +98,15 @@ internal class CacheManager
         command.Parameters.AddWithValue("$file_path", file_path);
         command.ExecuteNonQuery();
     }
-    public void CacheProfile(int id, ProfileModel profile) => cachedProfiles.Add(id, profile);
+    public void CacheProfile(int id, ProfileModel profile) => cachedProfiles.TryAdd(id, profile);
+    public void UpdateProfile(int id, ProfileModel profile)
+    {
+        if (!cachedProfiles.TryGetValue(id, out ProfileModel? old)) return;
+        old.Avatar = profile.Avatar;
+        old.Name = profile.Name;
+        old.Username = profile.Username;
+        old.Color = profile.Color;
+    }
     public string? GetCachedFile(string hash, bool preview = false)
     {
         string query = preview ?
