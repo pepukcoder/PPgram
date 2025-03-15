@@ -24,8 +24,8 @@ public partial class ProfileSettingsView : UserControl
         IReadOnlyList<IStorageFile> files = await topLevel.StorageProvider.OpenFilePickerAsync(new() 
         { 
             Title = "Choose profile picture", 
-            AllowMultiple = false, 
-            FileTypeFilter = [FilePickerFileTypes.ImageAll]
+            AllowMultiple = false,
+            FileTypeFilter = [FilePickerFileTypes.ImageJpg, FilePickerFileTypes.ImagePng]
         });
         if (this.DataContext is ProfileSettingsViewModel settings_vm)
         {

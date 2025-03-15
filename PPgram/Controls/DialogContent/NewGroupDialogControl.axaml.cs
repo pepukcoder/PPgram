@@ -29,7 +29,7 @@ public partial class NewGroupDialogControl : UserControl
         { 
             Title = "Choose picture", 
             AllowMultiple = false, 
-            FileTypeFilter = [FilePickerFileTypes.ImageAll]
+            FileTypeFilter = [FilePickerFileTypes.ImageJpg, FilePickerFileTypes.ImagePng]
         });
         if (this.DataContext is NewGroupDialog dialog)
         {
