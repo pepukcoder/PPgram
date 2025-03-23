@@ -19,8 +19,9 @@ internal class JsonClient
     private TcpClient? client;
     private NetworkStream? stream;
     private CancellationTokenSource cts = new();
-    private readonly ConcurrentQueue<object> requests = [];
+    private readonly ConcurrentDictionary<int, object> requests = [];
     private readonly SemaphoreSlim semaphore = new(1, 1);
+    private int requestId = 0;
     public async Task<bool> Connect(ConnectionOptions options)
     {
         try
@@ -72,15 +73,20 @@ internal class JsonClient
     /// </summary>
     /// <param name="data">Serializable request payload</param>
     /// <returns></returns>
-    private async Task Send(object data)
+    private async Task Send(object data, object tcs)
     {
-        semaphore.Wait();
+        if (stream == null) return;
+        await semaphore.WaitAsync();
         try
         {
             string request = JsonSerializer.Serialize(data);
-            Debug.WriteLine(request);
-            if (stream == null) return;
-            await stream.WriteAsync(TcpConnection.BuildJsonRequest(request));
+            Debug.WriteLine($"trying: {requestId}");
+            if (requests.TryAdd(requestId, tcs))
+            {
+                await stream.WriteAsync(TcpConnection.BuildJsonRequest(request));
+                Debug.WriteLine($"sent: {requestId}");
+                requestId++;
+            }
         }
         catch { Disconnect(); }
         finally { semaphore.Release(); }
@@ -91,65 +97,64 @@ internal class JsonClient
     /// <param name="data">Serializable request payload</param>
     /// <param name="tcs">Completition source</param>
     /// <returns></returns>
-    private async Task SendQueue(object data, object tcs)
-    {
-        if (stream == null) return;
-        requests.Enqueue(tcs);
-        await Send(data);
-    }
     public async Task<bool> AuthSession(string session_id, int user_id)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "auth",
             user_id,
             session_id,
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<AuthDTO> AuthLogin(string username, string password)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "login",
             username,
             password
         };
         TaskCompletionSource<AuthDTO> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<AuthDTO> AuthRegister(string username, string name, string password)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "register",
             username,
             name,
             password
         };
         TaskCompletionSource<AuthDTO> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> CheckUsername(string username)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "check",
             what = "username",
             data = username
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> EditSelf(ProfileModel profile)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "edit",
             what = "self",
             name = profile.Name,
@@ -157,60 +162,65 @@ internal class JsonClient
             profile_color = profile.Color,
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<ProfileDTO> FetchSelf()
     {
         var payload = new
         {
+            req_id = requestId,
             method = "fetch",
             what = "self"
         };
         TaskCompletionSource<ProfileDTO> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<List<ChatDTO>> FetchChats()
     {
         var payload = new
         {
+            req_id = requestId,
             method = "fetch",
             what = "chats"
         };
         TaskCompletionSource<List<ChatDTO>> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<List<ChatDTO>> FetchUsers(string query)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "fetch",
             what = "users",
             query
         };
         TaskCompletionSource<List<ChatDTO>> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<List<MessageDTO>> FetchMessages(int id, int[] range)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "fetch",
             what = "messages",
             chat_id = id,
             range
         };
         TaskCompletionSource<List<MessageDTO>> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<(int, int)> SendMessage(int to, int? reply_to, string text, List<string> hashes)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "send_message",
             reply_to = reply_to != null ? reply_to : null,
             content = new
@@ -221,13 +231,14 @@ internal class JsonClient
             to
         };
         TaskCompletionSource<(int, int)> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> EditMessage(int chat_id, int message_id, string new_text)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "edit",
             what = "message",
             content = new_text,
@@ -235,52 +246,56 @@ internal class JsonClient
             message_id
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> DeleteMessage(int chat_id, int message_id)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "delete",
             what = "messages",
             chat_id,
             message_ids = new int[] { message_id }
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> SendDraft(int chat_id, string draft)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "edit",
             what = "draft",
             chat_id,
             draft
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<int> ReadMessage(int chat_id, int[] message_ids)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "edit",
             what = "is_unread",
             chat_id,
             message_ids
         };
         TaskCompletionSource<int> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<ChatDTO> CreateGroup(string name, string? username, string? avatar_hash)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "new",
             what = "group",
             name,
@@ -288,39 +303,40 @@ internal class JsonClient
             avatar_hash
         };
         TaskCompletionSource<ChatDTO> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     public async Task<bool> DeleteChat(int chat_id)
     {
         var payload = new
         {
+            req_id = requestId,
             method = "delete",
             what = "chat",
             chat_id
         };
         TaskCompletionSource<bool> tcs = new();
-        await SendQueue(payload, tcs);
+        await Send(payload, tcs);
         return await tcs.Task;
     }
     private void HandleResponse(string response)
     {
-        Debug.WriteLine(response);
         JsonNode? rootNode = JsonNode.Parse(response);
         // parse common fields
         string? r_method = rootNode?["method"]?.GetValue<string>();
         string? r_event = rootNode?["event"]?.GetValue<string>();
         string? r_error = rootNode?["error"]?.GetValue<string>();
         bool? ok = rootNode?["ok"]?.GetValue<bool>();
+        int? r_id = rootNode?["req_id"]?.GetValue<int>();
         // parse specific fields
-        if (r_method != null)
+        if (r_method != null && r_id.HasValue)
         {
+            Debug.WriteLine($"got: {r_id.Value}");
             switch (r_method)
             {
                 case "login":
                 case "register":
-                    requests.TryDequeue(out object? tcs);
-                    if (tcs is TaskCompletionSource<AuthDTO> login_tcs)
+                    if (requests.TryRemove(r_id.Value, out object? tcs) && tcs is TaskCompletionSource<AuthDTO> login_tcs)
                     {
                         AuthDTO? auth = rootNode?.Deserialize<AuthDTO>();
                         if (ok == true && auth != null) login_tcs.SetResult(auth);
@@ -328,24 +344,21 @@ internal class JsonClient
                     }
                     break;
                 case "auth":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<bool> auth_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<bool> auth_tcs)
                     {
                         if (ok != null) auth_tcs.SetResult(ok == true);
                         else auth_tcs.SetException(new Exception(r_error ?? "Auto authentification failed"));
                     }
                     break;
                 case "check_username":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<bool> check_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<bool> check_tcs)
                     {
                         if (ok != null) check_tcs.SetResult(ok != true);
                         else check_tcs.SetException(new Exception(r_error ?? "Check username failed"));
                     }
                     break;
                 case "fetch_self":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<ProfileDTO> fself_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<ProfileDTO> fself_tcs)
                     {
                         ProfileDTO? profile = rootNode?.Deserialize<ProfileDTO>();
                         if (ok == true && profile != null) fself_tcs.SetResult(profile);
@@ -353,8 +366,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_chats":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<List<ChatDTO>> fchats_tcs)
                     {
                         JsonArray? chatsJson = rootNode?["chats"]?.AsArray();
                         if (ok == true && chatsJson != null)
@@ -371,8 +383,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_users":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<List<ChatDTO>> fusers_tcs)
                     {
                         JsonArray? usersJson = rootNode?["users"]?.AsArray();
                         if (ok == true && usersJson != null)
@@ -393,8 +404,7 @@ internal class JsonClient
                     }
                     break;
                 case "fetch_messages":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<List<MessageDTO>> fmsg_tcs)
                     {
                         JsonArray? messagesJson = rootNode?["messages"]?.AsArray();
                         if (ok == true && messagesJson != null)
@@ -411,8 +421,7 @@ internal class JsonClient
                     }
                     break;
                 case "send_message":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<(int, int)> msg_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<(int, int)> msg_tcs)
                     {
                         int? messageId = rootNode?["message_id"]?.GetValue<int>();
                         int? chatId = rootNode?["chat_id"]?.GetValue<int>();
@@ -421,16 +430,14 @@ internal class JsonClient
                     }
                     break;
                 case "edit_draft":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<bool> editdraft_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<bool> editdraft_tcs)
                     {
                         if (ok != null) editdraft_tcs.SetResult(ok == true);
                         else editdraft_tcs.SetException(new Exception(r_error ?? "Send draft failed"));
                     }
                     break;
                 case "edit_is_unread":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<int> editread_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<int> editread_tcs)
                     {
                         int? chatId = rootNode?["chat_id"]?.GetValue<int>();
                         if (ok == true && chatId != null) editread_tcs.SetResult(chatId ?? -1);
@@ -438,16 +445,14 @@ internal class JsonClient
                     }
                     break;
                 case "edit_self":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<bool> editself_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<bool> editself_tcs)
                     {
                         if (ok == true) editself_tcs.SetResult(true);
                         else editself_tcs.SetException(new Exception(r_error ?? "Edit profile failed"));
                     }
                     break;
                 case "new_group":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<ChatDTO> newgroup_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<ChatDTO> newgroup_tcs)
                     {
                         JsonNode? chatNode = rootNode?["chat"];
                         ChatDTO? group = chatNode.Deserialize<ChatDTO>();
@@ -460,14 +465,14 @@ internal class JsonClient
                     }
                     break;
                 case "delete_chat":
-                    requests.TryDequeue(out tcs);
-                    if (tcs is TaskCompletionSource<bool> deletechat_tcs)
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<bool> deletechat_tcs)
                     {
                         if (ok != null) deletechat_tcs.SetResult(ok == true);
                         else deletechat_tcs.SetException(new Exception(r_error ?? "Delete chat failed"));
                     }
                     break;
             }
+            Debug.WriteLine($"requests left: {requests.Count}");
         }
         // parse events
         if (r_event != null)
