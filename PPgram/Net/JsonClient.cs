@@ -79,17 +79,23 @@ internal class JsonClient
         await semaphore.WaitAsync();
         try
         {
+            if (!requests.TryAdd(requestId, tcs)) return;
             string request = JsonSerializer.Serialize(data);
-            Debug.WriteLine($"trying: {requestId}");
-            if (requests.TryAdd(requestId, tcs))
-            {
-                await stream.WriteAsync(TcpConnection.BuildJsonRequest(request));
-                Debug.WriteLine($"sent: {requestId}");
-                requestId++;
-            }
+            byte[] payload = TcpConnection.BuildJsonRequest(request);
+            await stream.WriteAsync(payload);
+            await stream.FlushAsync();
+            Debug.WriteLine($"[JSON] Sent: {requestId}");
+            requestId++;
         }
-        catch { Disconnect(); }
-        finally { semaphore.Release(); }
+        catch (Exception)
+        {
+            Debug.WriteLine($"[JSON] Send failed: {requestId}");
+            Disconnect();
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
     /// <summary>
     /// Sends serialized json to server and enqueues tcs into request queue
