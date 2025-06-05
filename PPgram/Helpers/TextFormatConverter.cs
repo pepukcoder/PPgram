@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
@@ -9,6 +8,18 @@ using Avalonia.Media;
 namespace PPgram.Helpers;
 
 internal partial class TextFormatConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string raw || String.IsNullOrEmpty(raw)) return new InlineCollection();
+        return RegexFormatParser.ParseFormat(raw);
+    }
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+internal class RegexFormatParser
 {
     /*
      * Matches all formatting patterns in matches,
@@ -20,11 +31,10 @@ internal partial class TextFormatConverter : IValueConverter
      */
     private static readonly string regex = @"\*{2}([^*]+?)\*{2}|@(\w+)|_{2}([^*]+?)_{2}|\*{3}([^*]+?)\*{3}";
     private static readonly Regex Formatting = new(regex, RegexOptions.Compiled);
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public static InlineCollection ParseFormat(string raw)
     {
-        if (value is not string raw || String.IsNullOrEmpty(raw)) return new InlineCollection();
         MatchCollection matches = Formatting.Matches(raw);
-        InlineCollection inlines = new() { Capacity = matches.Count * 2};
+        InlineCollection inlines = new() { Capacity = matches.Count * 2 };
         int lastIndex = 0;
         foreach (Match match in matches)
         {
@@ -50,9 +60,5 @@ internal partial class TextFormatConverter : IValueConverter
         // add remaining text
         if (lastIndex < raw.Length) inlines.Add(new Run(raw[lastIndex..]));
         return inlines;
-    }
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
     }
 }
