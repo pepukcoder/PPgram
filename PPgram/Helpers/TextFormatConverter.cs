@@ -19,7 +19,7 @@ internal partial class TextFormatConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
-internal class RegexFormatParser
+internal static class RegexFormatParser
 {
     /*
      * Matches all formatting patterns in matches,

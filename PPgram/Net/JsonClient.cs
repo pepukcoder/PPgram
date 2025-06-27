@@ -435,6 +435,9 @@ internal class JsonClient
                         else msg_tcs.SetException(new Exception(r_error ?? "Send message failed"));
                     }
                     break;
+                case "delete_message":
+                    requests.Remove(r_id.Value, out _);
+                    break;
                 case "edit_draft":
                     if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<bool> editdraft_tcs)
                     {

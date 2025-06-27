@@ -394,6 +394,7 @@ internal partial class MainViewModel : ViewModelBase
     private async Task LoadOffline()
     {
         await LoadFolders();
+        CurrentPage = chat_vm;
         // Placeholder for offline app use (probably in future???)
     }
     private async Task LoadFolders()

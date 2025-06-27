@@ -51,10 +51,10 @@
 			</ListBox>
 		</DockPanel>
 		<!--Chat list-->
-		<Border Grid.Column="1" BorderThickness="1" CornerRadius="20" Background="{StaticResource Surface}" Margin="5,0,0,0" BorderBrush="{StaticResource Panel}">
-			<Grid RowDefinitions="Auto,*,Auto">
+		<Grid RowDefinitions="*,Auto" Grid.Column="1" Margin="5,0,0,0">
+			<Border Grid.Row="0" Margin="0,0,0,10" BorderThickness="1" CornerRadius="20" Background="{StaticResource Surface}" BorderBrush="{StaticResource Panel}">
 				<StackPanel Orientation="Vertical" Margin="10">
-					<Border Background="{StaticResource Panel}" CornerRadius="15" Padding="5">
+					<Border Background="{StaticResource Panel}" CornerRadius="15" Padding="5" Margin="0,0,0,5">
 						<DockPanel>
 							<icons:MaterialIcon Kind="Search" Foreground="{StaticResource PanelAccent}" Height="24" Width="24" DockPanel.Dock="Left" 
 												IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
@@ -69,82 +69,82 @@
 									MaxLength="30" Text="{Binding SearchInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 						</DockPanel>
 					</Border>
+					<ListBox Background="Transparent" Padding="0" BorderThickness="0"
+							 IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+							 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+							 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+							 SelectedItem="{Binding SelectedChat, Mode=TwoWay}"
+							 ItemsSource="{Binding SelectedFolder.Chats}">
+						<ListBox.DataTemplates>
+							<DataTemplate DataType="mchat:UserModel">
+								<c:UserEntryControl/>
+							</DataTemplate>
+							<DataTemplate DataType="mchat:GroupModel">
+								<c:GroupEntryControl/>
+							</DataTemplate>
+						</ListBox.DataTemplates>
+						<ListBox.ContextMenu>
+							<ContextMenu FontSize="14">
+								<MenuItem Header="Pin" Command="" HotKey="Ctrl+E">
+									<MenuItem.Icon>
+										<icons:MaterialIcon Kind="Pin" />
+									</MenuItem.Icon>
+								</MenuItem>
+								<MenuItem Header="Unpin" Command="" HotKey="Ctrl+E">
+									<MenuItem.Icon>
+										<icons:MaterialIcon Kind="PinOff" />
+									</MenuItem.Icon>
+								</MenuItem>
+								<MenuItem Header="Clear history" Command="" HotKey="Ctrl+Q">
+									<MenuItem.Icon>
+										<icons:MaterialIcon Kind="Broom"/>
+									</MenuItem.Icon>
+								</MenuItem>
+								<MenuItem Header="Delete" Command="{Binding DeleteChatUICommand}" HotKey="Ctrl+D" Foreground="PaleVioletRed">
+									<MenuItem.Icon>
+										<icons:MaterialIcon Kind="Delete"/>
+									</MenuItem.Icon>
+								</MenuItem>
+							</ContextMenu>
+						</ListBox.ContextMenu>
+						<ListBox.KeyBindings>
+							<KeyBinding Command="{Binding CloseChatCommand}" Gesture="13"/>
+						</ListBox.KeyBindings>
+					</ListBox>
+					<ListBox Background="Transparent" Padding="0" BorderThickness="0"
+							 IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+							 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+							 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+							 ItemContainerTheme="{StaticResource SearchEntry}"
+							 SelectedItem="{Binding SelectedSearch, Mode=TwoWay}"
+							 ItemsSource="{Binding SearchResults}">
+						<ListBox.KeyBindings>
+							<KeyBinding Command="{Binding ClearSearchCommand}" Gesture="13"/>
+						</ListBox.KeyBindings>
+					</ListBox>
 				</StackPanel>
-				<ListBox x:Name="ChatListBox" Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
-              				IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-							ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-							ScrollViewer.VerticalScrollBarVisibility="Hidden"
-							SelectedItem="{Binding SelectedChat, Mode=TwoWay}"
-							ItemsSource="{Binding SelectedFolder.Chats}">
-					<ListBox.DataTemplates>
-						<DataTemplate DataType="mchat:UserModel">
-							<c:UserEntryControl/>
-						</DataTemplate>
-						<DataTemplate DataType="mchat:GroupModel">
-							<c:GroupEntryControl/>
-						</DataTemplate>
-					</ListBox.DataTemplates>
-					<ListBox.ContextMenu>
-						<ContextMenu FontSize="14">
-							<MenuItem Header="Pin" Command="" HotKey="Ctrl+E">
-								<MenuItem.Icon>
-									<icons:MaterialIcon Kind="Pin" />
-								</MenuItem.Icon>
-							</MenuItem>
-							<MenuItem Header="Unpin" Command="" HotKey="Ctrl+E">
-								<MenuItem.Icon>
-									<icons:MaterialIcon Kind="PinOff" />
-								</MenuItem.Icon>
-							</MenuItem>
-							<MenuItem Header="Clear history" Command="" HotKey="Ctrl+Q">
-								<MenuItem.Icon>
-									<icons:MaterialIcon Kind="Broom"/>
-								</MenuItem.Icon>
-							</MenuItem>
-							<MenuItem Header="Delete" Command="{Binding DeleteChatUICommand}" HotKey="Ctrl+D" Foreground="PaleVioletRed">
-								<MenuItem.Icon>
-									<icons:MaterialIcon Kind="Delete"/>
-								</MenuItem.Icon>
-							</MenuItem>
-						</ContextMenu>
-					</ListBox.ContextMenu>
-					<ListBox.KeyBindings>
-						<KeyBinding Command="{Binding CloseChatCommand}" Gesture="13"/>
-					</ListBox.KeyBindings>
-				</ListBox>
-        		<ListBox Margin="5,0" Grid.Row="1" Background="Transparent" Padding="0" BorderThickness="0"
-              			IsVisible="{Binding SearchInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-						ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-						ScrollViewer.VerticalScrollBarVisibility="Hidden"
-						ItemContainerTheme="{StaticResource SearchEntry}"
-						SelectedItem="{Binding SelectedSearch, Mode=TwoWay}"
-						ItemsSource="{Binding SearchResults}">
-					<ListBox.KeyBindings>
-						<KeyBinding Command="{Binding ClearSearchCommand}" Gesture="13"/>
-					</ListBox.KeyBindings>
-				</ListBox>
-				<!--account badge-->
-				<Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{StaticResource Panel}">
-					<DockPanel Margin="5">
-						<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
-							<Ellipse.Fill>
-								<ImageBrush Source="{Binding ProfileState.Profile.Avatar.Preview}"/>
-							</Ellipse.Fill>
-						</Ellipse>
-						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding LogoutCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
-							<icons:MaterialIcon Kind="AccountArrowRight" Height="24" Width="24"/>
-						</Button>
-						<Button Theme="{StaticResource ButtonIcon}" Command="{Binding OpenProfileSettingsCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
-							<icons:MaterialIcon Kind="AccountEdit" Height="24" Width="24"/>
-						</Button>
-						<StackPanel Orientation="Vertical" VerticalAlignment="Center">
-							<TextBlock Text="{Binding ProfileState.Profile.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
-							<TextBlock Text="{Binding ProfileState.Profile.Username}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
-						</StackPanel>
-					</DockPanel>
-				</Border>
-			</Grid>
-		</Border>
+			</Border>
+			<!--account badge-->
+			<Border Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource Panel}" CornerRadius="20" Background="{StaticResource Surface}">
+				<DockPanel Margin="5">
+					<Ellipse Height="35" Width="35" Margin="0,0,5,0" VerticalAlignment="Center">
+						<Ellipse.Fill>
+							<ImageBrush Source="{Binding ProfileState.Profile.Avatar.Preview}"/>
+						</Ellipse.Fill>
+					</Ellipse>
+					<Button Theme="{StaticResource ButtonIcon}" Command="{Binding LogoutCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
+						<icons:MaterialIcon Kind="AccountArrowRight" Height="24" Width="24"/>
+					</Button>
+					<Button Theme="{StaticResource ButtonIcon}" Command="{Binding OpenProfileSettingsCommand}" DockPanel.Dock="Right" Margin="5,0,0,0">
+						<icons:MaterialIcon Kind="AccountEdit" Height="24" Width="24"/>
+					</Button>
+					<StackPanel Orientation="Vertical" VerticalAlignment="Center">
+						<TextBlock Text="{Binding ProfileState.Profile.Name}" FontSize="13" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+						<TextBlock Text="{Binding ProfileState.Profile.Username}" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
+					</StackPanel>
+				</DockPanel>
+			</Border>
+		</Grid>
 		
 		<GridSplitter Grid.Column="2" Width="3" ResizeDirection="Columns" Background="Transparent" Margin="0,10"/>
 
