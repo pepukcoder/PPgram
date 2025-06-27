@@ -26,6 +26,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Net.Quic;
+using System.Runtime.InteropServices;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -58,6 +60,7 @@ internal partial class MainViewModel : ViewModelBase
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
+        if (!QuicListener.IsSupported) Debug.WriteLine("\n[QUIC] not supported");
         // ui
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, m) => ShowDialog(m.dialog, m.time));
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
