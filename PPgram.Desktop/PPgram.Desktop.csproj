@@ -17,14 +17,13 @@
     <NativeLibrary Include="Libraries/linux-x64/libmsquic.so" />
   </ItemGroup>
   <Target Name="CopyNativeLibraries" AfterTargets="Build">
-    <Copy SourceFiles="@(NativeLibrary)" 
-          DestinationFolder="$(OutDir)runtimes/linux-x64/native/" />
+    <Copy SourceFiles="@(NativeLibrary)" DestinationFolder="$(OutDir)runtimes/linux-x64/native/" />
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.2" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.2" />
   </ItemGroup>
 
   <ItemGroup>
