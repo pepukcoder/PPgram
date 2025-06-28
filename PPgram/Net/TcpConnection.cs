@@ -16,7 +16,7 @@ internal class TcpConnection {
     public T? GetResponseAsJson<T>() where T : class
     {
         if (!is_ready) throw new InvalidOperationException("Response not ready yet.");
-        //  deserialize accumulated bytes into the specified type
+        // deserialize accumulated bytes into the specified type
         byte[] responseData = [.. response_chunks];
         Reset();
         return JsonSerializer.Deserialize<T>(responseData);
@@ -24,7 +24,7 @@ internal class TcpConnection {
     public string GetResponseAsString() 
     {
         if (!is_ready) throw new InvalidOperationException("Response not ready yet.");
-        // �onvert the accumulated bytes to a JSON string
+        // convert the accumulated bytes to a JSON string
         byte[] responseData = [.. response_chunks];
         Reset();
         return Encoding.UTF8.GetString(responseData);

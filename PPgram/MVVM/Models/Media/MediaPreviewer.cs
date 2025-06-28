@@ -7,7 +7,6 @@ using PPgram.MVVM.Models.MessageContent;
 using PPgram.Shared;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 
 namespace PPgram.MVVM.Models.Media;
 

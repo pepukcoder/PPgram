@@ -8,7 +8,6 @@ class Msg_ShowDialog
     public int time = 0;
 }
 class Msg_CloseDialog;
-class Msg_Reconnect;
 class Msg_OpenAttachFiles;
 public enum DialogIcons
 {

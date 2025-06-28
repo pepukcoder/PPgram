@@ -35,6 +35,7 @@ internal sealed partial class AppState : ObservableObject
     /// </summary>
     public int MessagesReadDelay { get; set; } = 200;
     #endregion
+
     #region files
     /// <summary>
     /// Defines if client should auto download files
@@ -44,11 +45,17 @@ internal sealed partial class AppState : ObservableObject
     /// Defines maximum size for auto downloading files (in bytes)
     /// </summary>
     public int FilesAutoDownloadMaxSize { get; set; } = 50000;
-    #endregion
     /// <summary>
     /// Path to platform-specific downloads folder
     /// </summary>
     public string? DownloadsFolder { get; set; } = null;
+    #endregion
+
+    /// <summary>
+    /// Defines a delay between reconnection attempts (in milliseconds)
+    /// </summary>
+    public int ReconnectionDelay { get; set; } = 1000;
+
     /// <summary>
     /// Settings for server connection
     /// </summary>

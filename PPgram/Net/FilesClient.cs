@@ -20,25 +20,27 @@ internal class FilesClient
 
     private TcpClient? client;
     private NetworkStream? stream;
+    private ConnectionOptions? options;
     private CancellationTokenSource cts = new();
+    private readonly AppState state = AppState.Instance;
     private readonly ConcurrentQueue<object> requests = [];
-    private readonly Mutex mutex = new();
-    public async Task<bool> Connect(ConnectionOptions options)
+    private readonly SemaphoreSlim semaphore = new(1, 1);
+    private bool reconnecting;
+    public async Task<bool> Connect(ConnectionOptions connectionOptions)
     {
         try
         {
-            if (client != null) throw new InvalidOperationException("Client is already connected");
             client = new();
+            options = connectionOptions;
             Task task = client.ConnectAsync(options.FilesHost, options.FilesPort);
             if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
-            Thread listenThread = new(() => Listen(cts.Token)) { IsBackground = true };
-            listenThread.Start();
+            _ = Task.Run(() => Listen(cts.Token));
             return true;
         }
         catch { return false; }
     }
-    private void Listen(CancellationToken ct)
+    private async Task Listen(CancellationToken ct)
     {
         TcpConnection connection = new();
         while (!ct.IsCancellationRequested)
@@ -99,16 +101,33 @@ internal class FilesClient
                     }   
                 }
             }
-            catch { Disconnect(); }
+            catch { await Disconnect(); }
         }
     }
-    public void Disconnect()
+    /// <summary>
+    /// Disconnects from server and resets client socket and requests
+    /// </summary>
+    public async Task Disconnect()
     {
-        if (client?.Client.Connected == true) client?.Client.Disconnect(false);
-        cts.Cancel();
+        if (reconnecting) return;
+        if (client?.Connected == true) client.Close();
         requests.Clear();
-        client = null;
+        cts.Cancel();
         cts = new();
+        if (options == null || state.ReconnectionDelay < 0) return;
+        reconnecting = true;
+        while (reconnecting)
+        {
+            await Task.Delay(state.ReconnectionDelay);
+            Debug.WriteLine("[FILES] reconnect attempt");
+            if (await Connect(options))
+            {
+                Debug.WriteLine("[FILES] reconnect success");
+                reconnecting = false;
+                break;
+            }
+            Debug.WriteLine("[FILES] reconnect fail");
+        }
     }
     public async Task<string> UploadFile(string path, bool is_media, bool compress)
     {
@@ -120,8 +139,8 @@ internal class FilesClient
             is_media,
             compress
         };
-        SendJson(payload);
-        mutex.WaitOne();
+        await SendJson(payload);
+        await semaphore.WaitAsync();
         try
         {
             // send file length
@@ -138,7 +157,7 @@ internal class FilesClient
                 stream?.Write(buffer, 0, bytesRead);
             }
         }
-        finally { mutex.ReleaseMutex(); }
+        finally { semaphore.Release(); }
         TaskCompletionSource<string> tcs = new();
         requests.Enqueue(tcs);
         return await tcs.Task;
@@ -152,7 +171,7 @@ internal class FilesClient
             mode = mode.ToString()
         };
         TaskCompletionSource<(string?, string?)> tcs = new();
-        SendJson(payload);
+        await SendJson(payload);
         requests.Enqueue(tcs);
         return await tcs.Task;
     }
@@ -164,20 +183,20 @@ internal class FilesClient
             sha256_hash = sha256Hash,
         };
         TaskCompletionSource<(string, long)> tcs = new();
-        SendJson(payload);
+        await SendJson(payload);
         requests.Enqueue(tcs);
         return await tcs.Task;
     }
-    private void SendJson(object data)
+    private async Task SendJson(object data)
     {
-        mutex.WaitOne();
+        await semaphore.WaitAsync();
         try
         {
             string request = JsonSerializer.Serialize(data);
             stream?.Write(TcpConnection.BuildJsonRequest(request));
         }
-        catch { Disconnect(); }
-        finally { mutex.ReleaseMutex(); }
+        catch { await Disconnect(); }
+        finally { semaphore.Release(); }
     }
     private string DownloadFromNode(JsonNode node)
     {

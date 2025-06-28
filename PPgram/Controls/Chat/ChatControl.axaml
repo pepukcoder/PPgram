@@ -18,6 +18,7 @@
 		<helpers:SizeConverter x:Key="SConvert"/>
 	</UserControl.Resources>
 	<Grid RowDefinitions="*,Auto" Grid.Column="2">
+		<!--message history-->
 		<ListBox x:Name="MessageHistory" Grid.Row="0"
 				Background="Transparent" Padding="0" BorderThickness="0"
 				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -78,18 +79,22 @@
 				</Style>
 			</ListBox.Styles>
 		</ListBox>
+		<!--to end button-->
 		<Button x:Name="btn_toend" Theme="{StaticResource ButtonScrollDown}" Margin="0,0,10,10" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom"
 				Classes.active="{Binding ToEndVisible}" Classes.inactive="{Binding !ToEndVisible}">
 			<icons:MaterialIcon Kind="ChevronDown" Width="36" Height="36"/>
 		</Button>
+		<!--load spinner-->
 		<Panel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding Fetching}">
 			<Border Opacity="0.5" CornerRadius="26" Background="{StaticResource Surface}"/>
 			<icons:MaterialIcon Classes="spinnerlinear" Kind="Loading" Height="52" Width="52"/>
 			<icons:MaterialIcon Kind="Chat" Height="20" Width="20"/>
 		</Panel>
+		<!--input pane-->
 		<Border Background="{StaticResource Surface}" CornerRadius="20"
 				Padding="5" Grid.Row="1" BorderThickness="1" BorderBrush="{StaticResource Panel}">
 			<DockPanel>
+				<!--edit/reply-->
 				<Border CornerRadius="15" DockPanel.Dock="Top" Background="{StaticResource SurfaceLight}" Padding="5"
 						IsVisible="{Binding SecondaryVisible}" Margin="0,0,0,5">
 					<DockPanel>
@@ -102,6 +107,7 @@
 						<TextBlock Text="{Binding SecondaryText}" FontSize="13" DockPanel.Dock="Right"/>
 					</DockPanel>
 				</Border>
+				<!--attachments-->
 				<Border CornerRadius="15" DockPanel.Dock="Top" Background="{StaticResource SurfaceLight}" Padding="5"
 						IsVisible="{Binding Files.Count}" Margin="0,0,0,5">
 					<DockPanel>
@@ -163,6 +169,7 @@
 						</ListBox>
 					</DockPanel>
 				</Border>
+				<!--attachment button-->
 				<Button x:Name="AttachButton" Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Left" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
 						Command="{Binding OpenAttachFilesCommand}" Margin="0,0,0,6" Focusable="False">
 					<Panel>
@@ -170,10 +177,12 @@
 						<icons:MaterialIcon Kind="PaperclipPlus" Height="24" Width="24" IsVisible="{Binding Files.Count}"/>
 					</Panel>
 				</Button>
+				<!--send button-->
 				<Button Theme="{StaticResource ButtonIcon}" DockPanel.Dock="Right" VerticalAlignment="Bottom" HorizontalAlignment="Right"
 						Command="{Binding BuildMessageCommand}" Margin="0,0,0,6" Focusable="False">
 					<icons:MaterialIcon Kind="SendVariant" Height="24" Width="24" />
 				</Button>
+				<!--input-->
 				<Border Padding="5" Background="{StaticResource Panel}"
 						CornerRadius="15" Margin="5,0">
 					<TextBox Background="Transparent" BorderThickness="0" AcceptsReturn="True"

@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.Messaging;
+using PPgram.App;
 using PPgram.MVVM.Models.User;
 using PPgram.Net.DTO;
 using PPgram.Shared;
@@ -18,21 +20,23 @@ internal class JsonClient
 {
     private TcpClient? client;
     private NetworkStream? stream;
+    private ConnectionOptions? options;
     private CancellationTokenSource cts = new();
+    private readonly AppState state = AppState.Instance;
     private readonly ConcurrentDictionary<int, object> requests = [];
     private readonly SemaphoreSlim semaphore = new(1, 1);
     private int requestId = 0;
-    public async Task<bool> Connect(ConnectionOptions options)
+    private bool reconnecting;
+    public async Task<bool> Connect(ConnectionOptions connectionOptions)
     {
         try
         {
-            if (client != null) throw new InvalidOperationException("Client is already connected");
             client = new();
+            options = connectionOptions;
             Task task = client.ConnectAsync(options.JsonHost, options.JsonPort);
             if (await Task.WhenAny(task, Task.Delay(5000)) != task) throw new TimeoutException("Connection to server timed out");
             stream = client.GetStream();
-            Thread listenThread = new(() => Listen(cts.Token)) { IsBackground = true };
-            listenThread.Start();
+            _ = Task.Run(() => Listen(cts.Token));
             return true;
         }
         catch { return false; }
@@ -40,7 +44,7 @@ internal class JsonClient
     /// <summary>
     /// Listens for server response in a loop, handles recieved response in dedicated task
     /// </summary>
-    private void Listen(CancellationToken ct)
+    private async Task Listen(CancellationToken ct)
     {
         TcpConnection connection = new();
         while (!ct.IsCancellationRequested)
@@ -54,19 +58,37 @@ internal class JsonClient
                     HandleResponse(response);
                 }
             }
-            catch { Disconnect(); }
+            catch { Debug.WriteLine("[JSON] listen failed"); await Disconnect(); }
         }
     }
     /// <summary>
     /// Disconnects from server and resets client socket and requests
     /// </summary>
-    public void Disconnect()
+    public async Task Disconnect()
     {
-        if (client?.Client.Connected == true) client?.Client.Disconnect(false);
-        cts.Cancel();
+        if (reconnecting) return;
+        if (client?.Connected == true) client.Close();
         requests.Clear();
-        client = null;
+        cts.Cancel();
         cts = new();
+        if (options == null || state.ReconnectionDelay < 0) return;
+        reconnecting = true;
+        while (reconnecting)
+        {
+            await Task.Delay(state.ReconnectionDelay);
+            Debug.WriteLine("[JSON] reconnect attempt");
+            if (await Connect(options))
+            {
+                AuthDTO credentials = await FSManager.LoadFromJsonFile<AuthDTO>(PPPath.SessionFile);
+                if (await AuthSession(credentials.SessionId ?? string.Empty, credentials.UserId ?? 0))
+                {
+                    Debug.WriteLine("[JSON] reconnect success");
+                    reconnecting = false;
+                    break;
+                }
+            }
+            Debug.WriteLine("[JSON] reconnect fail");
+        }
     }
     /// <summary>
     /// Sends serialized json to server
@@ -83,17 +105,17 @@ internal class JsonClient
             string request = JsonSerializer.Serialize(data);
             byte[] payload = TcpConnection.BuildJsonRequest(request);
             await stream.WriteAsync(payload);
-            await stream.FlushAsync();
             Debug.WriteLine($"[JSON] Sent: {requestId}");
-            requestId++;
         }
-        catch (Exception)
+        catch
         {
             Debug.WriteLine($"[JSON] Send failed: {requestId}");
-            Disconnect();
+            requests.TryRemove(requestId, out _);
+            await Disconnect();
         }
         finally
         {
+            requestId++;
             semaphore.Release();
         }
     }
@@ -337,7 +359,7 @@ internal class JsonClient
         // parse specific fields
         if (r_method != null && r_id.HasValue)
         {
-            Debug.WriteLine($"got: {r_id.Value}");
+            Debug.WriteLine($"[JSON] got: {r_id.Value}");
             switch (r_method)
             {
                 case "login":
@@ -481,7 +503,7 @@ internal class JsonClient
                     }
                     break;
             }
-            Debug.WriteLine($"requests left: {requests.Count}");
+            Debug.WriteLine($"[JSON] left: {requests.Count}");
         }
         // parse events
         if (r_event != null)

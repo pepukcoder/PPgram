@@ -56,11 +56,10 @@ internal partial class MainViewModel : ViewModelBase
     private readonly FilesClient filesClient = new();
     // other
     private readonly CacheManager cacheManager = new();
-    private readonly DispatcherTimer timer = new();
+    private readonly DispatcherTimer dialogTimer = new();
     private readonly ProfileState profileState = ProfileState.Instance;
     public MainViewModel()
     {
-        if (!QuicListener.IsSupported) Debug.WriteLine("\n[QUIC] not supported");
         // ui
         WeakReferenceMessenger.Default.Register<Msg_ShowDialog>(this, (r, m) => ShowDialog(m.dialog, m.time));
         WeakReferenceMessenger.Default.Register<Msg_CloseDialog>(this, (r, m) => { Dialog = null; DialogPanelVisible = false; });
@@ -77,24 +76,9 @@ internal partial class MainViewModel : ViewModelBase
             Process.Start(new ProcessStartInfo(exeFile));
             Environment.Exit(0);
         });
+        
         // network
-        WeakReferenceMessenger.Default.Register<Msg_Reconnect>(this, async (r, m) =>
-        {
-            jsonClient.Disconnect();
-            filesClient.Disconnect();
-            try
-            {
-                await jsonClient.Connect(PPAppState.ConnectionOptions);
-                await filesClient.Connect(PPAppState.ConnectionOptions);
-                await AutoAuth();
-                await LoadOnline();
-            }
-            catch (Exception ex)
-            {
-                ShowError(ex.Message);
-                await LoadOffline();
-            }
-        });
+        if (!QuicListener.IsSupported) Debug.WriteLine("\n[QUIC] not supported");
         WeakReferenceMessenger.Default.Register<Msg_Auth>(this, async (r, m) =>
         {
             AuthDTO auth;
@@ -398,7 +382,6 @@ internal partial class MainViewModel : ViewModelBase
     {
         await LoadFolders();
         CurrentPage = chat_vm;
-        // Placeholder for offline app use (probably in future???)
     }
     private async Task LoadFolders()
     {
@@ -430,7 +413,9 @@ internal partial class MainViewModel : ViewModelBase
         if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateJsonFile(PPPath.ConnectionFile, PPAppState.ConnectionOptions);
         try { PPAppState.ConnectionOptions = await FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
         catch { File.Delete(PPPath.ConnectionFile); }
-        return await jsonClient.Connect(PPAppState.ConnectionOptions) && await filesClient.Connect(PPAppState.ConnectionOptions);
+        bool[] res = await Task.WhenAll(jsonClient.Connect(PPAppState.ConnectionOptions), filesClient.Connect(PPAppState.ConnectionOptions));
+        if (res.Any(r => !r)) return false;
+        return true;
     }
     private async Task<MessageModel> ConvertMessage(MessageDTO messageDTO)
     {
@@ -627,16 +612,16 @@ internal partial class MainViewModel : ViewModelBase
         };
         WeakReferenceMessenger.Default.Send(new Msg_ShowDialog { dialog = errorDialog, time = 3 });
     }
-    private void ShowDialog(Dialog dialog, int time)
+    private void ShowDialog(Dialog dialog, int time = 0)
     {
         Dialog = dialog;
         DialogPanelVisible = dialog.backpanel;
         DialogPosition = dialog.Position;
-        if (time != 0)
+        if (time > 0)
         {
-            timer.Interval = TimeSpan.FromSeconds(time);
-            timer.Tick += CloseDialogTimer;
-            timer.Start();
+            dialogTimer.Interval = TimeSpan.FromSeconds(time);
+            dialogTimer.Tick += CloseDialogTimer;
+            dialogTimer.Start();
         }
     }
     private void CloseDialogTimer(object? sender, EventArgs e) => CloseDialog();
@@ -644,7 +629,7 @@ internal partial class MainViewModel : ViewModelBase
     private void CloseDialog()
     {
         if (!Dialog?.canSkip == true) return;
-        timer.Stop();
+        dialogTimer.Stop();
         Dialog = null;
         DialogPanelVisible = false;
     }
