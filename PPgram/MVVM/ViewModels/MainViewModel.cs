@@ -159,7 +159,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                chat_vm.ResolveNewChat(m.to, m.message);
+                chat_vm.ResolveNewChat(m.to, m.message, m.forwarding);
                 // get message text if set
                 string text;
                 if (m.message.Content is ITextContent tc) text = tc.Text;
@@ -215,6 +215,11 @@ internal partial class MainViewModel : ViewModelBase
             {
                 ShowError(ex.Message);
             }
+        });
+        WeakReferenceMessenger.Default.Register<Msg_ForwardMessage>(this, (r, m) =>
+        {
+            ForwardDialog dialog = new(m.message, chat_vm.Chats);
+            ShowDialog(dialog);
         });
         WeakReferenceMessenger.Default.Register<Msg_SendDraft>(this, async (r, m) =>
         {
@@ -413,9 +418,8 @@ internal partial class MainViewModel : ViewModelBase
         if (!File.Exists(PPPath.ConnectionFile)) FSManager.CreateJsonFile(PPPath.ConnectionFile, PPAppState.ConnectionOptions);
         try { PPAppState.ConnectionOptions = await FSManager.LoadFromJsonFile<ConnectionOptions>(PPPath.ConnectionFile); }
         catch { File.Delete(PPPath.ConnectionFile); }
-        bool[] res = await Task.WhenAll(jsonClient.Connect(PPAppState.ConnectionOptions), filesClient.Connect(PPAppState.ConnectionOptions));
-        if (res.Any(r => !r)) return false;
-        return true;
+        if (await jsonClient.Connect(PPAppState.ConnectionOptions) && await filesClient.Connect(PPAppState.ConnectionOptions)) return true;
+        return false;
     }
     private async Task<MessageModel> ConvertMessage(MessageDTO messageDTO)
     {

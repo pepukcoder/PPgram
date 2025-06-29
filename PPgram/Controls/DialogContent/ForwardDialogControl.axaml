@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:md="clr-namespace:PPgram.MVVM.Models.Dialog;assembly=PPgram"
+			 xmlns:m="clr-namespace:PPgram.MVVM.Models.Chat;assembly=PPgram"
+			 xmlns:c="clr-namespace:PPgram.Controls;assembly=PPgram"
+			 xmlns:helpers="clr-namespace:PPgram.Helpers;assembly=PPgram"
+			 xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="PPgram.Controls.DialogContent.ForwardDialogControl"
+			 x:DataType="md:ForwardDialog"
+			 FontSize="14">
+	<StackPanel Orientation="Vertical" MaxHeight="500">
+		<TextBlock Text="Forward message" FontSize="16" FontWeight="Medium"/>
+		<ListBox Background="Transparent" Padding="0" BorderThickness="0"
+				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+				ScrollViewer.VerticalScrollBarVisibility="Hidden"
+				SelectedItem="{Binding SelectedChat, Mode=TwoWay}"
+				ItemsSource="{Binding Chats}">
+			<ListBox.DataTemplates>
+				<DataTemplate DataType="m:UserModel">
+					<c:UserEntryControl/>
+				</DataTemplate>
+				<DataTemplate DataType="m:GroupModel">
+					<c:GroupEntryControl/>
+				</DataTemplate>
+			</ListBox.DataTemplates>
+		</ListBox>
+		<DockPanel>
+			<Button Classes="secondary" Theme="{StaticResource ButtonRegular}" DockPanel.Dock="Left" HorizontalAlignment="Left"
+					Command="{Binding CloseCommand}">
+				<TextBlock  TextAlignment="Center" Text="Cancel" FontWeight="Medium"/>
+			</Button>
+			<Button Theme="{StaticResource ButtonRegular}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+					Command="{Binding ForwardCommand}">
+				<TextBlock TextAlignment="Center" Text="Send" FontWeight="Medium"/>
+			</Button>
+		</DockPanel>
+	</StackPanel>
+</UserControl>

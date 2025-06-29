@@ -32,6 +32,7 @@ class Msg_SendMessage
 {
     public required MessageModel message;
     public required ChatModel to;
+    public bool forwarding = false;
 }
 class Msg_EditMessage
 {
@@ -43,4 +44,8 @@ class Msg_DeleteMessage
 {
     public required int chat;
     public required int Id;
+}
+class Msg_ForwardMessage
+{
+    public required MessageModel message;
 }

@@ -14,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Text.Json;
 
 namespace PPgram.MVVM.Models.Chat;
 /// <summary>
@@ -245,6 +247,24 @@ internal abstract partial class ChatModel : ObservableObject
     private void OpenAttachFiles()
     {
         WeakReferenceMessenger.Default.Send(new Msg_OpenAttachFiles());
+    }
+    [RelayCommand]
+    private void ForwardMessage()
+    {
+        if (SelectedMessage != null && SelectedMessage is MessageModel message)
+        {
+
+            MessageModel? fMessage = new();
+            fMessage.SenderId = profileState.UserId;
+            fMessage.Sender = profileState.Profile ?? fMessage.Sender;
+            fMessage.Content = message.Content switch
+            {
+                TextContentModel text => new TextContentModel { Text = text.Text },
+                FileContentModel files => new FileContentModel { Text = files.Text, Files = files.Files },
+                _ => throw new Exception("Unknown message content")
+            };
+            WeakReferenceMessenger.Default.Send(new Msg_ForwardMessage() { message = fMessage });
+        }
     }
     [RelayCommand]
     private void RemoveFile(FileModel file)

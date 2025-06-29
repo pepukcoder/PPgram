@@ -104,13 +104,13 @@ partial class ChatViewModel : ViewModelBase
     }
     #endregion
     #region chat
-    public void ResolveNewChat(ChatModel chat, MessageModel message)
+    public void ResolveNewChat(ChatModel chat, MessageModel message, bool forwarding)
     {
         if (!TryFindChat(chat.Id, out var c))
         {
             AddChat(chat);
             chat.Searched = false;
-            // setting null to actually update ui property and show selection
+            // setting null to force update ui property and show selection
             SelectedChat = null;
             SelectedChat = chat;
         }
@@ -118,7 +118,11 @@ partial class ChatViewModel : ViewModelBase
         {
             SelectedChat = c;
             // redirect message if it was sent to searched chat
-            if (chat.Searched) c.LoadMessages([message], true);
+            if (chat.Searched || forwarding)
+            {
+                message.Chat = c.Id;
+                c.LoadMessages([message], true);
+            }
         }
         ClearSearch();
     }

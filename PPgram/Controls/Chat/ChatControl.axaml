@@ -37,6 +37,11 @@
 							<icons:MaterialIcon Kind="ArrowLeftTopBold" />
 						</MenuItem.Icon>
 					</MenuItem>
+					<MenuItem Header="Forward" Command="{Binding ForwardMessageCommand}" HotKey="Ctrl+F">
+						<MenuItem.Icon>
+							<icons:MaterialIcon Kind="Share" />
+						</MenuItem.Icon>
+					</MenuItem>
 					<MenuItem Header="Edit" Command="{Binding StartEditCommand}" HotKey="Ctrl+E"
 							  IsVisible="{Binding CanEdit}">
 						<MenuItem.Icon>
