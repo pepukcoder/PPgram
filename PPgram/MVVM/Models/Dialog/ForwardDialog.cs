@@ -32,6 +32,8 @@ internal partial class ForwardDialog(MessageModel message, ObservableCollection<
         }
     }
     [RelayCommand]
+    private void ClearSearch() => SearchQuery = string.Empty;
+    [RelayCommand]
     private void Forward()
     {
         if (SelectedChat == null) return;
