@@ -110,18 +110,21 @@ partial class ChatViewModel : ViewModelBase
         {
             AddChat(chat);
             chat.Searched = false;
-            // setting null to force update ui property and show selection
+            // force update selection in ui
             SelectedChat = null;
             SelectedChat = chat;
         }
         else
         {
-            SelectedChat = c;
-            // redirect message if it was sent to searched chat
-            if (chat.Searched) c.LoadMessages([message], true);
-            // redirect message if it was forwarded
+            if (chat.Searched)
+            {
+                // open chat and add message
+                SelectedChat = c;
+                c.LoadMessages([message], true);
+            }
             if (forwarding)
             {
+                // add message
                 message.Chat = c.Id;
                 message.Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 c.LoadMessages([message], true);
