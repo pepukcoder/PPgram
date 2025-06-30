@@ -118,9 +118,12 @@ partial class ChatViewModel : ViewModelBase
         {
             SelectedChat = c;
             // redirect message if it was sent to searched chat
-            if (chat.Searched || forwarding)
+            if (chat.Searched) c.LoadMessages([message], true);
+            // redirect message if it was forwarded
+            if (forwarding)
             {
                 message.Chat = c.Id;
+                message.Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 c.LoadMessages([message], true);
             }
         }

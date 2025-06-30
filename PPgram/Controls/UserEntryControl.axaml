@@ -11,6 +11,7 @@
     <UserControl.Resources>
         <helpers:EnumMatchConverter x:Key="EnumConvert"/>
         <helpers:DateTimeConverter x:Key="DTConvert"/>
+		<helpers:TextFormatConverter x:Key="FC"/>
     </UserControl.Resources>
 	<Border Classes="Back" CornerRadius="15" Padding="5" HorizontalAlignment="Stretch">
 		<Grid ColumnDefinitions="Auto,*">
@@ -39,7 +40,7 @@
 						<icons:MaterialIcon IsVisible="{Binding LastMessageStatus, Converter={StaticResource EnumConvert}, ConverterParameter=Read}"
                                             Kind="CheckMultiple"      Height="16" Width="16"/>
 					</Panel>
-					<TextBlock Text="{Binding LastMessage}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
+					<TextBlock Inlines="{Binding LastMessage, Converter={StaticResource FC}}" TextTrimming="CharacterEllipsis" Foreground="{StaticResource SecondaryText}"/>
 				</DockPanel>
 			</StackPanel>
 		</Grid>
