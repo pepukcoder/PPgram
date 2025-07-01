@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using PPgram.App;
 using PPgram.Helpers;
+using PPgram.MVVM.Models.Dialog;
 using PPgram.MVVM.Models.File;
 using PPgram.MVVM.Models.Item;
 using PPgram.MVVM.Models.Message;
@@ -253,17 +254,7 @@ internal abstract partial class ChatModel : ObservableObject
     {
         if (SelectedMessage != null && SelectedMessage is MessageModel message)
         {
-
-            MessageModel? fMessage = new();
-            fMessage.SenderId = profileState.UserId;
-            fMessage.Sender = profileState.Profile ?? fMessage.Sender;
-            fMessage.Content = message.Content switch
-            {
-                TextContentModel text => new TextContentModel { Text = text.Text },
-                FileContentModel files => new FileContentModel { Text = files.Text, Files = files.Files },
-                _ => throw new Exception("Unknown message content")
-            };
-            WeakReferenceMessenger.Default.Send(new Msg_ForwardMessage() { message = fMessage });
+            WeakReferenceMessenger.Default.Send(new Msg_OpenForward() { message = message});
         }
     }
     [RelayCommand]

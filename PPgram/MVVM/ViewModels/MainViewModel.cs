@@ -159,7 +159,7 @@ internal partial class MainViewModel : ViewModelBase
         {
             try
             {
-                chat_vm.ResolveNewChat(m.to, m.message, m.forwarding);
+                chat_vm.ResolveNewChat(m.to, m.message);
                 // get message text if set
                 string text;
                 if (m.message.Content is ITextContent tc) text = tc.Text;
@@ -191,6 +191,24 @@ internal partial class MainViewModel : ViewModelBase
                 ShowError(ex.Message);
             }
         });
+        WeakReferenceMessenger.Default.Register<Msg_OpenForward>(this, (r, m) =>
+        {
+            ForwardDialog dialog = new(m.message, chat_vm.Chats);
+            ShowDialog(dialog);
+        });
+        WeakReferenceMessenger.Default.Register<Msg_ForwardMessage>(this, async (r, m) =>
+        {
+            try
+            {
+                MessageDTO dto = await jsonClient.ForwardMessage(m.message.Chat, m.message.Id, m.to.Id);
+                MessageModel message = await ConvertMessage(dto);
+                chat_vm.LoadMessages(message.Chat, [message], true);
+            }
+            catch (Exception ex)
+            {
+                ShowError(ex.Message);
+            }
+        });
         WeakReferenceMessenger.Default.Register<Msg_DeleteMessage>(this, async (r, m) =>
         {
             try
@@ -215,11 +233,6 @@ internal partial class MainViewModel : ViewModelBase
             {
                 ShowError(ex.Message);
             }
-        });
-        WeakReferenceMessenger.Default.Register<Msg_ForwardMessage>(this, (r, m) =>
-        {
-            ForwardDialog dialog = new(m.message, chat_vm.Chats);
-            ShowDialog(dialog);
         });
         WeakReferenceMessenger.Default.Register<Msg_SendDraft>(this, async (r, m) =>
         {

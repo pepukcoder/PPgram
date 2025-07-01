@@ -104,7 +104,7 @@ partial class ChatViewModel : ViewModelBase
     }
     #endregion
     #region chat
-    public void ResolveNewChat(ChatModel chat, MessageModel message, bool forwarding)
+    public void ResolveNewChat(ChatModel chat, MessageModel message)
     {
         if (!TryFindChat(chat.Id, out var c))
         {
@@ -116,19 +116,9 @@ partial class ChatViewModel : ViewModelBase
         }
         else
         {
-            if (chat.Searched)
-            {
-                // open chat and add message
-                SelectedChat = c;
-                c.LoadMessages([message], true);
-            }
-            if (forwarding)
-            {
-                // add message
-                message.Chat = c.Id;
-                message.Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                c.LoadMessages([message], true);
-            }
+            SelectedChat = c;
+            // redirect message if sent to searched chat
+            if (chat.Searched) c.LoadMessages([message], true);
         }
         ClearSearch();
     }

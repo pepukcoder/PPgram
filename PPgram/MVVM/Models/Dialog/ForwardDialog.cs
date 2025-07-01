@@ -38,7 +38,7 @@ internal partial class ForwardDialog(MessageModel message, ObservableCollection<
     {
         if (SelectedChat == null) return;
         Close();
-        WeakReferenceMessenger.Default.Send(new Msg_SendMessage() { message = Message, to = SelectedChat, forwarding = true });
+        WeakReferenceMessenger.Default.Send(new Msg_ForwardMessage() {message = Message, to = SelectedChat});
     }
     [RelayCommand]
     private static void Close() => WeakReferenceMessenger.Default.Send(new Msg_CloseDialog());

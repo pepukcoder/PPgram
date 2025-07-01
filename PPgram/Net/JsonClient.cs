@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PPgram.Net;
 
@@ -262,6 +263,20 @@ internal class JsonClient
         await Send(payload, tcs);
         return await tcs.Task;
     }
+    public async Task<MessageDTO> ForwardMessage(int from, int message, int to)
+    {
+        var payload = new
+        {
+            req_id = requestId,
+            method = "forward_message",
+            from,
+            message,
+            to,
+        };
+        TaskCompletionSource<MessageDTO> tcs = new();
+        await Send(payload, tcs);
+        return await tcs.Task;
+    }
     public async Task<bool> EditMessage(int chat_id, int message_id, string new_text)
     {
         var payload = new
@@ -455,6 +470,16 @@ internal class JsonClient
                         int? chatId = rootNode?["chat_id"]?.GetValue<int>();
                         if (ok == true && messageId != null && chatId != null) msg_tcs.SetResult((messageId ?? -1, chatId ?? -1));
                         else msg_tcs.SetException(new Exception(r_error ?? "Send message failed"));
+                    }
+                    break;
+                case "forward_message":
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<MessageDTO> forward_tcs)
+                    {
+                        JsonNode? messageNode = rootNode?["message"];
+                        if (messageNode == null) return;
+                        MessageDTO? dto = messageNode.Deserialize<MessageDTO>();
+                        if (ok == true && dto != null) forward_tcs.SetResult(dto);
+                        else forward_tcs.SetException(new Exception(r_error ?? "Forward message failed"));
                     }
                     break;
                 case "delete_message":
