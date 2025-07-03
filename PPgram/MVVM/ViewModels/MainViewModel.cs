@@ -27,7 +27,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Net.Quic;
-using System.Runtime.InteropServices;
 
 namespace PPgram.MVVM.ViewModels;
 
@@ -444,8 +443,30 @@ internal partial class MainViewModel : ViewModelBase
             Time = messageDTO.Date ?? 0,
             ReplyTo = messageDTO.ReplyTo ?? -1,
             Edited = messageDTO.Edited ?? false,
-            Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered
+            Status = messageDTO.Unread == false ? MessageStatus.Read : MessageStatus.Delivered,
+            Forwarded = messageDTO.Forwarded.HasValue,
         };
+        if (messageDTO.Forwarded.HasValue && messageDTO.Forwarded != 0)
+        {
+            ProfileModel profile;
+            if (!cacheManager.IsProfileCached(messageDTO.Forwarded.Value))
+            {
+                ProfileDTO dto = await jsonClient.FetchProfile(messageDTO.Forwarded.Value);
+                profile = new()
+                {
+                    Name = dto.Name ?? string.Empty,
+                    Username = dto.Username ?? string.Empty,
+                    Color = dto.Color ?? 0,
+                    Avatar = await DownloadAvatar(dto.Photo)
+                };
+                cacheManager.CacheProfile(messageDTO.Forwarded.Value, profile);
+            }
+            else
+            {
+                profile = cacheManager.GetCachedProfile(messageDTO.Forwarded.Value);
+            }
+            message.ForwardOrigin = profile;
+        }
         if (messageDTO.MediaHashes != null && messageDTO.MediaHashes.Length != 0)
         {
             ObservableCollection<FileModel> files = [];

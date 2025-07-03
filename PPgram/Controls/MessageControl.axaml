@@ -38,6 +38,12 @@
 								<Button x:Name="PART_Sender" Theme="{StaticResource ButtonText}" IsVisible="False" Foreground="{Binding Sender.Color, Converter={StaticResource UCConvert}}" Margin="0,0,10,3">
 									<TextBlock Text="{Binding Sender.Name}" FontWeight="Medium"/>
 								</Button>
+								<Button x:Name="PART_Forwarded" Theme="{StaticResource ButtonText}" IsVisible="{Binding Forwarded}" Margin="0,0,10,3">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="Forwarded" Margin="0,0,3,0"/>
+										<TextBlock Text="{Binding ForwardOrigin.Name, StringFormat='from {0}'}" IsVisible="{Binding ForwardOrigin,Converter={x:Static ObjectConverters.IsNotNull}}"/>
+									</StackPanel>
+								</Button>
 								<c:ReplyControl DataContext="{Binding Reply}" Margin="0,0,10,3" IsVisible="{Binding Text,Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 								<ContentControl x:Name="PART_ContentControl" Content="{Binding Content}">
 									<ContentControl.DataTemplates>

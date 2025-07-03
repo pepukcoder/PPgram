@@ -5,6 +5,7 @@ using PPgram.MVVM.Models.User;
 using PPgram.Net.DTO;
 using PPgram.Shared;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -231,6 +232,19 @@ internal class JsonClient
         await Send(payload, tcs);
         return await tcs.Task;
     }
+    public async Task<ProfileDTO> FetchProfile(int id)
+    {
+        var payload = new
+        {
+            req_id = requestId,
+            method = "fetch",
+            what = "user",
+            user_id = id
+        };
+        TaskCompletionSource<ProfileDTO> tcs = new();
+        await Send(payload, tcs);
+        return await tcs.Task;
+    }
     public async Task<List<MessageDTO>> FetchMessages(int id, int[] range)
     {
         var payload = new
@@ -444,6 +458,14 @@ internal class JsonClient
                             fusers_tcs.SetResult(userList);
                         }
                         else fusers_tcs.SetException(new Exception(r_error ?? "Fetch users failed"));
+                    }
+                    break;
+                case "fetch_user":
+                    if (requests.TryRemove(r_id.Value, out tcs) && tcs is TaskCompletionSource<ProfileDTO> fuser_tcs)
+                    {
+                        ProfileDTO? dto = rootNode.Deserialize<ProfileDTO>();
+                        if (ok == true && dto != null) fuser_tcs.SetResult(dto);
+                        else fuser_tcs.SetException(new Exception(r_error ?? "Fetch profile failed"));
                     }
                     break;
                 case "fetch_messages":

@@ -12,6 +12,8 @@ internal class MessageDTO
     public int? From { get; set; }
     [JsonPropertyName("reply_to")]
     public int? ReplyTo { get; set; }
+    [JsonPropertyName("forwarded")]
+    public int? Forwarded { get; set; }
     [JsonPropertyName("date")]
     public long? Date { get; set; }
     

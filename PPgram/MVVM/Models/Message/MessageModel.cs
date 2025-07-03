@@ -17,9 +17,12 @@ partial class MessageModel : ChatItem
     public int SenderId { get; set; } = -1;
     public long Time { get; set; }
     public int? ReplyTo { get; set; }
+    public bool Forwarded { get; set; }
 
     [ObservableProperty]
     public partial ProfileModel Sender { get; set; } = new();
+    [ObservableProperty]
+    public partial ProfileModel? ForwardOrigin { get; set; }
     [ObservableProperty]
     public partial ReplyModel Reply { get; set; } = new();
     [ObservableProperty]
