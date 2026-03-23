@@ -1,0 +1,71 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      seaweed:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-ppgram}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ppgram}
+      POSTGRES_DB: ${POSTGRES_DB:-ppgram}
+      REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
+      SEAWEED_MASTER: ${SEAWEED_MASTER:-seaweed:9333}
+      SEAWEED_VOLUME: ${SEAWEED_VOLUME:-seaweed:8080}
+    ports:
+      - "4433:4433/udp"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ppgram}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ppgram}
+      POSTGRES_DB: ${POSTGRES_DB:-ppgram}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-ppgram} -d ${POSTGRES_DB:-ppgram}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  seaweed:
+    image: chrislusf/seaweedfs:latest
+    command: "server -dir=/data -volume.max=5 -master.port=9333 -volume.port=8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:9333/cluster/status >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - seaweed-data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  seaweed-data:
