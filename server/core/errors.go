@@ -1,18 +1,18 @@
 package core
 
-type PPError uint32
+type PPStatusCode uint32
 
 const (
-	ErrCodeOK PPError = 0
+	ErrCodeOK PPStatusCode = 0
 
-	// User (01XXX)
-	ErrCodeBadRequest PPError = 11001
-	ErrCodeNotFound   PPError = 11002
+	// Client (1XXX)
+	ErrCodeBadRequest PPStatusCode = 1001
+	ErrCodeNotFound   PPStatusCode = 1002
 
-	// Auth (02XXX)
-	ErrCodeUnauthorized PPError = 12001
-	ErrCodeForbidden    PPError = 12002
+	// Auth (2XXX)
+	ErrCodeUnauthorized PPStatusCode = 2001
+	ErrCodeForbidden    PPStatusCode = 2002
 
-	// Internal (05XXX)
-	ErrCodeInternal PPError = 15001
+	// Internal (5XXX)
+	ErrCodeInternal PPStatusCode = 5001
 )

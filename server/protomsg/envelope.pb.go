@@ -21,28 +21,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Request struct {
+type RequestEnvelope struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Op            string                 `protobuf:"bytes,1,opt,name=op,proto3" json:"op,omitempty"`
-	Body          []byte                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	Request       []byte                 `protobuf:"bytes,2,opt,name=request,proto3,oneof" json:"request,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Request) Reset() {
-	*x = Request{}
+func (x *RequestEnvelope) Reset() {
+	*x = RequestEnvelope{}
 	mi := &file_envelope_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Request) String() string {
+func (x *RequestEnvelope) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Request) ProtoMessage() {}
+func (*RequestEnvelope) ProtoMessage() {}
 
-func (x *Request) ProtoReflect() protoreflect.Message {
+func (x *RequestEnvelope) ProtoReflect() protoreflect.Message {
 	mi := &file_envelope_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -54,48 +54,48 @@ func (x *Request) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Request.ProtoReflect.Descriptor instead.
-func (*Request) Descriptor() ([]byte, []int) {
+// Deprecated: Use RequestEnvelope.ProtoReflect.Descriptor instead.
+func (*RequestEnvelope) Descriptor() ([]byte, []int) {
 	return file_envelope_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Request) GetOp() string {
+func (x *RequestEnvelope) GetOp() string {
 	if x != nil {
 		return x.Op
 	}
 	return ""
 }
 
-func (x *Request) GetBody() []byte {
+func (x *RequestEnvelope) GetRequest() []byte {
 	if x != nil {
-		return x.Body
+		return x.Request
 	}
 	return nil
 }
 
-type Response struct {
+type ResponseEnvelope struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	StatusCode    uint32                 `protobuf:"varint,1,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	Body          []byte                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	Response      []byte                 `protobuf:"bytes,3,opt,name=response,proto3,oneof" json:"response,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Response) Reset() {
-	*x = Response{}
+func (x *ResponseEnvelope) Reset() {
+	*x = ResponseEnvelope{}
 	mi := &file_envelope_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Response) String() string {
+func (x *ResponseEnvelope) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Response) ProtoMessage() {}
+func (*ResponseEnvelope) ProtoMessage() {}
 
-func (x *Response) ProtoReflect() protoreflect.Message {
+func (x *ResponseEnvelope) ProtoReflect() protoreflect.Message {
 	mi := &file_envelope_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -107,28 +107,88 @@ func (x *Response) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Response.ProtoReflect.Descriptor instead.
-func (*Response) Descriptor() ([]byte, []int) {
+// Deprecated: Use ResponseEnvelope.ProtoReflect.Descriptor instead.
+func (*ResponseEnvelope) Descriptor() ([]byte, []int) {
 	return file_envelope_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Response) GetStatusCode() uint32 {
+func (x *ResponseEnvelope) GetStatusCode() uint32 {
 	if x != nil {
 		return x.StatusCode
 	}
 	return 0
 }
 
-func (x *Response) GetMessage() string {
+func (x *ResponseEnvelope) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *Response) GetBody() []byte {
+func (x *ResponseEnvelope) GetResponse() []byte {
 	if x != nil {
-		return x.Body
+		return x.Response
+	}
+	return nil
+}
+
+type UpdateEnvelope struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Seq           uint64                 `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"`
+	End           bool                   `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
+	Update        []byte                 `protobuf:"bytes,3,opt,name=update,proto3" json:"update,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEnvelope) Reset() {
+	*x = UpdateEnvelope{}
+	mi := &file_envelope_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEnvelope) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEnvelope) ProtoMessage() {}
+
+func (x *UpdateEnvelope) ProtoReflect() protoreflect.Message {
+	mi := &file_envelope_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEnvelope.ProtoReflect.Descriptor instead.
+func (*UpdateEnvelope) Descriptor() ([]byte, []int) {
+	return file_envelope_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UpdateEnvelope) GetSeq() uint64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *UpdateEnvelope) GetEnd() bool {
+	if x != nil {
+		return x.End
+	}
+	return false
+}
+
+func (x *UpdateEnvelope) GetUpdate() []byte {
+	if x != nil {
+		return x.Update
 	}
 	return nil
 }
@@ -137,15 +197,22 @@ var File_envelope_proto protoreflect.FileDescriptor
 
 const file_envelope_proto_rawDesc = "" +
 	"\n" +
-	"\x0eenvelope.proto\x12\x06ppgram\"-\n" +
-	"\aRequest\x12\x0e\n" +
-	"\x02op\x18\x01 \x01(\tR\x02op\x12\x12\n" +
-	"\x04body\x18\x02 \x01(\fR\x04body\"Y\n" +
-	"\bResponse\x12\x1f\n" +
+	"\x0eenvelope.proto\x12\x06ppgram\"L\n" +
+	"\x0fRequestEnvelope\x12\x0e\n" +
+	"\x02op\x18\x01 \x01(\tR\x02op\x12\x1d\n" +
+	"\arequest\x18\x02 \x01(\fH\x00R\arequest\x88\x01\x01B\n" +
+	"\n" +
+	"\b_request\"{\n" +
+	"\x10ResponseEnvelope\x12\x1f\n" +
 	"\vstatus_code\x18\x01 \x01(\rR\n" +
 	"statusCode\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12\x12\n" +
-	"\x04body\x18\x03 \x01(\fR\x04bodyB>Z*github.com/ppgram/server/protomsg;protomsg\xaa\x02\x0fPPgram.Protobufb\x06proto3"
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1f\n" +
+	"\bresponse\x18\x03 \x01(\fH\x00R\bresponse\x88\x01\x01B\v\n" +
+	"\t_response\"L\n" +
+	"\x0eUpdateEnvelope\x12\x10\n" +
+	"\x03seq\x18\x01 \x01(\x04R\x03seq\x12\x10\n" +
+	"\x03end\x18\x02 \x01(\bR\x03end\x12\x16\n" +
+	"\x06update\x18\x03 \x01(\fR\x06updateB>Z*github.com/ppgram/server/protomsg;protomsg\xaa\x02\x0fPPgram.Protobufb\x06proto3"
 
 var (
 	file_envelope_proto_rawDescOnce sync.Once
@@ -159,10 +226,11 @@ func file_envelope_proto_rawDescGZIP() []byte {
 	return file_envelope_proto_rawDescData
 }
 
-var file_envelope_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_envelope_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_envelope_proto_goTypes = []any{
-	(*Request)(nil),  // 0: ppgram.Request
-	(*Response)(nil), // 1: ppgram.Response
+	(*RequestEnvelope)(nil),  // 0: ppgram.RequestEnvelope
+	(*ResponseEnvelope)(nil), // 1: ppgram.ResponseEnvelope
+	(*UpdateEnvelope)(nil),   // 2: ppgram.UpdateEnvelope
 }
 var file_envelope_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -177,13 +245,15 @@ func file_envelope_proto_init() {
 	if File_envelope_proto != nil {
 		return
 	}
+	file_envelope_proto_msgTypes[0].OneofWrappers = []any{}
+	file_envelope_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_envelope_proto_rawDesc), len(file_envelope_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

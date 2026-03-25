@@ -45,28 +45,28 @@ func (s *QuicStream) Close() error {
 	return s.stream.Close()
 }
 
-func (s *QuicStream) WriteFrame(frameType FrameType, payload []byte) error {
+func (s *QuicStream) WriteFrame(frame Frame) error {
 	if s == nil || s.stream == nil {
 		return ErrNilQuicStream
 	}
-	if len(payload) > int(^uint32(0)) {
+	if len(frame.Payload) > int(^uint32(0)) {
 		return ErrFrameTooLarge
 	}
 
 	header := [frameHeaderSize]byte{}
-	header[0] = byte(frameType)
-	binary.BigEndian.PutUint32(header[1:], uint32(len(payload)))
+	header[0] = byte(frame.FrameType)
+	binary.BigEndian.PutUint32(header[1:], uint32(len(frame.Payload)))
 
 	if _, err := s.stream.Write(header[:]); err != nil {
 		return err
 	}
-	if len(payload) == 0 {
+	if len(frame.Payload) == 0 {
 		return nil
 	}
 
 	written := 0
-	for written < len(payload) {
-		n, err := s.stream.Write(payload[written:])
+	for written < len(frame.Payload) {
+		n, err := s.stream.Write(frame.Payload[written:])
 		written += n
 		if err != nil {
 			return err

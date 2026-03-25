@@ -52,7 +52,8 @@ func main() {
 	defer listener.Close()
 
 	app := router.New()
-	app.Response("echo", handlers.Echo)
+
+	app.Response("ping", handlers.PingHandler)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

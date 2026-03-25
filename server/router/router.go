@@ -19,17 +19,15 @@ type StreamType string
 
 const (
 	StreamResponse       StreamType = "response"
-	StreamServerStream   StreamType = "server_stream"
-	StreamClientStream   StreamType = "client_stream"
-	StreamBidirectional  StreamType = "bidirectional"
+	StreamServerUpdates  StreamType = "server_stream"
+	StreamClientUpdates  StreamType = "client_stream"
 	StreamServerTransfer StreamType = "server_transfer"
 	StreamClientTransfer StreamType = "client_transfer"
 )
 
 type ResponseHandler func(*ResponseContext) error
-type ServerStreamHandler func(*ServerStreamContext) error
-type ClientStreamHandler func(*ClientStreamContext) error
-type BidirectionalHandler func(*BidirectionalContext) error
+type ServerUpdatesHandler func(*ServerUpdatesContext) error
+type ClientUpdatesHandler func(*ClientUpdatesContext) error
 type ServerTransferHandler func(*ServerTransferContext) error
 type ClientTransferHandler func(*ClientTransferContext) error
 
@@ -73,37 +71,51 @@ func (r *Router) Use(middleware ...Middleware) {
 
 func (r *Router) Response(path string, handler ResponseHandler, middleware ...Middleware) {
 	r.register(StreamResponse, path, middleware, func(base *BaseContext) error {
-		return handler(&ResponseContext{BaseContext: base})
+		ctx, err := NewResponseContext(base)
+		if err != nil {
+			return err
+		}
+		return handler(ctx)
 	})
 }
 
-func (r *Router) ServerStream(path string, handler ServerStreamHandler, middleware ...Middleware) {
-	r.register(StreamServerStream, path, middleware, func(base *BaseContext) error {
-		return handler(&ServerStreamContext{BaseContext: base})
+func (r *Router) ServerUpdates(path string, handler ServerUpdatesHandler, middleware ...Middleware) {
+	r.register(StreamServerUpdates, path, middleware, func(base *BaseContext) error {
+		ctx, err := NewServerUpdatesContext(base)
+		if err != nil {
+			return err
+		}
+		return handler(ctx)
 	})
 }
 
-func (r *Router) ClientStream(path string, handler ClientStreamHandler, middleware ...Middleware) {
-	r.register(StreamClientStream, path, middleware, func(base *BaseContext) error {
-		return handler(&ClientStreamContext{BaseContext: base})
-	})
-}
-
-func (r *Router) Bidirectional(path string, handler BidirectionalHandler, middleware ...Middleware) {
-	r.register(StreamBidirectional, path, middleware, func(base *BaseContext) error {
-		return handler(&BidirectionalContext{BaseContext: base})
+func (r *Router) ClientUpdates(path string, handler ClientUpdatesHandler, middleware ...Middleware) {
+	r.register(StreamClientUpdates, path, middleware, func(base *BaseContext) error {
+		ctx, err := NewClientUpdatesContext(base)
+		if err != nil {
+			return err
+		}
+		return handler(ctx)
 	})
 }
 
 func (r *Router) ServerTransfer(path string, handler ServerTransferHandler, middleware ...Middleware) {
 	r.register(StreamServerTransfer, path, middleware, func(base *BaseContext) error {
-		return handler(&ServerTransferContext{BaseContext: base})
+		ctx, err := NewServerTransferContext(base)
+		if err != nil {
+			return err
+		}
+		return handler(ctx)
 	})
 }
 
 func (r *Router) ClientTransfer(path string, handler ClientTransferHandler, middleware ...Middleware) {
 	r.register(StreamClientTransfer, path, middleware, func(base *BaseContext) error {
-		return handler(&ClientTransferContext{BaseContext: base})
+		ctx, err := NewClientTransferContext(base)
+		if err != nil {
+			return err
+		}
+		return handler(ctx)
 	})
 }
 
@@ -117,10 +129,12 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 		return
 	}
 
-	envelope := &protomsg.Request{}
+	envelope := &protomsg.RequestEnvelope{}
 	if err := proto.Unmarshal(frame.Payload, envelope); err != nil {
 		slog.Error("decode request envelope", "error", err)
-		_ = sendErrorResponse(stream, uint32(core.ErrCodeBadRequest), "invalid request envelope")
+		if writeErr := sendErrorResponse(stream, core.ErrCodeBadRequest, "invalid request envelope"); writeErr != nil {
+			slog.Error("send error response failed", "error", writeErr)
+		}
 		_ = stream.Close()
 		return
 	}
@@ -128,14 +142,18 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	op := strings.TrimSpace(envelope.GetOp())
 	if op == "" {
 		slog.Warn("empty route op")
-		_ = sendErrorResponse(stream, uint32(core.ErrCodeBadRequest), "route op is required")
+		if writeErr := sendErrorResponse(stream, core.ErrCodeBadRequest, "route op is required"); writeErr != nil {
+			slog.Error("send error response failed", "error", writeErr)
+		}
 		_ = stream.Close()
 		return
 	}
 
 	if !isDotRoute(op) {
 		slog.Warn("invalid route", "op", op)
-		_ = sendErrorResponse(stream, uint32(core.ErrCodeBadRequest), "invalid route")
+		if writeErr := sendErrorResponse(stream, core.ErrCodeBadRequest, "invalid route"); writeErr != nil {
+			slog.Error("send error response failed", "error", writeErr)
+		}
 		_ = stream.Close()
 		return
 	}
@@ -144,29 +162,26 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	route, ok := root.routes[path]
 	if !ok {
 		slog.Warn("route not found", "route", path)
-		_ = sendErrorResponse(stream, uint32(core.ErrCodeNotFound), "route not found")
+		if writeErr := sendErrorResponse(stream, core.ErrCodeNotFound, "route not found"); writeErr != nil {
+			slog.Error("send error response failed", "error", writeErr)
+		}
 		_ = stream.Close()
 		return
 	}
 
-	request := &Request{
-		Op:   path,
-		Body: envelope.GetBody(),
+	base := newBaseContext(ctx, stream, route.middleware, route.handler)
+	base.Op = route
+	base.Bytes = envelope.Request
+	if base.Bytes == nil {
+		base.Bytes = []byte{}
 	}
-
-	base := newBaseContext(ctx, request, stream, route.middleware, route.handler)
 	if err := base.Next(); err != nil {
 		slog.Error("route handler failed", "route", route.path, "error", err)
-		_ = sendErrorResponse(stream, uint32(core.ErrCodeInternal), "internal error")
+		if writeErr := sendErrorResponse(stream, core.ErrCodeInternal, "internal error"); writeErr != nil {
+			slog.Error("send error response failed", "error", writeErr)
+		}
 		_ = stream.Close()
 	}
-}
-
-func sendErrorResponse(stream *transport.QuicStream, statusCode uint32, message string) error {
-	return writeResponseFrame(stream, &Response{
-		StatusCode: statusCode,
-		Message:    message,
-	})
 }
 
 func (r *Router) ServeConnection(ctx context.Context, conn *transport.QuicConnection) error {
@@ -249,4 +264,19 @@ func isDotRoute(route string) bool {
 		return true
 	}
 	return dotRoutePattern.MatchString(route)
+}
+
+func sendErrorResponse(stream *transport.QuicStream, statusCode core.PPStatusCode, message string) error {
+	payload, err := proto.Marshal(&protomsg.ResponseEnvelope{
+		StatusCode: uint32(statusCode),
+		Message:    message,
+	})
+	if err != nil {
+		return err
+	}
+
+	return stream.WriteFrame(transport.Frame{
+		FrameType: transport.FrameTypeData,
+		Payload:   payload,
+	})
 }
