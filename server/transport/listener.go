@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 
+	"github.com/ppgram/server/utils"
 	quic "github.com/quic-go/quic-go"
 )
 
@@ -27,7 +28,10 @@ func (l *QuicListener) Accept(ctx context.Context) (*QuicConnection, error) {
 		return nil, err
 	}
 
-	return &QuicConnection{conn: conn}, nil
+	return &QuicConnection{
+		conn: conn,
+		id:   utils.NewUID("c"),
+	}, nil
 }
 
 func (l *QuicListener) Close() error {

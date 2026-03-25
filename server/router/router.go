@@ -8,8 +8,10 @@ import (
 
 	"github.com/ppgram/server/core"
 	"github.com/ppgram/server/core/session"
+	"github.com/ppgram/server/logging"
 	protomsg "github.com/ppgram/server/protomsg"
 	"github.com/ppgram/server/transport"
+	"github.com/ppgram/server/utils"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -121,17 +123,19 @@ func (r *Router) ClientTransfer(path string, handler ClientTransferHandler, midd
 
 func (r *Router) Handle(ctx context.Context, userSession *session.Session, stream *transport.QuicStream) {
 	_ = userSession
+	connID := stream.ConnectionID()
+	streamID := stream.ID()
 
 	frame, err := stream.ReadFrame()
 	if err != nil {
-		slog.Error("read request frame", "error", err)
+		logging.NetworkLogger().Error("read request frame failed", "conn_id", connID, "stream_id", streamID, "error", err)
 		_ = stream.Close()
 		return
 	}
 
 	envelope := &protomsg.RequestEnvelope{}
 	if err := proto.Unmarshal(frame.Payload, envelope); err != nil {
-		slog.Error("decode request envelope", "error", err)
+		logging.NetworkLogger().Warn("request rejected", "conn_id", connID, "stream_id", streamID, "reason", "invalid request envelope", "status_code", uint32(core.ErrCodeBadRequest))
 		if writeErr := sendErrorResponse(stream, core.ErrCodeBadRequest, "invalid request envelope"); writeErr != nil {
 			slog.Error("send error response failed", "error", writeErr)
 		}
@@ -141,7 +145,7 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 
 	op := strings.TrimSpace(envelope.GetOp())
 	if op == "" {
-		slog.Warn("empty route op")
+		logging.NetworkLogger().Info("request rejected", "conn_id", connID, "stream_id", streamID, "reason", "route op is required", "status_code", uint32(core.ErrCodeBadRequest))
 		if writeErr := sendErrorResponse(stream, core.ErrCodeBadRequest, "route op is required"); writeErr != nil {
 			slog.Error("send error response failed", "error", writeErr)
 		}
@@ -150,7 +154,7 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	}
 
 	if !isDotRoute(op) {
-		slog.Warn("invalid route", "op", op)
+		logging.NetworkLogger().Info("request rejected", "conn_id", connID, "stream_id", streamID, "op", op, "reason", "invalid route", "status_code", uint32(core.ErrCodeBadRequest))
 		if writeErr := sendErrorResponse(stream, core.ErrCodeBadRequest, "invalid route"); writeErr != nil {
 			slog.Error("send error response failed", "error", writeErr)
 		}
@@ -161,7 +165,7 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	root := r.getRoot()
 	route, ok := root.routes[path]
 	if !ok {
-		slog.Warn("route not found", "route", path)
+		logging.NetworkLogger().Info("request rejected", "conn_id", connID, "stream_id", streamID, "op", path, "reason", "route not found", "status_code", uint32(core.ErrCodeNotFound))
 		if writeErr := sendErrorResponse(stream, core.ErrCodeNotFound, "route not found"); writeErr != nil {
 			slog.Error("send error response failed", "error", writeErr)
 		}
@@ -175,16 +179,25 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	if base.Bytes == nil {
 		base.Bytes = []byte{}
 	}
+	logging.NetworkLogger().Info("request accepted", "conn_id", connID, "stream_id", streamID, "op", path, "stream_type", route.streamType)
 	if err := base.Next(); err != nil {
 		slog.Error("route handler failed", "route", route.path, "error", err)
+		logging.NetworkLogger().Error("request failed", "conn_id", connID, "stream_id", streamID, "op", route.path, "status_code", uint32(core.ErrCodeInternal), "error", err)
 		if writeErr := sendErrorResponse(stream, core.ErrCodeInternal, "internal error"); writeErr != nil {
 			slog.Error("send error response failed", "error", writeErr)
 		}
 		_ = stream.Close()
+		return
 	}
+	logging.NetworkLogger().Info("request completed", "conn_id", connID, "stream_id", streamID, "op", path)
 }
 
 func (r *Router) ServeConnection(ctx context.Context, conn *transport.QuicConnection) error {
+	if conn.ID() == "" {
+		conn.SetID(utils.NewUID("c"))
+	}
+	logging.NetworkLogger().Info("connection opened", "conn_id", conn.ID(), "remote_addr", conn.RemoteAddr().String(), "local_addr", conn.LocalAddr().String())
+
 	userSession := session.RegisterConnection(conn)
 	defer session.UnregisterConnection(conn)
 

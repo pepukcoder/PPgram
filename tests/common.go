@@ -16,7 +16,8 @@ import (
 type frameType uint8
 
 const (
-	frameTypeData frameType = 5
+	frameTypeData     frameType = 5
+	testCloseCode               = quic.ApplicationErrorCode(0)
 )
 
 type frame struct {
@@ -89,7 +90,7 @@ func requestOnce(addr, serverName, alpn string, timeout time.Duration, op string
 	if err != nil {
 		return nil, err
 	}
-	defer conn.CloseWithError(0, "test done")
+	defer conn.CloseWithError(testCloseCode, "client test complete")
 
 	stream, err := conn.OpenStreamSync(ctx)
 	if err != nil {

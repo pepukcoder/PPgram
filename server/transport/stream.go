@@ -39,6 +39,22 @@ var (
 
 type QuicStream struct {
 	stream *quic.Stream
+	connID string
+	id     string
+}
+
+func (s *QuicStream) ID() string {
+	if s == nil {
+		return ""
+	}
+	return s.id
+}
+
+func (s *QuicStream) ConnectionID() string {
+	if s == nil {
+		return ""
+	}
+	return s.connID
 }
 
 func (s *QuicStream) Close() error {

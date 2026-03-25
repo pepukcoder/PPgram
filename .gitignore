@@ -34,3 +34,4 @@ go.work.sum
 # Local private keys and secrets
 secrets/
 certs/
+logs/

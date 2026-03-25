@@ -11,6 +11,7 @@ const (
 	defaultTLSCertFile = "certs/server.cert.pem"
 	defaultTLSKeyFile  = "secrets/server.key.pem"
 	defaultTLSALPN     = "ppproto/1.0"
+	defaultLogFile     = "logs/network.log"
 )
 
 type Config struct {
@@ -18,6 +19,7 @@ type Config struct {
 	TLSCertFile string
 	TLSKeyFile  string
 	TLSALPN     string
+	LogFile     string
 }
 
 func Load() (*Config, error) {
@@ -26,6 +28,7 @@ func Load() (*Config, error) {
 		TLSCertFile: getenv("TLS_CERT_FILE", defaultTLSCertFile),
 		TLSKeyFile:  getenv("TLS_KEY_FILE", defaultTLSKeyFile),
 		TLSALPN:     getenv("TLS_ALPN", defaultTLSALPN),
+		LogFile:     getenv("NETWORK_LOG_FILE", defaultLogFile),
 	}
 
 	if cfg.TLSCertFile == "" {
@@ -39,6 +42,9 @@ func Load() (*Config, error) {
 	}
 	if cfg.QUICAddr == "" {
 		return nil, fmt.Errorf("QUIC_ADDR is empty")
+	}
+	if cfg.LogFile == "" {
+		return nil, fmt.Errorf("NETWORK_LOG_FILE is empty")
 	}
 
 	return cfg, nil

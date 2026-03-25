@@ -19,11 +19,13 @@ services:
       REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
       SEAWEED_MASTER: ${SEAWEED_MASTER:-seaweed:9333}
       SEAWEED_VOLUME: ${SEAWEED_VOLUME:-seaweed:8080}
+      NETWORK_LOG_FILE: ${NETWORK_LOG_FILE:-logs/network.log}
     ports:
       - "4433:4433/udp"
     volumes:
       - ./certs:/app/certs:ro
       - ./secrets:/app/secrets:ro
+      - ./logs:/app/logs
     restart: unless-stopped
 
   postgres:
