@@ -19,9 +19,14 @@ services:
       REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
       SEAWEED_MASTER: ${SEAWEED_MASTER:-seaweed:9333}
       SEAWEED_VOLUME: ${SEAWEED_VOLUME:-seaweed:8080}
+      QUIC_HOST: ${QUIC_HOST:-0.0.0.0}
+      QUIC_PORT: ${QUIC_PORT:-4433}
+      TLS_CERT_FILE: ${TLS_CERT_FILE:-certs/server.cert.pem}
+      TLS_KEY_FILE: ${TLS_KEY_FILE:-secrets/server.key.pem}
+      TLS_ALPN: ${TLS_ALPN:-ppproto/1.0}
       NETWORK_LOG_FILE: ${NETWORK_LOG_FILE:-logs/network.log}
     ports:
-      - "4433:4433/udp"
+      - "${QUIC_PORT:-4433}:${QUIC_PORT:-4433}/udp"
     volumes:
       - ./certs:/app/certs:ro
       - ./secrets:/app/secrets:ro

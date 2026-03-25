@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/lmittmann/tint"
@@ -32,14 +34,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.Info("config loaded",
-		"quic_addr", cfg.QUICAddr,
-		"tls_cert_file", cfg.TLSCertFile,
-		"tls_key_file", cfg.TLSKeyFile,
-		"tls_alpn", cfg.TLSALPN,
-		"log_file", cfg.LogFile,
-	)
-
 	networkLogger, closeNetworkLogger, err := logging.NewNetworkLogger(cfg.LogFile)
 	if err != nil {
 		slog.Error("init network logger", "error", err)
@@ -54,7 +48,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	listener, err := transport.Start(cfg.QUICAddr, tlsConfig, &quic.Config{})
+	listener, err := transport.Start(cfg.QUICAddr(), tlsConfig, &quic.Config{})
 	if err != nil {
 		slog.Error("start quic listener", "error", err)
 		os.Exit(1)
@@ -68,7 +62,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	slog.Info("quic listener started", "addr", listener.Addr().String())
+	printStartupPanel(cfg, app.RouteCount())
 
 	for {
 		conn, err := listener.Accept(ctx)
@@ -107,4 +101,29 @@ func connectionCloseMessage(err error) string {
 		return appErr.ErrorMessage
 	}
 	return err.Error()
+}
+
+func printStartupPanel(cfg *config.Config, routeCount int) {
+	rows := []string{
+		"PPgram QUIC Server",
+		"Host    : " + cfg.QUICHost,
+		"Port    : " + cfg.QUICPort,
+		"ALPN    : " + cfg.TLSALPN,
+		fmt.Sprintf("Handlers: %d", routeCount),
+	}
+
+	width := 0
+	for _, row := range rows {
+		if len(row) > width {
+			width = len(row)
+		}
+	}
+
+	border := "┌" + strings.Repeat("─", width+2) + "┐"
+	fmt.Println(border)
+	for _, row := range rows {
+		padding := strings.Repeat(" ", width-len(row))
+		fmt.Printf("│ %s%s │\n", row, padding)
+	}
+	fmt.Println("└" + strings.Repeat("─", width+2) + "┘")
 }

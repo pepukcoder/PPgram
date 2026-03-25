@@ -10,42 +10,20 @@ DAYS="${DAYS:-365}"
 COMMON_NAME="${COMMON_NAME:-localhost}"
 
 mkdir -p "$(dirname "$KEY_FILE")" "$(dirname "$CERT_FILE")"
-
-# Keep private keys private by default.
 umask 077
 
-TMP_CONF=$(mktemp)
-trap 'rm -f "$TMP_CONF"' EXIT INT TERM
-
-cat > "$TMP_CONF" <<CONF
-[ req ]
-distinguished_name = req_distinguished_name
-x509_extensions = v3_req
-prompt = no
-
-[ req_distinguished_name ]
-CN = $COMMON_NAME
-
-[ v3_req ]
-subjectAltName = @alt_names
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-[ alt_names ]
-DNS.1 = localhost
-IP.1 = 127.0.0.1
-IP.2 = ::1
-CONF
-
 openssl req \
-  -x509 \
-  -nodes \
-  -newkey rsa:2048 \
-  -sha256 \
-  -days "$DAYS" \
-  -keyout "$KEY_FILE" \
-  -out "$CERT_FILE" \
-  -config "$TMP_CONF"
+	-x509 \
+	-nodes \
+	-newkey rsa:2048 \
+	-sha256 \
+	-days "$DAYS" \
+	-subj "/CN=$COMMON_NAME" \
+	-addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:::1" \
+	-addext "keyUsage=critical,digitalSignature,keyEncipherment" \
+	-addext "extendedKeyUsage=serverAuth" \
+	-keyout "$KEY_FILE" \
+	-out "$CERT_FILE"
 
 chmod 600 "$KEY_FILE"
 chmod 644 "$CERT_FILE"

@@ -237,6 +237,10 @@ func (r *Router) getRoot() *Router {
 	return r.root
 }
 
+func (r *Router) RouteCount() int {
+	return len(r.getRoot().routes)
+}
+
 func normalizeRoute(route string) string {
 	route = strings.TrimSpace(route)
 	route = strings.Trim(route, ".")

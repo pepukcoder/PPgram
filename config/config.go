@@ -3,11 +3,13 @@ package config
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"os"
 )
 
 const (
-	defaultQUICAddr    = "0.0.0.0:4433"
+	defaultQUICHost    = "0.0.0.0"
+	defaultQUICPort    = "4433"
 	defaultTLSCertFile = "certs/server.cert.pem"
 	defaultTLSKeyFile  = "secrets/server.key.pem"
 	defaultTLSALPN     = "ppproto/1.0"
@@ -15,7 +17,8 @@ const (
 )
 
 type Config struct {
-	QUICAddr    string
+	QUICHost    string
+	QUICPort    string
 	TLSCertFile string
 	TLSKeyFile  string
 	TLSALPN     string
@@ -24,7 +27,8 @@ type Config struct {
 
 func Load() (*Config, error) {
 	cfg := &Config{
-		QUICAddr:    getenv("QUIC_ADDR", defaultQUICAddr),
+		QUICHost:    getenv("QUIC_HOST", defaultQUICHost),
+		QUICPort:    getenv("QUIC_PORT", defaultQUICPort),
 		TLSCertFile: getenv("TLS_CERT_FILE", defaultTLSCertFile),
 		TLSKeyFile:  getenv("TLS_KEY_FILE", defaultTLSKeyFile),
 		TLSALPN:     getenv("TLS_ALPN", defaultTLSALPN),
@@ -40,14 +44,21 @@ func Load() (*Config, error) {
 	if cfg.TLSALPN == "" {
 		return nil, fmt.Errorf("TLS_ALPN is empty")
 	}
-	if cfg.QUICAddr == "" {
-		return nil, fmt.Errorf("QUIC_ADDR is empty")
+	if cfg.QUICHost == "" {
+		return nil, fmt.Errorf("QUIC_HOST is empty")
+	}
+	if cfg.QUICPort == "" {
+		return nil, fmt.Errorf("QUIC_PORT is empty")
 	}
 	if cfg.LogFile == "" {
 		return nil, fmt.Errorf("NETWORK_LOG_FILE is empty")
 	}
 
 	return cfg, nil
+}
+
+func (c *Config) QUICAddr() string {
+	return net.JoinHostPort(c.QUICHost, c.QUICPort)
 }
 
 func (c *Config) TLSConfig() (*tls.Config, error) {
