@@ -21,6 +21,9 @@ services:
       SEAWEED_VOLUME: ${SEAWEED_VOLUME:-seaweed:8080}
     ports:
       - "4433:4433/udp"
+    volumes:
+      - ./certs:/app/certs:ro
+      - ./secrets:/app/secrets:ro
     restart: unless-stopped
 
   postgres:

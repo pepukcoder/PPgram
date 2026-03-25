@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+set -eu
+
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SECRETS_DIR="$ROOT_DIR/secrets"
+CERTS_DIR="$ROOT_DIR/certs"
+KEY_FILE="${1:-$SECRETS_DIR/server.key.pem}"
+CERT_FILE="${2:-$CERTS_DIR/server.cert.pem}"
+DAYS="${DAYS:-365}"
+COMMON_NAME="${COMMON_NAME:-localhost}"
+
+mkdir -p "$(dirname "$KEY_FILE")" "$(dirname "$CERT_FILE")"
+
+# Keep private keys private by default.
+umask 077
+
+TMP_CONF=$(mktemp)
+trap 'rm -f "$TMP_CONF"' EXIT INT TERM
+
+cat > "$TMP_CONF" <<CONF
+[ req ]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[ req_distinguished_name ]
+CN = $COMMON_NAME
+
+[ v3_req ]
+subjectAltName = @alt_names
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+[ alt_names ]
+DNS.1 = localhost
+IP.1 = 127.0.0.1
+IP.2 = ::1
+CONF
+
+openssl req \
+  -x509 \
+  -nodes \
+  -newkey rsa:2048 \
+  -sha256 \
+  -days "$DAYS" \
+  -keyout "$KEY_FILE" \
+  -out "$CERT_FILE" \
+  -config "$TMP_CONF"
+
+chmod 600 "$KEY_FILE"
+chmod 644 "$CERT_FILE"
+
+printf 'generated key:  %s\n' "$KEY_FILE"
+printf 'generated cert: %s\n' "$CERT_FILE"
