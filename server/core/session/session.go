@@ -1,229 +1,207 @@
 package session
 
 import (
+	"errors"
+	"strings"
 	"sync"
 
+	cmap "github.com/orcaman/concurrent-map/v2"
+	db "github.com/ppgram/database"
 	"github.com/ppgram/server/transport"
+	quic "github.com/quic-go/quic-go"
 )
 
-type Identity struct {
-	UserID string
-	Roles  []string
+type UserState struct {
+	mu sync.Mutex
+
+	userID string
+
+	devices map[string]*DeviceSession
 }
 
-type Session struct {
+var userStates cmap.ConcurrentMap[string, *UserState] = cmap.New[*UserState]()
+var userStatesInitMu sync.Mutex
+var ErrSessionRevoked = errors.New("session revoked")
+
+type DeviceSession struct {
 	mu sync.RWMutex
 
-	UserID   string
-	Identity *Identity
-	Claims   map[string]any
-	Settings map[string]any
-	DB       any
-
-	connections map[*transport.QuicConnection]struct{}
+	userID     string
+	deviceID   string
+	deviceName string
+	conn       *transport.QuicConnection
+	revoked    bool
+	revokedCh  chan struct{}
 }
 
-func newSession() *Session {
-	return &Session{
-		Settings:    map[string]any{},
-		connections: map[*transport.QuicConnection]struct{}{},
+func NewDeviceSession(connection *transport.QuicConnection) *DeviceSession {
+	return &DeviceSession{
+		conn:      connection,
+		revokedCh: make(chan struct{}),
 	}
 }
 
-func (s *Session) Authenticated() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.Identity != nil && s.Identity.UserID != ""
-}
-
-func (s *Session) AddConnection(conn *transport.QuicConnection) {
-	if conn == nil {
+func (s *DeviceSession) Authenticate(userID, deviceID, deviceName string) {
+	if s == nil {
 		return
 	}
-	s.mu.Lock()
-	s.connections[conn] = struct{}{}
-	s.mu.Unlock()
-}
-
-func (s *Session) RemoveConnection(conn *transport.QuicConnection) {
-	if conn == nil {
-		return
-	}
-	s.mu.Lock()
-	delete(s.connections, conn)
-	s.mu.Unlock()
-}
-
-func (s *Session) ConnectionCount() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return len(s.connections)
-}
-
-func (s *Session) SetSetting(key string, value any) {
-	s.mu.Lock()
-	s.Settings[key] = value
-	s.mu.Unlock()
-}
-
-func (s *Session) Setting(key string) (any, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	v, ok := s.Settings[key]
-	return v, ok
-}
-
-func (s *Session) SetDB(db any) {
-	s.mu.Lock()
-	s.DB = db
-	s.mu.Unlock()
-}
-
-func (s *Session) ApplyAuthentication(identity *Identity, claims map[string]any) {
-	if identity == nil || identity.UserID == "" {
+	userID = strings.TrimSpace(userID)
+	deviceID = strings.TrimSpace(deviceID)
+	deviceName = strings.TrimSpace(deviceName)
+	if userID == "" || deviceID == "" {
 		return
 	}
 
 	s.mu.Lock()
-	s.UserID = identity.UserID
-	s.Identity = identity
-	if claims != nil {
-		s.Claims = claims
+	if s.revoked {
+		s.revoked = false
+		s.revokedCh = make(chan struct{})
 	}
+	s.userID = userID
+	s.deviceID = deviceID
+	s.deviceName = deviceName
 	s.mu.Unlock()
-}
 
-type Registry struct {
-	mu sync.RWMutex
-
-	byConnection map[*transport.QuicConnection]*Session
-	byUserID     map[string]*Session
-}
-
-func NewRegistry() *Registry {
-	return &Registry{
-		byConnection: map[*transport.QuicConnection]*Session{},
-		byUserID:     map[string]*Session{},
-	}
-}
-
-func (r *Registry) RegisterConnection(conn *transport.QuicConnection) *Session {
-	if conn == nil {
-		return nil
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if existing, ok := r.byConnection[conn]; ok {
-		return existing
-	}
-
-	s := newSession()
-	s.AddConnection(conn)
-	r.byConnection[conn] = s
-	return s
-}
-
-func (r *Registry) SessionByConnection(conn *transport.QuicConnection) (*Session, bool) {
-	if conn == nil {
-		return nil, false
-	}
-
-	r.mu.RLock()
-	s, ok := r.byConnection[conn]
-	r.mu.RUnlock()
-	return s, ok
-}
-
-func (r *Registry) SessionByUserID(userID string) (*Session, bool) {
-	if userID == "" {
-		return nil, false
-	}
-
-	r.mu.RLock()
-	s, ok := r.byUserID[userID]
-	r.mu.RUnlock()
-	return s, ok
-}
-
-func (r *Registry) UnregisterConnection(conn *transport.QuicConnection) {
-	if conn == nil {
-		return
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	s, ok := r.byConnection[conn]
+	state, ok := userStates.Get(userID)
 	if !ok {
-		return
-	}
-
-	delete(r.byConnection, conn)
-	s.RemoveConnection(conn)
-
-	if s.ConnectionCount() == 0 && s.UserID != "" {
-		delete(r.byUserID, s.UserID)
-	}
-}
-
-func (r *Registry) ApplyAuthentication(conn *transport.QuicConnection, identity *Identity, claims map[string]any) *Session {
-	if conn == nil {
-		return nil
-	}
-	if identity == nil || identity.UserID == "" {
-		s, _ := r.SessionByConnection(conn)
-		return s
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	current, ok := r.byConnection[conn]
-	if !ok {
-		current = newSession()
-		current.AddConnection(conn)
-		r.byConnection[conn] = current
-	}
-
-	target, ok := r.byUserID[identity.UserID]
-	if !ok {
-		target = current
-		r.byUserID[identity.UserID] = target
-	}
-
-	if target != current {
-		current.mu.RLock()
-		for c := range current.connections {
-			target.AddConnection(c)
-			r.byConnection[c] = target
+		userStatesInitMu.Lock()
+		state, ok = userStates.Get(userID)
+		if !ok {
+			defaultDB, err := db.DefaultDB()
+			if err != nil {
+				userStatesInitMu.Unlock()
+				return
+			}
+			_, err = defaultDB.Users.GetUserByID(userID) // no useful fields yet
+			if err != nil {
+				userStatesInitMu.Unlock()
+				return
+			}
+			state = &UserState{
+				userID:  userID,
+				devices: make(map[string]*DeviceSession),
+			}
+			userStates.Set(userID, state)
 		}
-		current.mu.RUnlock()
+		userStatesInitMu.Unlock()
 	}
 
-	target.ApplyAuthentication(identity, claims)
-	return target
+	state.mu.Lock()
+	if state.devices == nil {
+		state.devices = make(map[string]*DeviceSession)
+	}
+	state.devices[deviceID] = s
+	state.mu.Unlock()
 }
 
-var globalRegistry = NewRegistry()
+func (s *DeviceSession) IsAuthenticated() bool {
+	if s == nil {
+		return false
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
-func RegisterConnection(conn *transport.QuicConnection) *Session {
-	return globalRegistry.RegisterConnection(conn)
+	authenticated := s.userID != "" && s.deviceID != ""
+	return authenticated
 }
 
-func SessionByConnection(conn *transport.QuicConnection) (*Session, bool) {
-	return globalRegistry.SessionByConnection(conn)
+func (s *DeviceSession) UserID() string {
+	if s == nil {
+		return ""
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.userID
 }
 
-func SessionByUserID(userID string) (*Session, bool) {
-	return globalRegistry.SessionByUserID(userID)
+func (s *DeviceSession) IsRevoked() bool {
+	if s == nil {
+		return true
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.revoked
 }
 
-func UnregisterConnection(conn *transport.QuicConnection) {
-	globalRegistry.UnregisterConnection(conn)
+func (s *DeviceSession) Revoked() <-chan struct{} {
+	if s == nil {
+		closed := make(chan struct{})
+		close(closed)
+		return closed
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.revokedCh
 }
 
-func ApplyAuthentication(conn *transport.QuicConnection, identity *Identity, claims map[string]any) *Session {
-	return globalRegistry.ApplyAuthentication(conn, identity, claims)
+func (s *DeviceSession) Revoke() {
+	if s == nil {
+		return
+	}
+
+	s.mu.Lock()
+	if s.revoked {
+		s.mu.Unlock()
+		return
+	}
+	s.revoked = true
+	s.userID = ""
+	s.deviceID = ""
+	s.deviceName = ""
+	if s.revokedCh != nil {
+		close(s.revokedCh)
+	}
+	s.mu.Unlock()
+}
+
+func CloseUserSessions(userID string, code quic.ApplicationErrorCode, reason string) {
+	sessions := detachUserSessions(userID)
+	for _, session := range sessions {
+		if session == nil {
+			continue
+		}
+
+		session.Revoke()
+		session.mu.RLock()
+		conn := session.conn
+		session.mu.RUnlock()
+
+		if conn != nil {
+			_ = conn.CloseWithError(code, reason)
+		}
+	}
+}
+
+func InvalidateUserSessions(userID string) {
+	sessions := detachUserSessions(userID)
+	for _, session := range sessions {
+		if session == nil {
+			continue
+		}
+
+		session.Revoke()
+	}
+}
+
+func detachUserSessions(userID string) []*DeviceSession {
+	userID = strings.TrimSpace(userID)
+	if userID == "" {
+		return nil
+	}
+
+	state, ok := userStates.Get(userID)
+	if !ok {
+		return nil
+	}
+
+	state.mu.Lock()
+	sessions := make([]*DeviceSession, 0, len(state.devices))
+	for deviceID, session := range state.devices {
+		sessions = append(sessions, session)
+		delete(state.devices, deviceID)
+	}
+	state.mu.Unlock()
+
+	userStates.Remove(userID)
+	return sessions
 }

@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Containerfile
+    env_file:
+      - ./.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -10,23 +12,8 @@ services:
         condition: service_healthy
       seaweed:
         condition: service_healthy
-    environment:
-      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
-      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      POSTGRES_USER: ${POSTGRES_USER:-ppgram}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ppgram}
-      POSTGRES_DB: ${POSTGRES_DB:-ppgram}
-      REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
-      SEAWEED_MASTER: ${SEAWEED_MASTER:-seaweed:9333}
-      SEAWEED_VOLUME: ${SEAWEED_VOLUME:-seaweed:8080}
-      QUIC_HOST: ${QUIC_HOST:-0.0.0.0}
-      QUIC_PORT: ${QUIC_PORT:-4433}
-      TLS_CERT_FILE: ${TLS_CERT_FILE:-certs/server.cert.pem}
-      TLS_KEY_FILE: ${TLS_KEY_FILE:-secrets/server.key.pem}
-      TLS_ALPN: ${TLS_ALPN:-ppproto/1.0}
-      NETWORK_LOG_FILE: ${NETWORK_LOG_FILE:-logs/network.log}
     ports:
-      - "${QUIC_PORT:-4433}:${QUIC_PORT:-4433}/udp"
+      - "4433:4433/udp"
     volumes:
       - ./certs:/app/certs:ro
       - ./secrets:/app/secrets:ro
@@ -35,12 +22,10 @@ services:
 
   postgres:
     image: postgres:16
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-ppgram}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ppgram}
-      POSTGRES_DB: ${POSTGRES_DB:-ppgram}
+    env_file:
+      - ./.env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-ppgram} -d ${POSTGRES_DB:-ppgram}"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 10

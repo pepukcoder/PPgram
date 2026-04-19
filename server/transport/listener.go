@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 
-	"github.com/ppgram/server/utils"
+	"github.com/ppgram/utils"
 	quic "github.com/quic-go/quic-go"
 )
 

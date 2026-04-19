@@ -2,11 +2,20 @@ package router
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/ppgram/server/core"
+	"github.com/ppgram/server/core/session"
 	"github.com/ppgram/server/protomsg"
 	"github.com/ppgram/server/transport"
 	"google.golang.org/protobuf/proto"
+)
+
+var (
+	ErrResponseBodyRequired = errors.New("response body is required")
+	ErrUpdateBodyRequired   = errors.New("update body is required")
+	ErrInvalidSequence      = errors.New("invalid sequence")
 )
 
 type Middleware func(*BaseContext) error
@@ -15,9 +24,10 @@ type Handler func(*BaseContext) error
 type BaseContext struct {
 	context.Context
 
-	stream *transport.QuicStream
-	Op     route
-	Bytes  []byte
+	stream  *transport.QuicStream
+	Op      route
+	Bytes   []byte
+	Session *session.DeviceSession
 
 	params map[string]string
 	values map[string]any
@@ -87,7 +97,7 @@ func (c *BaseContext) writeEnvelope(envelope proto.Message) error {
 	})
 }
 
-func (c *BaseContext) sendResponse(statusCode core.PPStatusCode, message string, response proto.Message) error {
+func (c *BaseContext) SendResponse(statusCode core.PPStatusCode, message string, response proto.Message) error {
 	var responseBytes []byte
 	if response != nil {
 		bytes, err := proto.Marshal(response)
@@ -104,7 +114,11 @@ func (c *BaseContext) sendResponse(statusCode core.PPStatusCode, message string,
 	})
 }
 
-func (c *BaseContext) sendUpdate(seq uint64, end bool, update proto.Message) error {
+func (c *BaseContext) SendUpdate(seq uint64, end bool, update proto.Message) error {
+	if c.Session != nil && c.Session.IsRevoked() {
+		return session.ErrSessionRevoked
+	}
+
 	updateBytes, err := proto.Marshal(update)
 	if err != nil {
 		return err
@@ -115,4 +129,22 @@ func (c *BaseContext) sendUpdate(seq uint64, end bool, update proto.Message) err
 		End:    end,
 		Update: updateBytes,
 	})
+}
+
+func (c *BaseContext) ReadUpdate() (*protomsg.UpdateEnvelope, error) {
+	if c.Session != nil && c.Session.IsRevoked() {
+		return nil, session.ErrSessionRevoked
+	}
+
+	frame, err := c.stream.ReadFrame()
+	if err != nil {
+		return nil, err
+	}
+
+	envelope := &protomsg.UpdateEnvelope{}
+	if err := proto.Unmarshal(frame.Payload, envelope); err != nil {
+		return nil, fmt.Errorf("decode update envelope: %w", err)
+	}
+
+	return envelope, nil
 }

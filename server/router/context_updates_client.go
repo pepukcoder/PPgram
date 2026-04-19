@@ -9,8 +9,14 @@ import (
 )
 
 type ClientUpdatesContext struct {
-	base    *BaseContext
+	base *BaseContext
+
 	Request *protomsg.ClientUpdateRequest
+	Seq     uint64
+	Update  []byte
+	ended   bool
+
+	nextSeq uint64
 }
 
 func NewClientUpdatesContext(base *BaseContext) (*ClientUpdatesContext, error) {
@@ -25,14 +31,28 @@ func (c *ClientUpdatesContext) Send(statusCode core.PPStatusCode, message string
 	if response == nil {
 		return ErrResponseBodyRequired
 	}
-	return c.base.sendResponse(statusCode, message, response)
+	return c.base.SendResponse(statusCode, message, response)
 }
 
-func (c *ClientUpdatesContext) SendUpdate(seq uint64, end bool, update *protomsg.ClientUpdateResponse) error {
-	if update == nil {
-		return ErrUpdateBodyRequired
+func (c *ClientUpdatesContext) NextUpdate() (last bool, err error) {
+	if c.ended {
+		return true, nil
 	}
-	return c.base.sendUpdate(seq, end, update)
+
+	envelope, err := c.base.ReadUpdate()
+	if err != nil {
+		return false, err
+	}
+
+	if envelope.GetSeq() != c.nextSeq {
+		return false, ErrInvalidSequence
+	}
+
+	c.nextSeq++
+	c.Seq = envelope.GetSeq()
+	c.Update = envelope.GetUpdate()
+	c.ended = envelope.GetEnd()
+	return c.ended, nil
 }
 
 func decodeClientUpdatesRequest(raw []byte) (*protomsg.ClientUpdateRequest, error) {

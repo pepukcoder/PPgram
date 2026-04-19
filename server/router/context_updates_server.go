@@ -11,6 +11,9 @@ import (
 type ServerUpdatesContext struct {
 	base    *BaseContext
 	Request *protomsg.ServerUpdateRequest
+
+	nextSeq uint64
+	ended   bool
 }
 
 func NewServerUpdatesContext(base *BaseContext) (*ServerUpdatesContext, error) {
@@ -25,14 +28,25 @@ func (c *ServerUpdatesContext) Send(statusCode core.PPStatusCode, message string
 	if response == nil {
 		return ErrResponseBodyRequired
 	}
-	return c.base.sendResponse(statusCode, message, response)
+	return c.base.SendResponse(statusCode, message, response)
 }
 
-func (c *ServerUpdatesContext) SendUpdate(seq uint64, end bool, update *protomsg.ServerUpdateResponse) error {
+func (c *ServerUpdatesContext) SendUpdate(end bool, update *protomsg.ServerUpdateResponse) error {
+	if c.ended {
+		return nil
+	}
+
 	if update == nil {
 		return ErrUpdateBodyRequired
 	}
-	return c.base.sendUpdate(seq, end, update)
+
+	if err := c.base.SendUpdate(c.nextSeq, end, update); err != nil {
+		return err
+	}
+
+	c.nextSeq++
+	c.ended = end
+	return nil
 }
 
 func decodeServerUpdatesRequest(raw []byte) (*protomsg.ServerUpdateRequest, error) {

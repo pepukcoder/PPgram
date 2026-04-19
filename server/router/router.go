@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"github.com/ppgram/server/logging"
 	protomsg "github.com/ppgram/server/protomsg"
 	"github.com/ppgram/server/transport"
-	"github.com/ppgram/server/utils"
+	"github.com/ppgram/utils"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -121,8 +122,7 @@ func (r *Router) ClientTransfer(path string, handler ClientTransferHandler, midd
 	})
 }
 
-func (r *Router) Handle(ctx context.Context, userSession *session.Session, stream *transport.QuicStream) {
-	_ = userSession
+func (r *Router) Handle(ctx context.Context, userSession *session.DeviceSession, stream *transport.QuicStream) {
 	connID := stream.ConnectionID()
 	streamID := stream.ID()
 
@@ -174,6 +174,7 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	}
 
 	base := newBaseContext(ctx, stream, route.middleware, route.handler)
+	base.Session = userSession
 	base.Op = route
 	base.Bytes = envelope.Request
 	if base.Bytes == nil {
@@ -181,6 +182,12 @@ func (r *Router) Handle(ctx context.Context, userSession *session.Session, strea
 	}
 	logging.NetworkLogger().Info("request accepted", "conn_id", connID, "stream_id", streamID, "op", path, "stream_type", route.streamType)
 	if err := base.Next(); err != nil {
+		if errors.Is(err, session.ErrSessionRevoked) {
+			logging.NetworkLogger().Info("request terminated", "conn_id", connID, "stream_id", streamID, "op", route.path, "reason", "session revoked")
+			_ = stream.Close()
+			return
+		}
+
 		slog.Error("route handler failed", "route", route.path, "error", err)
 		logging.NetworkLogger().Error("request failed", "conn_id", connID, "stream_id", streamID, "op", route.path, "status_code", uint32(core.ErrCodeInternal), "error", err)
 		if writeErr := sendErrorResponse(stream, core.ErrCodeInternal, "internal error"); writeErr != nil {
@@ -198,8 +205,7 @@ func (r *Router) ServeConnection(ctx context.Context, conn *transport.QuicConnec
 	}
 	logging.NetworkLogger().Info("connection opened", "conn_id", conn.ID(), "remote_addr", conn.RemoteAddr().String(), "local_addr", conn.LocalAddr().String())
 
-	userSession := session.RegisterConnection(conn)
-	defer session.UnregisterConnection(conn)
+	deviceSession := session.NewDeviceSession(conn)
 
 	for {
 		stream, err := conn.AcceptStream(ctx)
@@ -207,7 +213,7 @@ func (r *Router) ServeConnection(ctx context.Context, conn *transport.QuicConnec
 			return err
 		}
 
-		go r.Handle(ctx, userSession, stream)
+		go r.Handle(ctx, deviceSession, stream)
 	}
 }
 

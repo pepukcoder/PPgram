@@ -11,9 +11,13 @@ import (
 	"syscall"
 
 	"github.com/lmittmann/tint"
+	"github.com/ppgram/cache"
 	"github.com/ppgram/config"
+	db "github.com/ppgram/database"
+	authsvc "github.com/ppgram/server/auth"
 	"github.com/ppgram/server/handlers"
 	"github.com/ppgram/server/logging"
+	"github.com/ppgram/server/middleware"
 	"github.com/ppgram/server/router"
 	"github.com/ppgram/server/transport"
 	quic "github.com/quic-go/quic-go"
@@ -28,9 +32,17 @@ func main() {
 	)
 	slog.SetDefault(consoleLogger)
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("load config", "error", err)
+		os.Exit(1)
+	}
+	tlsConfig, err := cfg.TLSConfig()
+	if err != nil {
+		slog.Error("build tls config", "error", err)
 		os.Exit(1)
 	}
 
@@ -42,28 +54,53 @@ func main() {
 	defer closeNetworkLogger()
 	logging.SetNetworkLogger(networkLogger)
 
-	tlsConfig, err := cfg.TLSConfig()
-	if err != nil {
-		slog.Error("build tls config", "error", err)
+	// init infrastructure
+	if err := db.InitDefaultDB(ctx, cfg.GetPostgresURL()); err != nil {
+		slog.Error("init database", "error", err)
 		os.Exit(1)
 	}
+	defer func() {
+		defaultDB, err := db.DefaultDB()
+		if err == nil {
+			defaultDB.Close()
+		}
+	}()
 
+	if err := cache.InitDefaultCache(ctx, cfg.RedisAddr); err != nil {
+		slog.Error("init redis", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		defaultCache, err := cache.DefaultCache()
+		if err == nil {
+			_ = defaultCache.Close()
+		}
+	}()
+
+	// setup routes
+	quicRouter := router.New()
+
+	quicRouter.Response("ping", handlers.PingHandler)
+
+	quicRouter.Response("auth.register", handlers.HandleUserRegister)
+	quicRouter.Response("auth.login.credentials", handlers.HandleUserLoginByCredentials)
+	quicRouter.Response("auth.login.token", handlers.HandleUserLoginByToken)
+
+	quicRouter.Response("account.delete", handlers.HandleAccountDelete, middleware.AuthMiddleware)
+	quicRouter.Response("account.delete.cancel", handlers.HandleAccountDeleteCancel)
+
+	printStartupPanel(cfg, quicRouter.RouteCount())
+
+	// start workers
+	authsvc.StartDeletionWorker(ctx, authsvc.DefaultDeletionWorkerInterval)
+
+	// start serving
 	listener, err := transport.Start(cfg.QUICAddr(), tlsConfig, &quic.Config{})
 	if err != nil {
 		slog.Error("start quic listener", "error", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
-
-	app := router.New()
-
-	app.Response("ping", handlers.PingHandler)
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	printStartupPanel(cfg, app.RouteCount())
-
 	for {
 		conn, err := listener.Accept(ctx)
 		if err != nil {
@@ -75,7 +112,7 @@ func main() {
 			continue
 		}
 		go func(conn *transport.QuicConnection) {
-			if err := app.ServeConnection(ctx, conn); err != nil && !errors.Is(ctx.Err(), context.Canceled) {
+			if err := quicRouter.ServeConnection(ctx, conn); err != nil && !errors.Is(ctx.Err(), context.Canceled) {
 				connID := conn.ID()
 				if isExpectedConnectionClose(err) {
 					logging.NetworkLogger().Info("connection closed", "conn_id", connID, "remote_addr", conn.RemoteAddr().String(), "message", connectionCloseMessage(err))

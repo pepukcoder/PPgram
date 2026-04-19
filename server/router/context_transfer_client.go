@@ -25,7 +25,7 @@ func (c *ClientTransferContext) Send(statusCode core.PPStatusCode, message strin
 	if response == nil {
 		return ErrResponseBodyRequired
 	}
-	return c.base.sendResponse(statusCode, message, response)
+	return c.base.SendResponse(statusCode, message, response)
 }
 
 func decodeClientTransferRequest(raw []byte) (*protomsg.ClientTransferRequest, error) {
