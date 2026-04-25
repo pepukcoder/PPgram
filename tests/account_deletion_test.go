@@ -23,10 +23,11 @@ func TestAccountDeletionFlow(t *testing.T) {
 
 	t.Run("register", func(t *testing.T) {
 		registerResp, err := registerClient.request(t, "auth.register", &protomsg.AuthRegisterRequest{
-			Username:   username,
-			Password:   password,
-			DeviceId:   "accdel_reg",
-			DeviceName: "accdel-register",
+			Username:    username,
+			DisplayName: "Acc Del",
+			Password:    password,
+			DeviceId:    "accdel_reg",
+			DeviceName:  "accdel-register",
 		})
 		if err != nil {
 			t.Fatalf("register failed: %v", err)

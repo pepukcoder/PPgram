@@ -23,10 +23,11 @@ func TestAuthFlows(t *testing.T) {
 
 	t.Run("register", func(t *testing.T) {
 		regResp, err := client.request(t, "auth.register", &protomsg.AuthRegisterRequest{
-			Username:   username,
-			Password:   password,
-			DeviceId:   "auth_dev_1",
-			DeviceName: "auth-device-1",
+			Username:    username,
+			DisplayName: "Auth Flow",
+			Password:    password,
+			DeviceId:    "auth_dev_1",
+			DeviceName:  "auth-device-1",
 		})
 		if err != nil {
 			t.Fatalf("register failed: %v", err)
@@ -38,10 +39,11 @@ func TestAuthFlows(t *testing.T) {
 
 	t.Run("username_taken_on_second_register", func(t *testing.T) {
 		resp, err := client.request(t, "auth.register", &protomsg.AuthRegisterRequest{
-			Username:   username,
-			Password:   password,
-			DeviceId:   "auth_dev_2",
-			DeviceName: "auth-device-2",
+			Username:    username,
+			DisplayName: "Auth Flow Two",
+			Password:    password,
+			DeviceId:    "auth_dev_2",
+			DeviceName:  "auth-device-2",
 		})
 		if err != nil {
 			t.Fatalf("second register failed: %v", err)

@@ -17,20 +17,21 @@ import (
 )
 
 var (
-	ErrInvalidUsername    = errors.New("invalid username")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrInvalidToken       = errors.New("invalid token")
+	ErrInvalidUsername        = errors.New("invalid username")
+	ErrInvalidCredentials     = errors.New("invalid credentials")
+	ErrInvalidToken           = errors.New("invalid token")
 	ErrAccountPendingDeletion = errors.New("account pending deletion")
-	ErrPasswordRequired   = errors.New("password is required")
-	ErrDeviceIDRequired   = errors.New("device_id is required")
-	ErrSessionTokenNeeded = errors.New("session token must be provided")
+	ErrPasswordRequired       = errors.New("password is required")
+	ErrDeviceIDRequired       = errors.New("device_id is required")
+	ErrSessionTokenNeeded     = errors.New("session token must be provided")
 )
 
 type AuthCredentials struct {
-	Username   string
-	Password   string
-	DeviceID   string
-	DeviceName string
+	Username    string
+	DisplayName string
+	Password    string
+	DeviceID    string
+	DeviceName  string
 }
 
 type AuthResult struct {
@@ -58,6 +59,7 @@ func Register(creds AuthCredentials) (*AuthResult, error) {
 		return nil, ErrDeviceIDRequired
 	}
 	creds.DeviceName = strings.TrimSpace(creds.DeviceName)
+	creds.DisplayName = strings.TrimSpace(creds.DisplayName)
 
 	if redis != nil {
 		exists, err := redis.UsernameExists(normalized)
@@ -82,7 +84,7 @@ func Register(creds AuthCredentials) (*AuthResult, error) {
 		return nil, err
 	}
 
-	user, err := database.Users.CreateUser(normalized, passwordHash)
+	user, err := database.Users.CreateUser(normalized, creds.DisplayName, passwordHash)
 	if err != nil {
 		return nil, err
 	}

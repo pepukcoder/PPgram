@@ -3,8 +3,8 @@ package handlers
 import (
 	"errors"
 
-	authsvc "github.com/ppgram/server/auth"
 	db "github.com/ppgram/database"
+	authsvc "github.com/ppgram/server/auth"
 	"github.com/ppgram/server/core"
 	"github.com/ppgram/server/protomsg"
 	"github.com/ppgram/server/router"
@@ -20,10 +20,11 @@ func HandleUserRegister(c *router.ResponseContext) error {
 	}
 
 	result, err := authsvc.Register(authsvc.AuthCredentials{
-		Username:   req.Username,
-		Password:   req.Password,
-		DeviceID:   req.DeviceId,
-		DeviceName: req.DeviceName,
+		Username:    req.Username,
+		DisplayName: req.DisplayName,
+		Password:    req.Password,
+		DeviceID:    req.DeviceId,
+		DeviceName:  req.DeviceName,
 	})
 	if err != nil {
 		if errors.Is(err, authsvc.ErrInvalidUsername) {

@@ -20,6 +20,7 @@ var (
 type User struct {
 	ID           string
 	Username     string
+	DisplayName  string
 	PasswordHash string
 	CreatedAt    time.Time
 }
@@ -44,9 +45,11 @@ func (r *UsersRepository) CreateTable() error {
 		CREATE TABLE IF NOT EXISTS users (
 			user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			username TEXT NOT NULL UNIQUE,
+			display_name TEXT NOT NULL DEFAULT '',
 			password_hash TEXT NOT NULL,
 			created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 		);
+		ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
 	`
 
 	_, err := r.pool.Exec(r.ctx, query)
@@ -57,24 +60,26 @@ func (r *UsersRepository) CreateTable() error {
 	return nil
 }
 
-func (r *UsersRepository) CreateUser(username, passwordHash string) (*User, error) {
+func (r *UsersRepository) CreateUser(username, displayName, passwordHash string) (*User, error) {
 
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return nil, fmt.Errorf("%w: username", ErrMissingRequiredFields)
 	}
+	displayName = strings.TrimSpace(displayName)
 	if passwordHash == "" {
 		return nil, fmt.Errorf("%w: password_hash", ErrMissingRequiredFields)
 	}
 
 	user := &User{}
-	query := `INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING user_id, username, password_hash, created_at`
+	query := `INSERT INTO users (username, display_name, password_hash) VALUES ($1, $2, $3) RETURNING user_id, username, display_name, password_hash, created_at`
 	err := r.pool.QueryRow(
 		r.ctx,
 		query,
 		username,
+		displayName,
 		passwordHash,
-	).Scan(&user.ID, &user.Username, &user.PasswordHash, &user.CreatedAt)
+	).Scan(&user.ID, &user.Username, &user.DisplayName, &user.PasswordHash, &user.CreatedAt)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -91,14 +96,14 @@ func (r *UsersRepository) GetUserByID(userID string) (*User, error) {
 		return nil, ErrUserNotFound
 	}
 
-	query := `SELECT user_id, username, password_hash, created_at FROM users WHERE user_id = $1`
+	query := `SELECT user_id, username, display_name, password_hash, created_at FROM users WHERE user_id = $1`
 
 	user := &User{}
 	err := r.pool.QueryRow(
 		r.ctx,
 		query,
 		userID,
-	).Scan(&user.ID, &user.Username, &user.PasswordHash, &user.CreatedAt)
+	).Scan(&user.ID, &user.Username, &user.DisplayName, &user.PasswordHash, &user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -134,14 +139,14 @@ func (r *UsersRepository) GetUserByUsername(username string) (*User, error) {
 		return nil, fmt.Errorf("%w: username", ErrMissingRequiredFields)
 	}
 
-	query := `SELECT user_id, username, password_hash, created_at FROM users WHERE username = $1`
+	query := `SELECT user_id, username, display_name, password_hash, created_at FROM users WHERE username = $1`
 
 	user := &User{}
 	err := r.pool.QueryRow(
 		r.ctx,
 		query,
 		username,
-	).Scan(&user.ID, &user.Username, &user.PasswordHash, &user.CreatedAt)
+	).Scan(&user.ID, &user.Username, &user.DisplayName, &user.PasswordHash, &user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
